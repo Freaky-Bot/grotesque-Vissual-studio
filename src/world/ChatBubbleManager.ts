@@ -34,7 +34,7 @@ export class ChatBubbleManager {
         document.body.appendChild(this.container);
     }
 
-    public showBubble(worldPos: THREE.Vector3, text: string, headOffset: number = 3, duration: number = 4000): void {
+    public showBubble(worldPos: THREE.Vector3, text: string, headOffset: number = 3, duration: number = 3 * Math.PI * 1000): void {
         // trim text so bubbles dont go insane wide
         const trimmed = text.length > 80 ? text.substring(0, 77) + '...' : text;
 
@@ -121,7 +121,7 @@ export class ChatBubbleManager {
 
     // show bubble anchored to a live vector3 ref -- updates position each frame
     // use this for moving characters (most of em)
-    public showBubbleLive(worldPosRef: THREE.Vector3, text: string, headOffset: number = 3, duration: number = 4000): void {
+    public showBubbleLive(worldPosRef: THREE.Vector3, text: string, headOffset: number = 3, duration: number = 3 * Math.PI * 1000): void {
         const trimmed = text.length > 80 ? text.substring(0, 77) + '...' : text;
 
         const el = document.createElement('div');
