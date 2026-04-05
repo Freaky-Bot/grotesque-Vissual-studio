@@ -158,6 +158,7 @@ export interface ActiveDomain {
     playerLockedInside: boolean;    // true = player was inside when cast, locked in til domain collapses
     stunPulseTimer: number;
     uniqueTimer: number;            // for per-domain special effect tick
+    abilityTimer: number;           // counts down to the next guaranteed sure-hit ability
     sphere: THREE.Mesh;
     light: THREE.PointLight;
     innerLight: THREE.PointLight;   // secondary light for atmosphere
@@ -272,6 +273,7 @@ export class DomainExpansionSystem {
             npc, def, castPos, playerLockedInside,
             stunPulseTimer: def.stunPulse,
             uniqueTimer: 0,
+            abilityTimer: DomainExpansionSystem.ABILITY_INTERVALS[defKey] ?? 3,
             sphere, light, innerLight,
         };
 
@@ -373,45 +375,183 @@ export class DomainExpansionSystem {
     private _playerHpPct: number = 1;
     public setPlayerHpPct(pct: number): void { this._playerHpPct = pct; }
 
-    // unique per-domain special effects -- this is where domains get their personality
+    // how often (seconds) each domain fires its sure-hit ability
+    private static readonly ABILITY_INTERVALS: Record<string, number> = {
+        normal: 3, jesus: 4, robot: 2, orb: 3.5, angel: 3, pirate: 3,
+        wizard: 4, vampire: 2, disco: 2, shadow: 4, barney: 6,
+        emo: 3, shrek: 4, buffcat: 2.5, voidcat: 4, hybrid: 3,
+    };
+
+    // unique per-domain special effects + SURE HIT ABILITIES -- each domain does something that cannot be dodged
     private tickUniqueEffect(
         d: ActiveDomain,
         dt: number,
-        _playerPos: THREE.Vector3,
-        _onPlayerDamage: (dmg: number) => void,
-        _onPlayerStun: () => void,
+        playerPos: THREE.Vector3,
+        onPlayerDamage: (dmg: number) => void,
+        onPlayerStun: () => void,
     ): void {
         const type = d.def.npcType;
         const t = Date.now();
-        // universal: vampire steals player HP and gives to npc
-        if (type === 'vampire' && d.playerLockedInside) {
-            const stolen = d.def.damage * dt * 0.5;
-            d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + stolen);
-            // damage already applied in main loop so just the heal here
-        }
-        // unique effect every N seconds based on npc type
-        const effectInterval = type === 'barney' ? 4 : type === 'normal' ? 5 : type === 'wizard' ? 6 : type === 'shrek' ? 3 : type === 'disco' ? 2 : 0;
-        if (effectInterval > 0 && d.uniqueTimer >= effectInterval) {
-            d.uniqueTimer = 0;
-            this.onDomainEffect?.(type, d.castPos, d.def.radius);
-        }
-        // shadow + voidcat: crackle inner light rapidly
+
+        // ----- VISUAL EFFECTS (every frame) -----
         if (type === 'shadow' || type === 'voidcat') {
-            d.innerLight.intensity = Math.random() < 0.05 ? 8 : 0; // occasional flash of nothing
+            d.innerLight.intensity = Math.random() < 0.05 ? 8 : 0;
         }
-        // robot: inner light strobes on grid frequency
         if (type === 'robot') {
             d.innerLight.intensity = Math.sin(t * 0.02) > 0 ? 4 : 0;
         }
-        // disco: rotate the domain color every frame through hues
         if (type === 'disco') {
             const hue = (t * 0.001) % 1;
             (d.sphere.material as THREE.MeshBasicMaterial).color.setHSL(hue, 1, 0.5);
             d.light.color.setHSL(hue, 1, 0.5);
         }
-        // buffcat: innerlight goes RED every hit
         if (type === 'buffcat') {
             d.innerLight.color.setHSL(0, 1, 0.5 + Math.sin(t * 0.01) * 0.4);
+        }
+
+        // ----- SURE HIT ABILITIES (on timer) -----
+        // only fire when player is actually trapped inside -- outside the domain = safe
+        if (!d.playerLockedInside) return;
+
+        d.abilityTimer -= dt;
+        if (d.abilityTimer > 0) return;
+
+        // reset timer with a tiny random jitter so multiple domains dont sync up
+        d.abilityTimer = (DomainExpansionSystem.ABILITY_INTERVALS[type] ?? 3) + Math.random() * 0.5;
+
+        switch (type) {
+            case 'normal': {
+                // INFINITE MEOW BARRAGE: slams 5 guaranteed meow hits in a burst. no reaction time.
+                for (let i = 0; i < 5; i++) onPlayerDamage(6);
+                this.onDomainEffect?.('ability_normal', d.castPos, d.def.radius);
+                break;
+            }
+            case 'jesus': {
+                // HOLY JUDGMENT: divine light beam -- 25 damage + stun. you sinned. accept it.
+                onPlayerDamage(25);
+                onPlayerStun();
+                this.onDomainEffect?.('ability_jesus', d.castPos, d.def.radius);
+                break;
+            }
+            case 'robot': {
+                // LOGIC LOCK: locks player to center with a targeting beam + 20 dmg. nowhere to run.
+                const robotLockPos = new THREE.Vector3(
+                    d.castPos.x + (Math.random() - 0.5) * 4,
+                    playerPos.y,
+                    d.castPos.z + (Math.random() - 0.5) * 4,
+                );
+                this.onPlayerPushback?.(robotLockPos); // drag to center
+                onPlayerDamage(20);
+                this.onDomainEffect?.('ability_robot', d.castPos, d.def.radius);
+                break;
+            }
+            case 'orb': {
+                // OMNISCIENT GRASP: the orb SEES you and yanks you to it. 20 dmg + pull to center.
+                const orbCenter = new THREE.Vector3(
+                    d.castPos.x + (Math.random() - 0.5) * 6,
+                    playerPos.y,
+                    d.castPos.z + (Math.random() - 0.5) * 6,
+                );
+                this.onPlayerPushback?.(orbCenter);
+                onPlayerDamage(20);
+                this.onDomainEffect?.('ability_orb', d.castPos, d.def.radius);
+                break;
+            }
+            case 'angel': {
+                // DIVINE SMITE: holy feather storm. 30 dmg + stun. god is not forgiving here.
+                onPlayerDamage(30);
+                onPlayerStun();
+                this.onDomainEffect?.('ability_angel', d.castPos, d.def.radius);
+                break;
+            }
+            case 'pirate': {
+                // CANNONBALL: direct hit. 35 dmg. no warning. yarr.
+                onPlayerDamage(35);
+                this.onDomainEffect?.('ability_pirate', d.castPos, d.def.radius);
+                break;
+            }
+            case 'wizard': {
+                // TELEPORT TRAP: zaps player to a random spot inside. disorients + 20 dmg.
+                const angle = Math.random() * Math.PI * 2;
+                const r = 2 + Math.random() * (d.def.radius * 0.7);
+                this.onPlayerPushback?.(new THREE.Vector3(
+                    d.castPos.x + Math.cos(angle) * r,
+                    playerPos.y,
+                    d.castPos.z + Math.sin(angle) * r,
+                ));
+                onPlayerDamage(20);
+                this.onDomainEffect?.('ability_wizard', d.castPos, d.def.radius);
+                break;
+            }
+            case 'vampire': {
+                // LIFEDRAIN CLAMP: drains 25 hp directly from player and gives it to the vampire. personal.
+                onPlayerDamage(25);
+                d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 25); // vampire gets it
+                this.onDomainEffect?.('ability_vampire', d.castPos, d.def.radius);
+                break;
+            }
+            case 'disco': {
+                // FORCED GROOVE: cant stop wont stop. stun + 10 dmg + extra groove effect.
+                onPlayerDamage(10);
+                onPlayerStun();
+                this.onDomainEffect?.('ability_disco', d.castPos, d.def.radius);
+                break;
+            }
+            case 'shadow': {
+                // BLACK FLASH: the signature move. 45 guaranteed dmg + screen goes black.
+                onPlayerDamage(45);
+                this.onDomainEffect?.('ability_shadow', d.castPos, d.def.radius);
+                break;
+            }
+            case 'barney': {
+                // UNCONDITIONAL HUG OF DOOM: teleports you to center + 15 dmg + 3s stun.
+                // the hug is mandatory. the hug is always there. the hug never ends.
+                this.onPlayerPushback?.(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+                onPlayerDamage(15);
+                onPlayerStun();
+                this.onDomainEffect?.('ability_barney', d.castPos, d.def.radius);
+                break;
+            }
+            case 'emo': {
+                // RESONANCE WAVE: nobody cares. 40 dmg. glass domain hits hardest on offense.
+                onPlayerDamage(40);
+                this.onDomainEffect?.('ability_emo', d.castPos, d.def.radius);
+                break;
+            }
+            case 'shrek': {
+                // SWAMP SINK: mud everywhere + 20 dmg. this is his swamp. u r just living in it.
+                onPlayerDamage(20);
+                this.onDomainEffect?.('ability_shrek', d.castPos, d.def.radius);
+                break;
+            }
+            case 'buffcat': {
+                // IRON FIST: 50 dmg. thats it. direct. unblockable. just completely jacked.
+                onPlayerDamage(50);
+                this.onDomainEffect?.('ability_buffcat', d.castPos, d.def.radius);
+                break;
+            }
+            case 'voidcat': {
+                // VOID ERASURE: 35 dmg + screen invert + teleport to random edge. existence questioned.
+                onPlayerDamage(35);
+                const vAngle = Math.random() * Math.PI * 2;
+                const vR = d.def.radius * 0.8;
+                this.onPlayerPushback?.(new THREE.Vector3(
+                    d.castPos.x + Math.cos(vAngle) * vR,
+                    playerPos.y,
+                    d.castPos.z + Math.sin(vAngle) * vR,
+                ));
+                this.onDomainEffect?.('ability_voidcat', d.castPos, d.def.radius);
+                break;
+            }
+            case 'hybrid': {
+                // CHAOS BURST: completely random. could be 20 dmg. could be 80. who knows. hybrid doesn't.
+                const chaosDmg = 20 + Math.random() * 60;
+                onPlayerDamage(chaosDmg);
+                if (Math.random() < 0.4) onPlayerStun();
+                d.abilityTimer = 2 + Math.random() * 4; // random next interval too bc of course
+                this.onDomainEffect?.('ability_hybrid', d.castPos, chaosDmg);
+                break;
+            }
         }
     }
 

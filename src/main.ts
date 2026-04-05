@@ -224,14 +224,12 @@ class CatGodWorld {
             };
             ds.onDomainEffect = (effect, center, _radius) => {
                 if (effect === 'normal') {
-                    // infinite meow: spawn a normal cat inside the domain bc chaos
                     this.npcManager.forceSpawnRandom(1);
                     this.chat.addMessage('event', '🐱 THE MEOWING BRINGS FORTH MORE CATS');
                 } else if (effect === 'barney') {
                     this.npcManager.forceSpawnBarney();
                     this.chat.addMessage('event', '🦕 BARNEY EMERGES FROM THE LOVE DOMAIN');
                 } else if (effect === 'wizard') {
-                    // teleport player to a random spot inside the wizard domain
                     const angle = Math.random() * Math.PI * 2;
                     const r = Math.random() * 15;
                     this.sageCharacter.teleportTo(new THREE.Vector3(
@@ -239,26 +237,91 @@ class CatGodWorld {
                     ));
                     this.chat.addMessage('event', '🧙 The wizard\'s domain warped you!');
                 } else if (effect === 'shrek') {
-                    // mud player inside swamp -- really slow for 4s
                     this.mudSlowTimer = Math.max(this.mudSlowTimer, 4);
                     this.chat.addMessage('event', '🥞 SHREK\'S SWAMP: You are ankle-deep in mud.');
                 } else if (effect === 'disco') {
-                    // extra stun burst
                     this.sageCharacter.stun?.(1.5);
                     this.chat.addMessage('event', '🩩 DISCO DOMAIN: You cannot resist the groove.');
                 } else if (effect === 'emo') {
-                    // CSS desaturation -- bleak existential horror
                     document.body.style.filter = 'saturate(0.05) brightness(0.7)';
                 } else if (effect === 'shadow') {
-                    // flash the screen black
                     document.body.style.filter = 'brightness(0.05)';
                     setTimeout(() => { document.body.style.filter = ''; }, 120);
                 } else if (effect === 'voidcat') {
-                    // flicker between normal and dark
                     document.body.style.filter = 'invert(1) brightness(0.3)';
                     setTimeout(() => { document.body.style.filter = ''; }, 80);
                 } else if (effect === 'screen_clear') {
                     document.body.style.filter = '';
+                // ----- SURE HIT ABILITY EFFECTS -----
+                } else if (effect === 'ability_normal') {
+                    this.chat.addMessage('event', '🐱 INFINITE MEOW BARRAGE — 5 guaranteed hits!!');
+                } else if (effect === 'ability_jesus') {
+                    document.body.style.filter = 'brightness(3) saturate(0)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', '✝️ HOLY JUDGMENT — there is no mercy here.');
+                } else if (effect === 'ability_robot') {
+                    document.body.style.filter = 'hue-rotate(120deg) brightness(2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 150);
+                    this.chat.addMessage('event', '🤖 LOGIC LOCK — TARGET ACQUIRED. CALCULATING IMPACT.');
+                } else if (effect === 'ability_orb') {
+                    document.body.style.filter = 'saturate(4) brightness(1.5)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', '🔮 OMNISCIENT GRASP — the orb sees you. always.');
+                } else if (effect === 'ability_angel') {
+                    document.body.style.filter = 'brightness(4) saturate(0)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 300);
+                    this.chat.addMessage('event', '👼 DIVINE SMITE — heavenly beat-down.');
+                } else if (effect === 'ability_pirate') {
+                    document.body.style.filter = 'brightness(0.3) sepia(1)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 150);
+                    this.chat.addMessage('event', '💣 CANNONBALL — direct hit. yarr.');
+                } else if (effect === 'ability_wizard') {
+                    document.body.style.filter = 'hue-rotate(270deg) brightness(2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', '🧙 TELEPORT TRAP — disoriented by arcane displacement.');
+                } else if (effect === 'ability_vampire') {
+                    document.body.style.filter = 'saturate(0) brightness(0.4)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 400);
+                    this.chat.addMessage('event', '🧛 LIFEDRAIN CLAMP — your blood fuels the palace.');
+                } else if (effect === 'ability_disco') {
+                    const dHue = Math.random();
+                    document.body.style.filter = `hue-rotate(${dHue * 360}deg) brightness(2) saturate(3)`;
+                    setTimeout(() => { document.body.style.filter = ''; }, 300);
+                    this.chat.addMessage('event', '💃 FORCED GROOVE — YOU WILL DANCE.');
+                } else if (effect === 'ability_shadow') {
+                    document.body.style.filter = 'brightness(0)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 250);
+                    this.chat.addMessage('event', '🖤 BLACK FLASH — you did not see it coming.');
+                } else if (effect === 'ability_barney') {
+                    document.body.style.filter = 'hue-rotate(270deg) saturate(3) brightness(1.5)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 500);
+                    this.chat.addMessage('event', '🟣 UNCONDITIONAL HUG OF DOOM — mandatory participation.');
+                } else if (effect === 'ability_emo') {
+                    document.body.style.filter = 'saturate(0) brightness(0.2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 350);
+                    this.chat.addMessage('event', '😢 RESONANCE WAVE — nobody cares. 40 dmg.');
+                } else if (effect === 'ability_shrek') {
+                    this.mudSlowTimer = Math.max(this.mudSlowTimer, 5);
+                    document.body.style.filter = 'sepia(1) brightness(0.6)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 300);
+                    this.chat.addMessage('event', '🟩 SWAMP SINK — you are stuck. this is his domain.');
+                } else if (effect === 'ability_buffcat') {
+                    document.body.style.filter = 'saturate(0) contrast(3) brightness(0.5)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', '💪 IRON FIST — 50 dmg. absolutely jacked. rip.');
+                } else if (effect === 'ability_voidcat') {
+                    document.body.style.filter = 'invert(1) brightness(0.2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 350);
+                    this.chat.addMessage('event', '⬛ VOID ERASURE — your existence is questioned.');
+                } else if (effect === 'ability_hybrid') {
+                    const chaosHue = Math.random() * 360;
+                    document.body.style.filter = `hue-rotate(${chaosHue}deg) contrast(3)`;
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', `😵 CHAOS BURST — ${Math.round(_radius)} dmg. hybrid doesn't even know.`);
+                } else if (effect === 'execute_player') {
+                    this.chat.addMessage('event', '💀 DOMAIN EXECUTE — you were too weak. the domain finished it.');
+                } else if (effect === 'kill_burst') {
+                    this.chat.addMessage('event', '💥 DOMAIN COLLAPSE DETONATION — standing inside was a mistake.');
                 }
             };
         }
