@@ -9,6 +9,10 @@ import { PhysicsWorld } from './world/PhysicsWorld';
 import { ProcreationSystem } from './world/ProcreationSystem';
 import { CameraController } from './world/CameraController';
 import { JojoSystem } from './world/JojoSystem';
+import { AudioManager } from './world/AudioManager';
+import { UgandanKnucklesEvent } from './world/UgandanKnucklesEvent';
+import { ChatSystem } from './world/ChatSystem';
+import { ChatBubbleManager } from './world/ChatBubbleManager';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -21,6 +25,9 @@ class CatGodWorld {
     private procreationSystem: ProcreationSystem;
     private cameraController: CameraController;
     private jojoSystem: JojoSystem;
+    private ugandanKnucklesEvent: UgandanKnucklesEvent;
+    private chat: ChatSystem;
+    private bubbles: ChatBubbleManager;
     private scene: THREE.Scene;
     private keyPressed: Record<string, boolean> = {};
     private jojoMessageCounter: number = 0;
@@ -52,6 +59,24 @@ class CatGodWorld {
 
         // Initialize JOJO SYSTEM!!! ゴゴゴゴゴ (MENACING)
         this.jojoSystem = new JojoSystem();
+
+        // nyan cat goes nyanyanyanya, press M to mute -- doesnt need a ref it runs itself
+        new AudioManager('./nyan-cat.mp3', 0.4);
+
+        // DO U KNO DA WEY - the most important system in this entire game
+        this.ugandanKnucklesEvent = new UgandanKnucklesEvent(this.scene);
+
+        // chat system -- press enter to yap
+        this.chat = new ChatSystem();
+        this.ugandanKnucklesEvent.setAnnounceCallback((msg) => this.chat.announceKnuckles(msg));
+
+        // chat bubbles above heads -- the roblox experience
+        this.bubbles = new ChatBubbleManager(this.renderEngine.getCamera());
+        const bubbleFn = (pos: THREE.Vector3, text: string, h: number) => this.bubbles.showBubbleLive(pos, text, h);
+        this.npcManager.setBubbleCallback(bubbleFn);
+        this.catGod.setSpeakCallback(bubbleFn);
+        this.sageCharacter.setBubbleCallback(bubbleFn);
+        this.chat.setOnPlayerSend((text) => this.sageCharacter.showBubble(text));
 
         // Setup keyboard controls
         this.setupKeyboardControls();
@@ -120,10 +145,16 @@ class CatGodWorld {
             const deltaTime = 1 / 60; // Assuming 60 FPS
             
             this.physicsWorld.update(deltaTime);
-            this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY());
+            this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen());
             this.catGod.update(deltaTime, this.sageCharacter.getPosition());
             this.npcManager.update(deltaTime);
             this.worldGenerator.update(deltaTime, this.sageCharacter.getPosition());
+
+            // spit on him brudda (ugandan knuckles rain event)
+            this.ugandanKnucklesEvent.update(deltaTime, this.sageCharacter.getPosition());
+
+            // reproject all chat bubbles to screen every frame
+            this.bubbles.update();
 
             // Update camera controller
             const sagePos = this.sageCharacter.getPosition();
@@ -160,7 +191,9 @@ class CatGodWorld {
         }
 
         if (npcStatsEl) {
-            npcStatsEl.textContent = `NPCs: ${this.npcManager.getNPCCount()} | Buildings: ${this.worldGenerator.getBuildingCount()} | Offspring: ${this.procreationSystem.getOffspringCount()}`;
+            const knucklesCount = this.ugandanKnucklesEvent.getActiveCount();
+            const knucklesStr = knucklesCount > 0 ? ` | Bruddas: ${knucklesCount}` : '';
+            npcStatsEl.textContent = `NPCs: ${this.npcManager.getNPCCount()} | Buildings: ${this.worldGenerator.getBuildingCount()} | Offspring: ${this.procreationSystem.getOffspringCount()}${knucklesStr}`;
         }
 
         // Show procreation status

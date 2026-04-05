@@ -7,6 +7,14 @@ export class CatGodNPC {
     private playerPosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     private aiState: 'idle' | 'curious' | 'dominant' = 'idle';
     private aiTimer: number = 0;
+    private leftArm: THREE.Group = new THREE.Group(); // the slapping arms lol
+    private rightArm: THREE.Group = new THREE.Group();
+    private slapTimer: number = 0;
+    private slapCooldown: number = 1.2; // slap every 1.2 seconds when close, yolo
+    private slapProgress: number = 0;
+    private slapActive: boolean = false;
+    private slapSide: 'left' | 'right' = 'left';
+    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
         this.mesh = this.createCatGodMesh();
@@ -175,20 +183,8 @@ export class CatGodNPC {
         tail.castShadow = true;
         group.add(tail);
 
-        // BLESSED HANDS - prayer position
-        const handGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.4);
-        const handMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
-        const leftHand = new THREE.Mesh(handGeometry, handMaterial);
-        leftHand.position.set(-1.2, 2, 0);
-        leftHand.rotation.z = 0.3;
-        leftHand.castShadow = true;
-        group.add(leftHand);
-
-        const rightHand = new THREE.Mesh(handGeometry, handMaterial);
-        rightHand.position.set(1.2, 2, 0);
-        rightHand.rotation.z = -0.3;
-        rightHand.castShadow = true;
-        group.add(rightHand);
+        // CAT ARMS - for slapping mortals, very important feature
+        this.buildArms(group);
 
         // BABY FEATURES - crown of light
         const crownGeometry = new THREE.SphereGeometry(1.8, 16, 16);
@@ -223,6 +219,74 @@ export class CatGodNPC {
         return group;
     }
 
+    private buildArms(group: THREE.Group): void {
+        const armMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
+        const clawMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.5 });
+        const upperArmGeo = new THREE.CylinderGeometry(0.3, 0.25, 1.6, 8);
+        const forearmGeo = new THREE.CylinderGeometry(0.25, 0.2, 1.3, 8);
+        const pawGeo = new THREE.BoxGeometry(0.8, 0.35, 0.9);
+        const clawGeo = new THREE.ConeGeometry(0.09, 0.45, 6);
+
+        // left arm group, pivots at shoulder
+        this.leftArm = new THREE.Group();
+        this.leftArm.position.set(-2, 1.2, 0);
+
+        const leftUpper = new THREE.Mesh(upperArmGeo, armMat);
+        leftUpper.rotation.z = Math.PI / 4;
+        leftUpper.position.set(-0.55, 0, 0);
+        leftUpper.castShadow = true;
+        this.leftArm.add(leftUpper);
+
+        const leftFore = new THREE.Mesh(forearmGeo, armMat);
+        leftFore.rotation.z = Math.PI / 5;
+        leftFore.position.set(-1.25, -0.4, 0);
+        leftFore.castShadow = true;
+        this.leftArm.add(leftFore);
+
+        const leftPaw = new THREE.Mesh(pawGeo, armMat);
+        leftPaw.position.set(-1.9, -0.75, 0);
+        this.leftArm.add(leftPaw);
+
+        // 3 lil claws on left paw
+        for (let c = 0; c < 3; c++) {
+            const claw = new THREE.Mesh(clawGeo, clawMat);
+            claw.position.set(-1.9 + (c - 1) * 0.22, -0.95, 0.42);
+            claw.rotation.x = -0.6;
+            this.leftArm.add(claw);
+        }
+
+        group.add(this.leftArm);
+
+        // right arm group, mirrored
+        this.rightArm = new THREE.Group();
+        this.rightArm.position.set(2, 1.2, 0);
+
+        const rightUpper = new THREE.Mesh(upperArmGeo, armMat);
+        rightUpper.rotation.z = -Math.PI / 4;
+        rightUpper.position.set(0.55, 0, 0);
+        rightUpper.castShadow = true;
+        this.rightArm.add(rightUpper);
+
+        const rightFore = new THREE.Mesh(forearmGeo, armMat);
+        rightFore.rotation.z = -Math.PI / 5;
+        rightFore.position.set(1.25, -0.4, 0);
+        rightFore.castShadow = true;
+        this.rightArm.add(rightFore);
+
+        const rightPaw = new THREE.Mesh(pawGeo, armMat);
+        rightPaw.position.set(1.9, -0.75, 0);
+        this.rightArm.add(rightPaw);
+
+        for (let c = 0; c < 3; c++) {
+            const claw = new THREE.Mesh(clawGeo, clawMat);
+            claw.position.set(1.9 + (c - 1) * 0.22, -0.95, 0.42);
+            claw.rotation.x = -0.6;
+            this.rightArm.add(claw);
+        }
+
+        group.add(this.rightArm);
+    }
+
     public update(deltaTime: number, playerPosition: THREE.Vector3): void {
         this.playerPosition.copy(playerPosition);
         const distance = this.playerPosition.distanceTo(this.position);
@@ -242,6 +306,43 @@ export class CatGodNPC {
         if (this.aiTimer > 4) {
             this.aiTimer = 0;
             this.speakAI(distance);
+        }
+
+        // SLAP THE PLAYER if theyre too close, this is what arms are for
+        this.slapTimer += deltaTime;
+        if (distance < 8 && this.slapTimer >= this.slapCooldown && !this.slapActive) {
+            this.slapActive = true;
+            this.slapProgress = 0;
+            this.slapSide = Math.random() < 0.5 ? 'left' : 'right';
+            this.slapTimer = 0;
+            console.log('🐱 Cat God: *SLAP* get away from me mortal!!');
+        }
+
+        if (this.slapActive) {
+            this.slapProgress += deltaTime * 4.5; // how fast the slap swings
+            const arm = this.slapSide === 'left' ? this.leftArm : this.rightArm;
+            const sign = this.slapSide === 'left' ? -1 : 1;
+            if (this.slapProgress < 0.5) {
+                // wind up - pull arm back
+                const t = this.slapProgress * 2;
+                arm.rotation.z = sign * t * (Math.PI / 2.5);
+                arm.rotation.x = -t * 0.4;
+            } else if (this.slapProgress < 1.0) {
+                // SLAP - swing forward hard
+                const t = (this.slapProgress - 0.5) * 2;
+                arm.rotation.z = sign * (1 - t) * (Math.PI / 2.5);
+                arm.rotation.x = -((1 - t) * 0.4) + t * (Math.PI / 1.8);
+            } else {
+                // done, arm goes back to chill position
+                arm.rotation.z = 0;
+                arm.rotation.x = 0;
+                this.slapActive = false;
+            }
+        } else {
+            // arms just hang there looking menacing, gentle sway
+            const t2 = Date.now() * 0.001;
+            this.leftArm.rotation.z = Math.sin(t2 * 1.2) * 0.06;
+            this.rightArm.rotation.z = -Math.sin(t2 * 1.2) * 0.06;
         }
 
         // Rotate all halos and mystical elements
@@ -323,6 +424,7 @@ export class CatGodNPC {
                 : '[IDLE] ';
 
         console.log(`🐱 Cat God AI: "${prefix}${line}"`);
+        this.speakCallback?.(this.position, line, 9); // head is way up high, offset accordingly
     }
 
     private randomWalk(deltaTime: number, speed: number = 1.5): void {
@@ -337,6 +439,10 @@ export class CatGodNPC {
 
         this.position.x = Math.max(-200, Math.min(200, this.position.x));
         this.position.z = Math.max(-200, Math.min(200, this.position.z));
+    }
+
+    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+        this.speakCallback = fn;
     }
 
     public getMesh(): THREE.Mesh | THREE.Group {

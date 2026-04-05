@@ -8,6 +8,8 @@ export abstract class BaseNPC {
     protected targetAngle: number = 0;
     protected dialogues: string[] = [];
     protected dialogueTimer: number = 0;
+    protected bubbleHeadOffset: number = 3.5; // how high above position to show bubble, override per npc type
+    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
     constructor(position: THREE.Vector3) {
         this.position = position.clone();
@@ -44,7 +46,12 @@ export abstract class BaseNPC {
         if (this.dialogues.length > 0) {
             const dialogue = this.dialogues[Math.floor(Math.random() * this.dialogues.length)];
             console.log(`🐱 ${dialogue}`); // MEOW broadcast
+            this.speakCallback?.(this.position, dialogue, this.bubbleHeadOffset);
         }
+    }
+
+    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+        this.speakCallback = fn; // hook in the bubble manager
     }
 
     public getMesh(): THREE.Group | THREE.Mesh {

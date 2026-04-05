@@ -36,15 +36,118 @@
             color: #ff69b4;
             font-weight: bold;
         }
+
+        /* chat box -- bottom left, always there */
+        #chat-box {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 420px;
+            z-index: 200;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        #chat-log {
+            background: rgba(0, 0, 0, 0.65);
+            border-radius: 5px;
+            padding: 8px 10px;
+            height: 160px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 13px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+        }
+        #chat-log::-webkit-scrollbar { width: 4px; }
+        #chat-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        .chat-msg { color: #ddd; word-break: break-word; line-height: 1.4; }
+        .chat-time { color: rgba(255,255,255,0.35); font-size: 11px; }
+        .chat-msg-player { color: #7dd3fc; }
+        .chat-msg-event { color: #fbbf24; font-weight: bold; }
+        .chat-msg-system { color: rgba(255,255,255,0.45); font-style: italic; }
+        .chat-msg-knuckles { color: #f87171; font-weight: bold; }
+        .chat-msg-catgod { color: #ffd700; font-weight: bold; }
+        #chat-input-wrapper {
+            display: none;
+            background: rgba(0,0,0,0.8);
+            border-radius: 5px;
+            padding: 6px 8px;
+            align-items: center;
+            gap: 6px;
+        }
+        #chat-label { color: rgba(255,255,255,0.5); font-size: 12px; white-space: nowrap; }
+        #chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #7dd3fc;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+            caret-color: #7dd3fc;
+        }
+        #chat-hint {
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            text-align: right;
+            padding: 0 2px;
+        }
+
+        /* roblox style chat bubbles -- float above npc/player heads */
+        .chat-bubble {
+            position: absolute;
+            background: white;
+            color: #111;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 10px;
+            max-width: 200px;
+            text-align: center;
+            word-break: break-word;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            white-space: pre-wrap;
+            line-height: 1.4;
+            pointer-events: none;
+            transition: opacity 0.1s;
+        }
+        /* the lil triangle tail pointing downward */
+        .chat-bubble-tail {
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 8px solid white;
+        }
     </style>
 </head>
 <body>
     <div id="ui">
-        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera</div>
+        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera, M to mute music</div>
         <div id="playerKills">Player Kills: 0</div>
         <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
         <div id="procreation">💔 Get closer to Cat God</div>
     </div>
+
+    <!-- chat system, press enter to open -->
+    <div id="chat-box">
+        <div id="chat-log"></div>
+        <div id="chat-input-wrapper">
+            <span id="chat-label">Say:</span>
+            <input id="chat-input" type="text" maxlength="200" autocomplete="off" spellcheck="false" />
+        </div>
+        <div id="chat-hint">ENTER to open/send · ESC to close</div>
+    </div>
+
     <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

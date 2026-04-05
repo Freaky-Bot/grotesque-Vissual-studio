@@ -7,6 +7,7 @@ export class SageCharacter {
     private moveSpeed: number = 40;
     private keys: Record<string, boolean> = {};
     private glowIntensity: number = 1;
+    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
         this.position = new THREE.Vector3(10, 2, -10);
@@ -101,25 +102,28 @@ export class SageCharacter {
         });
     }
 
-    public update(deltaTime: number, cameraAngleY: number = 0): void {
+    public update(deltaTime: number, cameraAngleY: number = 0, chatOpen: boolean = false): void {
         // Reset velocity
         this.velocity.set(0, 0, 0);
 
         // CAMERA-RELATIVE MOVEMENT!! (finally lol)
+        // dont move while typing in chat, that would be annoying as heck
         let moveForward = 0;
         let moveRight = 0;
 
-        if (this.keys['w'] || this.keys['arrowup']) {
-            moveForward += this.moveSpeed;
-        }
-        if (this.keys['s'] || this.keys['arrowdown']) {
-            moveForward -= this.moveSpeed;
-        }
-        if (this.keys['d'] || this.keys['arrowright']) {
-            moveRight += this.moveSpeed;
-        }
-        if (this.keys['a'] || this.keys['arrowleft']) {
-            moveRight -= this.moveSpeed;
+        if (!chatOpen) {
+            if (this.keys['w'] || this.keys['arrowup']) {
+                moveForward += this.moveSpeed;
+            }
+            if (this.keys['s'] || this.keys['arrowdown']) {
+                moveForward -= this.moveSpeed;
+            }
+            if (this.keys['d'] || this.keys['arrowright']) {
+                moveRight += this.moveSpeed;
+            }
+            if (this.keys['a'] || this.keys['arrowleft']) {
+                moveRight -= this.moveSpeed;
+            }
         }
 
         // Apply camera-relative directional movement
@@ -169,6 +173,14 @@ export class SageCharacter {
         if (coreMat instanceof THREE.MeshBasicMaterial) {
             coreMat.opacity = 0.7 + Math.sin(Date.now() * 0.005) * 0.1;
         }
+    }
+
+    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+        this.bubbleCb = fn;
+    }
+
+    public showBubble(text: string): void {
+        this.bubbleCb?.(this.position, text, 3); // player is smallish
     }
 
     public getPosition(): THREE.Vector3 {

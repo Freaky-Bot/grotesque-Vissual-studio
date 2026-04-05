@@ -7,12 +7,20 @@ export class NPCManager {
     private scene: THREE.Scene;
     private spawnTimer: number = 0;
     private spawnInterval: number = 5; // Spawn new NPCs every 5 seconds (or whenever they feel like it lol)
+    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
     }
 
+    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+        this.bubbleCb = fn;
+        // also wire up any npcs already existing (hybrid offspring etc get added via addNPC)
+        for (const npc of this.npcs) npc.setSpeakCallback(fn);
+    }
+
     public addNPC(npc: BaseNPC): void {
+        if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // wire bubble on the fly
         this.npcs.push(npc); // just yeet it in there
     }
 
@@ -78,6 +86,7 @@ export class NPCManager {
         const z = Math.sin(angle) * distance;
 
         const npc = new CatNPC(randomType, new THREE.Vector3(x, 2, z));
+        if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // dont forget this one
         this.addNPC(npc);
         this.scene.add(npc.getMesh());
     }
