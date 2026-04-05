@@ -295,6 +295,20 @@
             color: rgba(255,255,255,0.4);
         }
 
+        /* version hud -- bottom right. always shows current version. pointer-events none so it doesnt block anything */
+        #version-hud {
+            position: fixed;
+            bottom: 8px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 10px;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+            z-index: 105;
+            user-select: none;
+            letter-spacing: 0.3px;
+        }
+
         /* ---- death overlay ---- */
         #death-overlay {
             display: none;
@@ -421,7 +435,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -480,6 +494,10 @@
         <div id="death-text">YOU DIED</div>
         <div id="death-sub">respawning in 3 seconds...</div>
     </div>
+
+    <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
+    <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
+    <div id="version-hud">v1.0.0</div>
 
     <!-- COMBO OVERLAY -- the purrfect combo screen flash -->
     <div id="combo-overlay" style="
