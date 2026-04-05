@@ -59,6 +59,27 @@ export class NPCManager {
         hybrid:  'RANDOM BUFFS -- nobody knows. not even the hybrid. chaos.',
         obama:   '2x speed + 2x damage + 30% armor -- YES WE CAN. AND YES HE WILL.',
         trump:   '2.5x damage + 60% armor -- THE TREMENDOUS WALL PROTECTS HIM. BELIEVE ME.',
+        // nyaa~ 20 new domain buffs because more is more and nobody can stop us uwu 💕
+        chef:        '1.5x speed + 2x damage + 30% armor -- KITCHEN IS NOW A WARZONE',
+        astronaut:   '50% damage resist + slow attacks -- ZERO G TANK MODE',
+        cowboy:      '3x damage + 2x attack speed -- QUICK DRAW YEE HAW',
+        ninja:       '6x speed + 2.5x damage + turbo attacks -- YOU CANNOT SEE HIM COMING',
+        samurai:     '4x damage + 40% armor -- BUSHIDO OR PERISH',
+        clown:       'RANDOM SPEED AND DAMAGE -- CHAOS ENGINE ENGAGED HONK',
+        zombie:      'INVULNERABLE + slow + 1.5x damage -- CANNOT KILL WHAT IS ALREADY DEAD',
+        pharaoh:     '3.5x damage + 50% armor + slow -- ANCIENT UNMOVING DEATH',
+        knight:      '70% damage resist + 1.5x damage -- IRON FORTRESS NOTHING GETS THROUGH',
+        scientist:   '5x attack speed + 2.5x damage -- EUREKA RAPID FIRE SCIENCE',
+        mummy:       'slow + 2x damage + 40% armor -- CURSE ACTIVATED SHUFFLE INCOMING',
+        detective:   '2.5x damage + faster attacks -- I HAD YOU FIGURED OUT',
+        firefighter: '3x damage + 1.8x speed -- STAND BACK IT IS TOO LATE',
+        biker:       '4.5x speed + 2x damage -- HIGHWAY TO FACE',
+        princess:    '3.5x damage + 30% armor + 1.5x speed -- SHE IS NOT OKAY',
+        ghost:       'INVULNERABLE + 1.8x damage -- CANNOT BE TOUCHED PERIOD',
+        luchador:    '4.5x damage + 20% armor + turbo attacks -- LUCHA EVERYTHING',
+        fairy:       'INVULNERABLE + 2x speed -- CUTE AND LITERALLY UNTOUCHABLE',
+        caveman:     '5.5x damage -- GLASS CANNON WITH A ROCK. BIGGEST NUMBER.',
+        alien:       '2x damage + 40% armor + 2.5x speed -- TECHNOLOGY BEYOND COMPREHENSION',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -72,6 +93,27 @@ export class NPCManager {
         hybrid:  { dmg: 10, range: 3.0 },
         obama:   { dmg: 12, range: 4.5 }, // hope hurts apparently
         trump:   { dmg: 15, range: 3.5 }, // tremendous damage. bigly.
+        // idk why this works. ngl kinda scared to touch it. -- edgy dev
+        chef:        { dmg: 10, range: 3.0 },
+        astronaut:   { dmg: 9,  range: 4.0 },
+        cowboy:      { dmg: 14, range: 5.0 }, // draws fast, hits hard
+        ninja:       { dmg: 18, range: 4.0 }, // fast deadly
+        samurai:     { dmg: 22, range: 4.0 }, // single heavy blow
+        clown:       { dmg: 8,  range: 3.0 }, // weak but annoying
+        zombie:      { dmg: 8,  range: 2.5 }, // slow but constant
+        pharaoh:     { dmg: 16, range: 4.5 },
+        knight:      { dmg: 10, range: 3.5 },
+        scientist:   { dmg: 12, range: 5.0 }, // beakers thrown at range
+        mummy:       { dmg: 9,  range: 3.0 },
+        detective:   { dmg: 13, range: 5.5 }, // revolver range
+        firefighter: { dmg: 15, range: 4.0 }, // hose pressure
+        biker:       { dmg: 14, range: 3.0 },
+        princess:    { dmg: 16, range: 4.0 }, // surprisingly lethal
+        ghost:       { dmg: 11, range: 5.0 }, // phasing attack
+        luchador:    { dmg: 18, range: 3.5 }, // grapple range
+        fairy:       { dmg: 7,  range: 6.0 }, // wand shot
+        caveman:     { dmg: 20, range: 4.0 }, // club smash
+        alien:       { dmg: 13, range: 6.0 }, // laser range
     };
 
     constructor(scene: THREE.Scene) {
@@ -327,7 +369,29 @@ export class NPCManager {
             CatType.WIZARD,     // HAMON BREATHING TECHNIQUES
             CatType.VAMPIRE,    // DIO'S MINION MEOW
             CatType.DISCO,      // GOLDEN WIND TORTURE DANCE
-            CatType.SHADOW      // KING CRIMSON DELETES YOUR MEOW
+            CatType.SHADOW,     // KING CRIMSON DELETES YOUR MEOW
+            // INTRODUCING: 20 NEW TYPES!! operators are standing by!! the value never stops!!
+            CatType.CHEF,       // this is RAW
+            CatType.ASTRONAUT,  // houston we have a cat
+            CatType.COWBOY,     // yeehaw
+            CatType.COWBOY,     // extra cowboy bc the west is vast
+            CatType.NINJA,      // you didnt see them spawn
+            CatType.SAMURAI,    // honor
+            CatType.CLOWN,      // honk
+            CatType.ZOMBIE,     // braaaaains
+            CatType.PHARAOH,    // kneel
+            CatType.KNIGHT,     // for honor (different honor than samurai)
+            CatType.SCIENTIST,  // eureka
+            CatType.MUMMY,      // the curse activates
+            CatType.DETECTIVE,  // i knew it
+            CatType.FIREFIGHTER,// stand back
+            CatType.BIKER,      // ...
+            CatType.PRINCESS,   // off with it
+            CatType.GHOST,      // boo
+            CatType.LUCHADOR,   // LUCHA
+            CatType.FAIRY,      // i grant: pain
+            CatType.CAVEMAN,    // CLUB
+            CatType.ALIEN       // resistance is inefficient
         ];
 
         const randomType = catTypes[Math.floor(Math.random() * catTypes.length)];

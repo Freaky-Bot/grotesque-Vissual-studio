@@ -77,6 +77,27 @@ export abstract class BaseNPC {
                 break;
             case 'obama':   this.domainSpeedMult = 2.0; this.domainDamageMult = 2.0; this.domainDmgReduction = 0.3; break; // hope-fueled sprint + 30% armor
             case 'trump':   this.domainDamageMult = 2.5; this.domainDmgReduction = 0.6; this.domainSpeedMult = 0.8; break; // TREMENDOUS wall = tanky but slow
+            // 20 new ones. the realm expands. verily.
+            case 'chef':        this.domainSpeedMult = 1.5; this.domainDamageMult = 2.0; this.domainDmgReduction = 0.3; break;
+            case 'astronaut':   this.domainDmgReduction = 0.5; this.domainAttackIntervalMult = 1.5; break; // floaty, tanky, slow
+            case 'cowboy':      this.domainDamageMult = 3.0; this.domainAttackIntervalMult = 0.5; break; // quick draw yee haw
+            case 'ninja':       this.domainSpeedMult = 6.0; this.domainDamageMult = 2.5; this.domainAttackIntervalMult = 0.3; break;
+            case 'samurai':     this.domainDamageMult = 4.0; this.domainDmgReduction = 0.4; break;
+            case 'clown':       this.domainSpeedMult = 1 + Math.random() * 5; this.domainDamageMult = 1 + Math.random() * 4; break; // pure chaos
+            case 'zombie':      this.domainInvulnerable = true; this.domainSpeedMult = 0.4; this.domainDamageMult = 1.5; break;
+            case 'pharaoh':     this.domainDamageMult = 3.5; this.domainDmgReduction = 0.5; this.domainSpeedMult = 0.8; break;
+            case 'knight':      this.domainDmgReduction = 0.7; this.domainDamageMult = 1.5; this.domainSpeedMult = 0.6; break;
+            case 'scientist':   this.domainAttackIntervalMult = 0.2; this.domainDamageMult = 2.5; break;
+            case 'mummy':       this.domainSpeedMult = 0.5; this.domainDamageMult = 2.0; this.domainDmgReduction = 0.4; break;
+            case 'detective':   this.domainDamageMult = 2.5; this.domainAttackIntervalMult = 0.6; break;
+            case 'firefighter': this.domainDamageMult = 3.0; this.domainSpeedMult = 1.8; break;
+            case 'biker':       this.domainSpeedMult = 4.5; this.domainDamageMult = 2.0; break;
+            case 'princess':    this.domainDamageMult = 3.5; this.domainDmgReduction = 0.3; this.domainSpeedMult = 1.5; break;
+            case 'ghost':       this.domainInvulnerable = true; this.domainDamageMult = 1.8; break;
+            case 'luchador':    this.domainDamageMult = 4.5; this.domainAttackIntervalMult = 0.4; this.domainDmgReduction = 0.2; break;
+            case 'fairy':       this.domainInvulnerable = true; this.domainSpeedMult = 2.0; break;
+            case 'caveman':     this.domainDamageMult = 5.5; this.domainSpeedMult = 0.7; break; // glass cannon. biggest damage.
+            case 'alien':       this.domainDamageMult = 2.0; this.domainDmgReduction = 0.4; this.domainSpeedMult = 2.5; break;
         }
     }
 

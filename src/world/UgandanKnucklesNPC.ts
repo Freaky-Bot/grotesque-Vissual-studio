@@ -12,10 +12,10 @@ let _sharedAudioCtx: AudioContext | null = null;
 let _clickBuffer: AudioBuffer | null = null;
 let _bufferLoading: boolean = false;
 
-// rate limiter so the clicking doesnt make u want to close the tab
-// max 1 click sound per 0.18s globally across the ENTIRE herd. one. single. click. ugh
+// rate limiter -- 1 click per SECOND globally. the herd collectively shares one click slot.
+// ...I'm not angry. I just expected better from all of us.
 let _lastClickTime: number = 0;
-const CLICK_RATE_LIMIT_MS = 180;
+const CLICK_RATE_LIMIT_MS = 1000;
 
 function getAudioCtx(): AudioContext | null {
     if (_sharedAudioCtx) return _sharedAudioCtx;
@@ -37,7 +37,7 @@ function loadClickBuffer(): void {
         .catch(() => { _bufferLoading = false; /* no audio for u */ });
 }
 
-function playClick(vol: number = 0.1): void { // volume axed 75% bc it was literally destroying everyone's ears ugh
+function playClick(vol: number = 0.025): void { // volume axed another 75% on top of the last axing. logarithmic suffering.
     const now = performance.now();
     if (now - _lastClickTime < CLICK_RATE_LIMIT_MS) return; // rate limited. 1 click per 180ms globally. u r welcome.
     _lastClickTime = now;
@@ -282,7 +282,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
 
     private doClickSound(): void {
         // leaders click louder -- they are the leader. they earned it.
-        playClick(this.isLeader ? 0.15 : 0.0625); // reduced by 75% nyaa~
+        playClick(this.isLeader ? 0.0375 : 0.0156); // reduced another 75%. practically a whisper now.
     }
 
     // ---- LEADER BRAIN ----
