@@ -342,6 +342,7 @@ export interface ActivePlayerDomain {
     slashTimer: number;
     shrineMarks: THREE.Mesh[];    // static floor cross sigil at domain center
     lifeTimer: number;            // hard 15s cap. it WILL close. no exceptions.
+    hasHadNPCsInside: boolean;    // once an npc steps inside, we watch for everyone dying -- domain collapses when cleared
 }
 
 export class DomainExpansionSystem {
@@ -353,6 +354,7 @@ export class DomainExpansionSystem {
     // player's own domain -- lives separately from the npc domain list
     private playerDomain: ActivePlayerDomain | null = null;
     public onPlayerDomainClose: ((name: string) => void) | null = null;
+    public onPlayerDomainCleared: (() => void) | null = null; // fires specifically when all NPCs inside are wiped out
 
     // unique effect hook -- main.ts wires this to do screen effects, spawn npcs, mud, etc
     public onDomainEffect: ((effect: string, center: THREE.Vector3, radius: number) => void) | null = null;
@@ -902,7 +904,7 @@ export class DomainExpansionSystem {
         this.playerDomain = {
             def, castPos: fixedPos, playerLockedInside: true,
             sphere, light, pillars, pillarLights,
-            slashes: [], slashTimer: 0.15, shrineMarks, lifeTimer: 15,
+            slashes: [], slashTimer: 0.15, shrineMarks, lifeTimer: 15, hasHadNPCsInside: false,
         };
         this.onDomainOpen?.(def.name, def.flavorText);
     }
@@ -1044,6 +1046,14 @@ export class DomainExpansionSystem {
                     npc.takeDamage(30 * dt); // wall burns them if they press against it
                 }
             }
+        }
+        // close-when-cleared -- throne collapses once every npc inside is dead. the hunt is over.
+        if (npcsInsideCount > 0) pd.hasHadNPCsInside = true;
+        if (pd.hasHadNPCsInside && npcsInsideCount === 0) {
+            this.onPlayerDomainCleared?.();
+            this.onPlayerDomainClose?.(pd.def.name);
+            this.forceClosePlayerDomain();
+            return;
         }
         // HARD LIFE TIMER: 15 seconds, no exceptions, throne collapses. you had your fun.
         pd.lifeTimer -= dt;

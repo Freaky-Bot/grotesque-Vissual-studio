@@ -263,6 +263,10 @@ class CatGodWorld {
                 this.sageCharacter.forceCloseDomain();
                 this.chat.addMessage('event', '💨 Aberrant Throne has collapsed. 90s cooldown.');
             };
+            ds.onPlayerDomainCleared = () => {
+                // throne collapses after wiping everything inside -- the hunt is done
+                this.chat.addMessage('event', '☠️ ALL CLEARED. Aberrant Throne collapses. 90s cooldown.');
+            };
             ds.onDomainEffect = (effect, center, _radius) => {
                 if (effect === 'normal') {
                     this.npcManager.forceSpawnRandom(1);
