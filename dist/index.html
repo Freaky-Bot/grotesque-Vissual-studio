@@ -320,6 +320,81 @@
             margin-top: 14px;
             font-weight: normal;
         }
+
+        /* ---- hamburger menu ---- */
+        /* sits below the hp panel top-right. disappointing that it took this long to add. */
+        #menu-btn {
+            position: fixed;
+            top: 62px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 6px;
+            z-index: 120;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 0;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        #menu-btn:hover { background: rgba(255,255,255,0.12); }
+        #menu-btn:active { background: rgba(255,255,255,0.22); }
+        .menu-bar {
+            width: 18px; height: 2px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        /* X state when menu is open */
+        #menu-btn.open .menu-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        #menu-btn.open .menu-bar:nth-child(2) { opacity: 0; }
+        #menu-btn.open .menu-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        #menu-panel {
+            display: none;
+            position: fixed;
+            top: 102px;
+            right: 10px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 7px;
+            z-index: 119;
+            overflow: hidden;
+            width: 150px;
+            font-family: Arial, sans-serif;
+            /* subtle slide-down via max-height animation */
+            animation: menuSlideDown 0.15s ease;
+        }
+        @keyframes menuSlideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .menu-item {
+            display: block;
+            width: 100%;
+            padding: 11px 16px;
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.12s, color 0.12s;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .menu-item + .menu-item {
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .menu-item:hover  { background: rgba(255,255,255,0.1);  color: #fff; }
+        .menu-item:active { background: rgba(255,255,255,0.18); }
     </style>
   <script type="module" crossorigin src="./assets/index-xEh8h9qd.js"></script>
 </head>
@@ -346,13 +421,46 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
         <div id="hp-label">❤️ <span id="hp-current">100</span> / <span id="hp-max">100</span></div>
         <div id="hp-bar-bg"><div id="hp-bar-fill"></div></div>
     </div>
+
+    <!-- hamburger menu button -- the world has been running without one this whole time. just so you know. -->
+    <button id="menu-btn" title="Menu" aria-label="Open menu">
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+    </button>
+
+    <!-- menu panel -- no functionality yet. just vibes. -->
+    <div id="menu-panel">
+        <button class="menu-item" id="menu-save">💾 Save</button>
+        <button class="menu-item" id="menu-settings">⚙️ Settings</button>
+        <button class="menu-item" id="menu-help">❓ Help</button>
+        <button class="menu-item" id="menu-controls">🎮 Controls</button>
+    </div>
+
+    <script>
+        // toggle menu open/closed -- close it if u click anywhere outside too
+        // ngl this whole codebase needed a menu. better late than never. -- disappointed parent
+        const menuBtn   = document.getElementById('menu-btn');
+        const menuPanel = document.getElementById('menu-panel');
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = menuPanel.style.display === 'block';
+            menuPanel.style.display = isOpen ? 'none' : 'block';
+            menuBtn.classList.toggle('open', !isOpen);
+        });
+        document.addEventListener('click', () => {
+            menuPanel.style.display = 'none';
+            menuBtn.classList.remove('open');
+        });
+        menuPanel.addEventListener('click', (e) => e.stopPropagation()); // dont close on inner click
+    </script>
 
     <!-- hotbar bottom center -- 6 item slots, 1-6 to select, E to use -->
     <div id="hotbar">
