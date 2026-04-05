@@ -113,6 +113,7 @@ export class NPCManager {
                     this.domainSystem.openDomain(
                         { getPosition: () => npc.getPosition(), takeDamage: (d) => npc.takeDamage(d), getType: () => npc.getType(), hp: npc.getHp(), maxHp: npc.getMaxHp() },
                         DOMAIN_DEFS[defKey] ? defKey : 'normal',
+                        this.playerPos ?? undefined,  // pass playerPos so domain knows if player is trapped inside
                     );
                 }
             }

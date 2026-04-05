@@ -342,37 +342,34 @@ export class SageCharacter {
     public tryActivateDomain(): boolean {
         if (this.domainActive_ || this.domainCooldown_ > 0) return false;
         this.domainActive_ = true;
-        this.domainTimer_ = this.DOMAIN_DURATION;
         this.domainHasAwakened = true;
         return true;
     }
 
-    // call every frame -- handles auto-awaken + cooldown tick + expiry
-    // returns 'opened' if just auto-awakened, 'closed' if just expired, null otherwise
-    public tickPlayerDomain(dt: number): 'opened' | 'closed' | null {
+    // call every frame -- handles cooldown tick + auto-awaken check only
+    // domain no longer expires on a timer -- it closes when the player dies or all enemies die
+    // returns 'opened' if just auto-awakened, null otherwise
+    public tickPlayerDomain(dt: number): 'opened' | null {
         if (this.domainCooldown_ > 0) this.domainCooldown_ -= dt;
-        // auto-awaken at 20% HP -- only once per life bc constant reactivation would be cringe
+        // auto-awaken at 20% HP -- once per life
         if (!this.domainActive_ && this.domainCooldown_ <= 0 && !this.domainHasAwakened) {
             if (this.hp > 0 && this.hp / this.maxHp <= 0.20) {
                 this.domainHasAwakened = true;
                 this.domainActive_ = true;
-                this.domainTimer_ = this.DOMAIN_DURATION;
                 return 'opened';
-            }
-        }
-        if (this.domainActive_) {
-            this.domainTimer_ -= dt;
-            if (this.domainTimer_ <= 0) {
-                this.domainActive_ = false;
-                this.domainCooldown_ = this.DOMAIN_COOLDOWN;
-                return 'closed';
             }
         }
         return null;
     }
 
+    // called by main.ts when domain collapses (npc killed OR player died) -- starts cooldown
+    public forceCloseDomain(): void {
+        this.domainActive_ = false;
+        this.domainCooldown_ = this.DOMAIN_COOLDOWN;
+    }
+
     public isDomainActive(): boolean { return this.domainActive_; }
-    public getDomainTimeRemaining(): number { return this.domainTimer_; }
+    public getDomainTimeRemaining(): number { return this.domainTimer_; } // kept for HUD compat, unused
     public getDomainCooldown(): number { return this.domainCooldown_; }
 
     public teleportTo(pos: THREE.Vector3): void {

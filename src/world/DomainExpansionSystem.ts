@@ -135,19 +135,21 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
 export interface ActiveDomain {
     npc: { getPosition(): THREE.Vector3; takeDamage(d: number): void; getType(): string; hp: number; maxHp: number; };
     def: DomainDef;
-    timeRemaining: number;
+    castPos: THREE.Vector3;         // FIXED -- the domain never moves from where it was cast
+    playerLockedInside: boolean;    // true = player was inside when cast, locked in til domain collapses
     stunPulseTimer: number;
+    uniqueTimer: number;            // for per-domain special effect tick
     sphere: THREE.Mesh;
-    fogSphere: THREE.Mesh;  // inner sphere that fakes localized fog -- no more global scene.fog
     light: THREE.PointLight;
+    innerLight: THREE.PointLight;   // secondary light for atmosphere
 }
 
 // player domain is separate -- moves with player, hurts NPCs, not the player
 export interface ActivePlayerDomain {
     def: DomainDef;
-    timeRemaining: number;
+    castPos: THREE.Vector3;         // fixed to where Z was pressed
+    playerLockedInside: boolean;    // always true -- you cast it on yourself
     sphere: THREE.Mesh;
-    fogSphere: THREE.Mesh;  // same deal -- local fog only, not scene-wide
     light: THREE.PointLight;
     pillars: THREE.Mesh[];        // corebound-style throne pillars at cardinal points
     pillarLights: THREE.PointLight[];  // each pillar glows
@@ -163,6 +165,11 @@ export class DomainExpansionSystem {
     private playerDomain: ActivePlayerDomain | null = null;
     public onPlayerDomainClose: ((name: string) => void) | null = null;
 
+    // unique effect hook -- main.ts wires this to do screen effects, spawn npcs, mud, etc
+    public onDomainEffect: ((effect: string, center: THREE.Vector3, radius: number) => void) | null = null;
+    // pushback hook -- main.ts listens and teleports sage back to domain boundary
+    public onPlayerPushback: ((newPos: THREE.Vector3) => void) | null = null;
+
     // idk if more than one domain active at once is legal in jjk but this is a cat game so. yolo.
     private readonly MAX_CONCURRENT = 2;
 
@@ -173,48 +180,63 @@ export class DomainExpansionSystem {
     public openDomain(
         npc: ActiveDomain['npc'],
         defKey: string,
+        playerPos?: THREE.Vector3,
     ): void {
         if (this.activeDomains.length >= this.MAX_CONCURRENT) return;
         const def = DOMAIN_DEFS[defKey] ?? DOMAIN_DEFS['normal'];
 
-        // big translucent sphere -- the domain boundary
-        const geo = new THREE.SphereGeometry(def.radius, 32, 32);
-        const mat = new THREE.MeshBasicMaterial({
+        // fixed cast position -- this never moves for the rest of the domain's life
+        const pos = npc.getPosition();
+        const castPos = new THREE.Vector3(pos.x, 0, pos.z);
+
+        // SOLID outer shell visible from outside -- thick opaque walls, this is a prison now
+        const outerGeo = new THREE.SphereGeometry(def.radius, 40, 40);
+        const outerMat = new THREE.MeshBasicMaterial({
             color: def.domainColor,
             transparent: true,
-            opacity: 0.18,
-            side: THREE.BackSide, // only visible from inside uwu
-            depthWrite: false,
+            opacity: 0.92,
+            side: THREE.FrontSide,  // visible from OUTSIDE -- the wall facing you
+            depthWrite: true,
         });
-        const sphere = new THREE.Mesh(geo, mat);
-        const pos = npc.getPosition();
-        sphere.position.set(pos.x, 0, pos.z);
+        const sphere = new THREE.Mesh(outerGeo, outerMat);
+        sphere.position.copy(castPos);
         this.scene.add(sphere);
 
-        // creepy point light in the center
-        const light = new THREE.PointLight(def.domainColor, 3.5, def.radius * 1.8);
-        light.position.set(pos.x, 5, pos.z);
-        this.scene.add(light);
-
-        // inner fog sphere -- FrontSide so it looks misty from outside, gives localized fog feel
-        // without poisoning the whole scene.fog which looks trash on the rest of the map
-        const fogGeo = new THREE.SphereGeometry(def.radius * 0.98, 24, 24);
-        const fogMat = new THREE.MeshBasicMaterial({
+        // inner shell -- you see this from inside, same color slightly darker
+        const innerGeo = new THREE.SphereGeometry(def.radius * 0.99, 40, 40);
+        const innerMat = new THREE.MeshBasicMaterial({
             color: def.fogColor,
             transparent: true,
-            opacity: 0.28,
-            side: THREE.FrontSide,
+            opacity: 0.85,
+            side: THREE.BackSide,   // only visible from inside
             depthWrite: false,
         });
-        const fogSphere = new THREE.Mesh(fogGeo, fogMat);
-        fogSphere.position.set(pos.x, 0, pos.z);
-        this.scene.add(fogSphere);
+        const innerShell = new THREE.Mesh(innerGeo, innerMat);
+        innerShell.position.copy(castPos);
+        this.scene.add(innerShell);
+        // stash the inner shell in userData so we can dispose it later -- kinda hacky but it works
+        (sphere as THREE.Mesh & { innerShell?: THREE.Mesh }).innerShell = innerShell;
+
+        // dramatic central light
+        const light = new THREE.PointLight(def.domainColor, 5, def.radius * 2);
+        light.position.set(castPos.x, 6, castPos.z);
+        this.scene.add(light);
+
+        // secondary pulsing light for vibes
+        const innerLight = new THREE.PointLight(def.fogColor, 3, def.radius * 0.8);
+        innerLight.position.set(castPos.x, 2, castPos.z);
+        this.scene.add(innerLight);
+
+        // is the player trapped inside?
+        const playerLockedInside = playerPos
+            ? playerPos.distanceTo(new THREE.Vector3(castPos.x, playerPos.y, castPos.z)) < def.radius
+            : false;
 
         const domain: ActiveDomain = {
-            npc, def,
-            timeRemaining: def.duration,
+            npc, def, castPos, playerLockedInside,
             stunPulseTimer: def.stunPulse,
-            sphere, fogSphere, light,
+            uniqueTimer: 0,
+            sphere, light, innerLight,
         };
 
         this.activeDomains.push(domain);
@@ -230,28 +252,46 @@ export class DomainExpansionSystem {
     ): void {
         for (let i = this.activeDomains.length - 1; i >= 0; i--) {
             const d = this.activeDomains[i];
-            d.timeRemaining -= deltaTime;
 
-            // move sphere with the npc
-            const npcPos = d.npc.getPosition();
-            d.sphere.position.set(npcPos.x, 0, npcPos.z);
-            d.fogSphere.position.set(npcPos.x, 0, npcPos.z);
-            d.light.position.set(npcPos.x, 5, npcPos.z);
+            // sphere is FIXED -- it never moves. the npc cast it and now its stuck there forever
+            // (or until the npc dies)
 
-            // pulsing opacity -- very dramatic
-            (d.sphere.material as THREE.MeshBasicMaterial).opacity =
-                0.12 + Math.sin(Date.now() * 0.003) * 0.06;
-            (d.fogSphere.material as THREE.MeshBasicMaterial).opacity =
-                0.22 + Math.sin(Date.now() * 0.002 + 1) * 0.06;
+            // pulse the lights for atmosphere -- walls stay solid though
+            d.light.intensity = 4.5 + Math.sin(Date.now() * 0.003) * 1.5;
+            d.innerLight.intensity = 2.5 + Math.sin(Date.now() * 0.004 + 1) * 1.0;
 
-            const dist = playerPos.distanceTo(new THREE.Vector3(npcPos.x, playerPos.y, npcPos.z));
+            const dist = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+
+            // BOUNDARY ENFORCEMENT -- you cannot cross the wall. period.
+            const buffer = 0.6; // small buffer so we dont vibrate at the edge
+            if (d.playerLockedInside && dist > d.def.radius - buffer) {
+                // player is escaping but cant -- push them back in
+                const dir = new THREE.Vector3(playerPos.x - d.castPos.x, 0, playerPos.z - d.castPos.z).normalize();
+                const safeR = d.def.radius - buffer - 0.5;
+                this.onPlayerPushback?.(new THREE.Vector3(
+                    d.castPos.x + dir.x * safeR,
+                    playerPos.y,
+                    d.castPos.z + dir.z * safeR,
+                ));
+            } else if (!d.playerLockedInside && dist < d.def.radius + buffer) {
+                // player is trying to enter but domain is sealed -- push them back out
+                const dir = new THREE.Vector3(playerPos.x - d.castPos.x, 0, playerPos.z - d.castPos.z);
+                if (dir.lengthSq() < 0.001) dir.set(1, 0, 0); // prevent zero-vector if player is exactly at center
+                dir.normalize();
+                const safeR = d.def.radius + buffer + 0.5;
+                this.onPlayerPushback?.(new THREE.Vector3(
+                    d.castPos.x + dir.x * safeR,
+                    playerPos.y,
+                    d.castPos.z + dir.z * safeR,
+                ));
+            }
+
             const insideDomain = dist < d.def.radius;
 
-            if (insideDomain) {
-                // constant sure-hit damage inside the domain -- no escape
+            if (insideDomain && d.playerLockedInside) {
+                // damage + stun -- no escape uwu
                 onPlayerDamage(d.def.damage * deltaTime);
 
-                // stun pulses
                 if (d.def.stunPulse > 0) {
                     d.stunPulseTimer -= deltaTime;
                     if (d.stunPulseTimer <= 0) {
@@ -266,25 +306,104 @@ export class DomainExpansionSystem {
                 d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + d.def.healPerSec * deltaTime);
             }
 
-            // domain expires
-            if (d.timeRemaining <= 0 || !d.npc.hp) {
+            // per-domain UNIQUE effects -- each domain does something different besides just dmg
+            d.uniqueTimer += deltaTime;
+            this.tickUniqueEffect(d, deltaTime, playerPos, onPlayerDamage, onPlayerStun);
+
+            // domain only closes when the NPC that cast it dies -- not on a timer
+            if (d.npc.hp <= 0) {
                 this.closeDomain(d, i);
             }
         }
     }
 
+    // unique per-domain special effects -- this is where domains get their personality
+    private tickUniqueEffect(
+        d: ActiveDomain,
+        dt: number,
+        playerPos: THREE.Vector3,
+        onPlayerDamage: (dmg: number) => void,
+        onPlayerStun: () => void,
+    ): void {
+        const type = d.def.npcType;
+        const t = Date.now();
+        // universal: vampire steals player HP and gives to npc
+        if (type === 'vampire' && d.playerLockedInside) {
+            const stolen = d.def.damage * dt * 0.5;
+            d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + stolen);
+            // damage already applied in main loop so just the heal here
+        }
+        // unique effect every N seconds based on npc type
+        const effectInterval = type === 'barney' ? 4 : type === 'normal' ? 5 : type === 'wizard' ? 6 : type === 'shrek' ? 3 : type === 'disco' ? 2 : 0;
+        if (effectInterval > 0 && d.uniqueTimer >= effectInterval) {
+            d.uniqueTimer = 0;
+            this.onDomainEffect?.(type, d.castPos, d.def.radius);
+        }
+        // shadow + voidcat: crackle inner light rapidly
+        if (type === 'shadow' || type === 'voidcat') {
+            d.innerLight.intensity = Math.random() < 0.05 ? 8 : 0; // occasional flash of nothing
+        }
+        // robot: inner light strobes on grid frequency
+        if (type === 'robot') {
+            d.innerLight.intensity = Math.sin(t * 0.02) > 0 ? 4 : 0;
+        }
+        // disco: rotate the domain color every frame through hues
+        if (type === 'disco') {
+            const hue = (t * 0.001) % 1;
+            (d.sphere.material as THREE.MeshBasicMaterial).color.setHSL(hue, 1, 0.5);
+            d.light.color.setHSL(hue, 1, 0.5);
+        }
+        // buffcat: innerlight goes RED every hit
+        if (type === 'buffcat') {
+            d.innerLight.color.setHSL(0, 1, 0.5 + Math.sin(t * 0.01) * 0.4);
+        }
+    }
+
     private closeDomain(d: ActiveDomain, index: number): void {
         this.scene.remove(d.sphere);
-        this.scene.remove(d.fogSphere);
         this.scene.remove(d.light);
+        this.scene.remove(d.innerLight);
         (d.sphere.material as THREE.MeshBasicMaterial).dispose();
-        (d.fogSphere.material as THREE.MeshBasicMaterial).dispose();
         d.sphere.geometry.dispose();
-        d.fogSphere.geometry.dispose();
-
+        // dispose inner shell if it exists
+        const inner = (d.sphere as THREE.Mesh & { innerShell?: THREE.Mesh }).innerShell;
+        if (inner) {
+            this.scene.remove(inner);
+            (inner.material as THREE.MeshBasicMaterial).dispose();
+            inner.geometry.dispose();
+        }
         this.activeDomains.splice(index, 1);
         this.onDomainClose?.(d.def.name);
+        // screen effect cleanup if domain had one
+        if (['emo', 'shadow', 'voidcat'].includes(d.def.npcType)) {
+            this.onDomainEffect?.('screen_clear', d.castPos, 0);
+        }
         console.log(`%c💀 Domain "${d.def.name}" has collapsed.`, 'color: #888; font-style: italic');
+    }
+
+    // call this when the player dies -- collapses every active domain immediately
+    public forceCloseAll(): void {
+        for (let i = this.activeDomains.length - 1; i >= 0; i--) {
+            this.closeDomain(this.activeDomains[i], i);
+        }
+        this.forceClosePlayerDomain();
+    }
+
+    public forceClosePlayerDomain(): void {
+        if (!this.playerDomain) return;
+        const pd = this.playerDomain;
+        this.scene.remove(pd.sphere);
+        this.scene.remove(pd.light);
+        (pd.sphere.material as THREE.MeshBasicMaterial).dispose();
+        pd.sphere.geometry.dispose();
+        for (let i = 0; i < pd.pillars.length; i++) {
+            this.scene.remove(pd.pillars[i]);
+            this.scene.remove(pd.pillarLights[i]);
+            (pd.pillars[i].material as THREE.MeshBasicMaterial).dispose();
+            pd.pillars[i].geometry.dispose();
+        }
+        this.onPlayerDomainClose?.(pd.def.name);
+        this.playerDomain = null;
     }
     
     // check if player is inside any active domain -- for guaranteed hit multiplier
@@ -301,44 +420,51 @@ export class DomainExpansionSystem {
 
     public hasActiveDomain(): boolean { return this.activeDomains.length > 0; }
 
-    // opens the PLAYER's domain -- aberrant throne, 4 dungeon pillars spawn in a ring
-    public openPlayerDomain(): void {
+    // opens the PLAYER's domain -- aberrant throne, fixed to cast pos, solid walls, pillars at corners
+    public openPlayerDomain(castPos: THREE.Vector3): void {
         if (this.playerDomain) return; // already going
         const def = DOMAIN_DEFS['player'];
-        const geo = new THREE.SphereGeometry(def.radius, 32, 32);
+        const fixedPos = new THREE.Vector3(castPos.x, 0, castPos.z);
+
+        // solid outer wall -- player is locked inside with the pillars
+        const geo = new THREE.SphereGeometry(def.radius, 40, 40);
         const mat = new THREE.MeshBasicMaterial({
-            color: def.domainColor, transparent: true, opacity: 0.18,
-            side: THREE.BackSide, depthWrite: false
+            color: def.domainColor, transparent: true, opacity: 0.92,
+            side: THREE.FrontSide, depthWrite: true
         });
         const sphere = new THREE.Mesh(geo, mat);
+        sphere.position.copy(fixedPos);
         this.scene.add(sphere);
-        // localized fog sphere -- stays inside the dome, not global
-        const fogGeo = new THREE.SphereGeometry(def.radius * 0.98, 24, 24);
-        const fogMat = new THREE.MeshBasicMaterial({
-            color: def.fogColor, transparent: true, opacity: 0.32,
-            side: THREE.FrontSide, depthWrite: false
+
+        // inner dark shell -- what you see from inside
+        const innerGeo = new THREE.SphereGeometry(def.radius * 0.99, 40, 40);
+        const innerMat = new THREE.MeshBasicMaterial({
+            color: def.fogColor, transparent: true, opacity: 0.88,
+            side: THREE.BackSide, depthWrite: false
         });
-        const fogSphere = new THREE.Mesh(fogGeo, fogMat);
-        this.scene.add(fogSphere);
-        const light = new THREE.PointLight(def.domainColor, 5, def.radius * 2);
+        const innerShell = new THREE.Mesh(innerGeo, innerMat);
+        innerShell.position.copy(fixedPos);
+        this.scene.add(innerShell);
+        (sphere as THREE.Mesh & { innerShell?: THREE.Mesh }).innerShell = innerShell;
+
+        const light = new THREE.PointLight(def.domainColor, 6, def.radius * 2.2);
+        light.position.set(fixedPos.x, 6, fixedPos.z);
         this.scene.add(light);
 
-        // spawn 4 throne pillars at cardinal offsets -- corebound dungeon core vibes
+        // 4 throne pillars fixed at cardinal positions relative to cast pos
         const pillarRadius = def.radius * 0.55;
         const pillars: THREE.Mesh[] = [];
         const pillarLights: THREE.PointLight[] = [];
         for (let i = 0; i < 4; i++) {
             const angle = (i / 4) * Math.PI * 2;
-            const px = Math.cos(angle) * pillarRadius;
-            const pz = Math.sin(angle) * pillarRadius;
-            // tall thin box -- dungeon totem
+            const px = fixedPos.x + Math.cos(angle) * pillarRadius;
+            const pz = fixedPos.z + Math.sin(angle) * pillarRadius;
             const pGeo = new THREE.BoxGeometry(0.8, 8, 0.8);
             const pMat = new THREE.MeshBasicMaterial({ color: 0x220055 });
             const pillar = new THREE.Mesh(pGeo, pMat);
-            pillar.position.set(px, 4, pz); // y=4 centers the 8-tall box on ground
+            pillar.position.set(px, 4, pz);
             this.scene.add(pillar);
             pillars.push(pillar);
-            // each pillar gets a small purple glow
             const pl = new THREE.PointLight(0x9922ff, 2.5, 10);
             pl.position.set(px, 6, pz);
             this.scene.add(pl);
@@ -346,14 +472,13 @@ export class DomainExpansionSystem {
         }
 
         this.playerDomain = {
-            def, timeRemaining: def.duration,
-            sphere, fogSphere, light,
-            pillars, pillarLights,
+            def, castPos: fixedPos, playerLockedInside: true,
+            sphere, light, pillars, pillarLights,
         };
         this.onDomainOpen?.(def.name, def.flavorText);
     }
 
-    // tick the player domain -- call every frame. damages nearby npcs via npcDamage * dt per second
+    // tick the player domain -- sphere is FIXED, damages npcs inside, NPCs cannot leave either
     public updatePlayerDomain(
         dt: number,
         playerPos: THREE.Vector3,
@@ -361,60 +486,63 @@ export class DomainExpansionSystem {
     ): void {
         if (!this.playerDomain) return;
         const pd = this.playerDomain;
-        pd.timeRemaining -= dt;
-        pd.sphere.position.set(playerPos.x, 0, playerPos.z);
-        pd.fogSphere.position.set(playerPos.x, 0, playerPos.z);
-        pd.light.position.set(playerPos.x, 5, playerPos.z);
-        // pulsing skin -- the throne breathes
-        (pd.sphere.material as THREE.MeshBasicMaterial).opacity = 0.12 + Math.sin(Date.now() * 0.003) * 0.07;
-        (pd.fogSphere.material as THREE.MeshBasicMaterial).opacity = 0.25 + Math.sin(Date.now() * 0.002 + 1) * 0.07;
-
-        // move throne pillars with the player + pulse their glow
-        const pillarRadius = pd.def.radius * 0.55;
-        for (let i = 0; i < pd.pillars.length; i++) {
-            const angle = (i / pd.pillars.length) * Math.PI * 2;
-            const px = playerPos.x + Math.cos(angle) * pillarRadius;
-            const pz = playerPos.z + Math.sin(angle) * pillarRadius;
-            pd.pillars[i].position.set(px, 4, pz);
-            pd.pillarLights[i].position.set(px, 6, pz);
+        // sphere does NOT move -- it stays at castPos
+        // just pulse the lights bc that's still cool
+        pd.light.intensity = 5.5 + Math.sin(Date.now() * 0.003) * 1.5;
+        for (let i = 0; i < pd.pillarLights.length; i++) {
             pd.pillarLights[i].intensity = 2.0 + Math.sin(Date.now() * 0.004 + i * 1.5) * 0.8;
+        }
+
+        // BOUNDARY: player is locked inside -- enforce that
+        const distFromCenter = new THREE.Vector3(
+            playerPos.x - pd.castPos.x, 0, playerPos.z - pd.castPos.z).length();
+        if (distFromCenter > pd.def.radius - 0.6) {
+            const dir = new THREE.Vector3(playerPos.x - pd.castPos.x, 0, playerPos.z - pd.castPos.z).normalize();
+            const safeR = pd.def.radius - 1.2;
+            this.onPlayerPushback?.(new THREE.Vector3(
+                pd.castPos.x + dir.x * safeR,
+                playerPos.y,
+                pd.castPos.z + dir.z * safeR,
+            ));
         }
 
         for (const npc of npcs) {
             if (!npc.isAlive()) continue;
             const np = npc.getPosition();
-            const dx = np.x - playerPos.x;
-            const dz = np.z - playerPos.z;
-            const distFromCenter = Math.sqrt(dx * dx + dz * dz);
-            if (distFromCenter < pd.def.radius) {
+            const dx = np.x - pd.castPos.x;
+            const dz = np.z - pd.castPos.z;
+            if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
                 npc.takeDamage(pd.def.npcDamage * dt);
-                // bonus damage if near a throne pillar -- the dungeon core punishes proximity
+                // bonus damage near throne pillars
                 for (const pillar of pd.pillars) {
                     const pdx = np.x - pillar.position.x;
                     const pdz = np.z - pillar.position.z;
                     if (Math.sqrt(pdx * pdx + pdz * pdz) < 5) {
-                        npc.takeDamage(20 * dt); // extra 20 dps near each pillar
+                        npc.takeDamage(20 * dt);
                     }
                 }
             }
         }
-        if (pd.timeRemaining <= 0) {
-            this.scene.remove(pd.sphere);
-            this.scene.remove(pd.fogSphere);
-            this.scene.remove(pd.light);
-            (pd.sphere.material as THREE.MeshBasicMaterial).dispose();
-            (pd.fogSphere.material as THREE.MeshBasicMaterial).dispose();
-            pd.sphere.geometry.dispose();
-            pd.fogSphere.geometry.dispose();
-            // tear down the throne pillars -- domain collapsed
-            for (let i = 0; i < pd.pillars.length; i++) {
-                this.scene.remove(pd.pillars[i]);
-                this.scene.remove(pd.pillarLights[i]);
-                (pd.pillars[i].material as THREE.MeshBasicMaterial).dispose();
-                pd.pillars[i].geometry.dispose();
-            }
-            this.onPlayerDomainClose?.(pd.def.name);
-            this.playerDomain = null;
+        // domain stays up until forceClosePlayerDomain() is called (player death or all npcs die)
+        // check if all living npcs escaped the domain or are dead -- if none remain -> collapse
+        const npcsInside = npcs.filter(n => {
+            if (!n.isAlive()) return false;
+            const np = n.getPosition();
+            const dx = np.x - pd.castPos.x;
+            const dz = np.z - pd.castPos.z;
+            return Math.sqrt(dx * dx + dz * dz) < pd.def.radius;
+        });
+        // if we had NPCs inside at some point and they're all dead now -- throne has done its job
+        // we check npcs total alive nearby to determine if castle is now empty
+        const anyNpcNearby = npcs.some(n => {
+            const np = n.getPosition();
+            const dx = np.x - pd.castPos.x;
+            const dz = np.z - pd.castPos.z;
+            return n.isAlive() && Math.sqrt(dx * dx + dz * dz) < pd.def.radius * 1.5;
+        });
+        // void: collapse only if no enemies anywhere nearby (they've all been slain)
+        if (!anyNpcNearby && npcs.length > 0) {
+            this.forceClosePlayerDomain();
         }
     }
 

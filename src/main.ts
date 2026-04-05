@@ -211,6 +211,58 @@ class CatGodWorld {
             this.showDomainBanner(name, flavor);
         };
 
+        // wire domain unique effects -- each npc type does something different
+        const ds = this.npcManager.getDomainSystem();
+        if (ds) {
+            ds.onPlayerPushback = (newPos) => {
+                // player tried to cross the domain wall -- nope
+                this.sageCharacter.teleportTo(newPos);
+            };
+            ds.onPlayerDomainClose = () => {
+                this.sageCharacter.forceCloseDomain();
+                this.chat.addMessage('event', '💨 Aberrant Throne has collapsed. 90s cooldown.');
+            };
+            ds.onDomainEffect = (effect, center, _radius) => {
+                if (effect === 'normal') {
+                    // infinite meow: spawn a normal cat inside the domain bc chaos
+                    this.npcManager.forceSpawnRandom(1);
+                    this.chat.addMessage('event', '🐱 THE MEOWING BRINGS FORTH MORE CATS');
+                } else if (effect === 'barney') {
+                    this.npcManager.forceSpawnBarney();
+                    this.chat.addMessage('event', '🦕 BARNEY EMERGES FROM THE LOVE DOMAIN');
+                } else if (effect === 'wizard') {
+                    // teleport player to a random spot inside the wizard domain
+                    const angle = Math.random() * Math.PI * 2;
+                    const r = Math.random() * 15;
+                    this.sageCharacter.teleportTo(new THREE.Vector3(
+                        center.x + Math.cos(angle) * r, 2, center.z + Math.sin(angle) * r
+                    ));
+                    this.chat.addMessage('event', '🧙 The wizard\'s domain warped you!');
+                } else if (effect === 'shrek') {
+                    // mud player inside swamp -- really slow for 4s
+                    this.mudSlowTimer = Math.max(this.mudSlowTimer, 4);
+                    this.chat.addMessage('event', '🥞 SHREK\'S SWAMP: You are ankle-deep in mud.');
+                } else if (effect === 'disco') {
+                    // extra stun burst
+                    this.sageCharacter.stun?.(1.5);
+                    this.chat.addMessage('event', '🩩 DISCO DOMAIN: You cannot resist the groove.');
+                } else if (effect === 'emo') {
+                    // CSS desaturation -- bleak existential horror
+                    document.body.style.filter = 'saturate(0.05) brightness(0.7)';
+                } else if (effect === 'shadow') {
+                    // flash the screen black
+                    document.body.style.filter = 'brightness(0.05)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 120);
+                } else if (effect === 'voidcat') {
+                    // flicker between normal and dark
+                    document.body.style.filter = 'invert(1) brightness(0.3)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 80);
+                } else if (effect === 'screen_clear') {
+                    document.body.style.filter = '';
+                }
+            };
+        }
+
         // mob looted a mob -- show it in chat so the carnage is visible
         this.npcManager.onNpcEquipItem = (npcType, itemName) => {
             this.chat.addMessage('event', `🗡️ A ${npcType} looted: ${itemName}!`);
@@ -284,7 +336,7 @@ class CatGodWorld {
             if (e.key.toLowerCase() === 'z' && !this.chat.isInputOpen()) {
                 if (this.sageCharacter.tryActivateDomain()) {
                     const ds = this.npcManager.getDomainSystem();
-                    if (ds) ds.openPlayerDomain();
+                    if (ds) ds.openPlayerDomain(this.sageCharacter.getPosition());
                     this.showDomainBanner('Aberrant Throne', 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.');
                     this.chat.addMessage('event', '⚡ DOMAIN EXPANSION: ABERRANT THRONE');
                 } else {
@@ -738,12 +790,10 @@ class CatGodWorld {
             const domainTick = this.sageCharacter.tickPlayerDomain(effectiveDt);
             if (domainTick === 'opened') {
                 // low hp auto-awakened -- dramatic moment ngl
-                const ds = this.npcManager.getDomainSystem();
-                if (ds && !ds.isPlayerDomainActive()) ds.openPlayerDomain();
+                const ds2 = this.npcManager.getDomainSystem();
+                if (ds2 && !ds2.isPlayerDomainActive()) ds2.openPlayerDomain(this.sageCharacter.getPosition());
                 this.showDomainBanner('Aberrant Throne', 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.');
                 this.chat.addMessage('event', '⚡ Domain Expansion ABERRANT THRONE awakened at low HP!!');
-            } else if (domainTick === 'closed') {
-                this.chat.addMessage('event', '💨 Aberrant Throne collapsed. 90s cooldown.');
             }
             // update the player domain sphere + deal npc damage each frame
             this.npcManager.getDomainSystem()?.updatePlayerDomain(
@@ -756,6 +806,8 @@ class CatGodWorld {
             if (this.sageCharacter.isDead()) {
                 if (this.playerRespawnTimer <= 0) {
                     this.playerRespawnTimer = 3.0; // respawn after 3 seconds
+                    // collapse ALL domains when player dies -- domain requires a living caster
+                    this.npcManager.getDomainSystem()?.forceCloseAll();
                     const overlay = document.getElementById('death-overlay');
                     if (overlay) overlay.style.display = 'flex';
                 }
