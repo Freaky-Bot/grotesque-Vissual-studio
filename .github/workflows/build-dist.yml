@@ -1,15 +1,13 @@
 # build-dist.yml
-# Automatically rebuilds the dist/ folder and commits it back to the branch
-# on every push. This catches cases where someone pushed without running
-# npm run build locally (e.g. forgot, or pushed from another machine).
-# The commit message includes [skip ci] to stop infinite loops.
+# Rebuilds the dist/ folder and commits it back on every push.
+# Skips if pusher is github-actions[bot] to prevent infinite loop + rebase conflicts.
 
 name: Build and Update dist
 
 on:
   push:
     branches:
-      - '**'   # all branches -- rebuild everywhere
+      - '**'
 
 # needs write access to push the updated dist/ back
 permissions:
@@ -17,14 +15,15 @@ permissions:
 
 jobs:
   build-and-commit:
-    name: npm run build → commit dist
+    name: npm run build then commit dist
+    # dont run if pusher is the CI bot -- that causes infinite loop and rebase conflicts
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # fetch the full history so git push doesn't complain
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -44,10 +43,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dist/
-          # only commit if dist actually changed -- avoids empty commits
           if git diff --staged --quiet; then
             echo "dist/ is already up to date, nothing to commit"
           else
             git commit -m "chore: rebuild dist/ [skip ci]"
             git push
           fi
+
