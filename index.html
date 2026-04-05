@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat God NPC World</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            display: block;
+        }
+        #ui {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 14px;
+        }
+        #playerKills {
+            color: #ff6b6b;
+            margin-top: 10px;
+        }
+        #npcStats {
+            margin-top: 10px;
+            color: #51cf66;
+        }
+        #procreation {
+            margin-top: 10px;
+            color: #ff69b4;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera</div>
+        <div id="playerKills">Player Kills: 0</div>
+        <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
+        <div id="procreation">💔 Get closer to Cat God</div>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "cat-god-npc-world",
+  "version": "1.0.0",
+  "description": "3D web-based cat god NPC world with dynamic generation",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "latest",
+    "cannon-es": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/three": "latest",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}
