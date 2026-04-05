@@ -444,8 +444,9 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'robot': {
-                // SYSTEM OVERRIDE: disables player attacks for 3s. you have been logic-locked.
-                // zero damage -- robot doesn't need to punch you. it just makes you unable to fight.
+                // SYSTEM OVERRIDE: needs 2s boot time after domain opens before the override can process.
+                // robot doesn't activate instantly -- it has to boot. give it a moment.
+                if (d.uniqueTimer < 2) { d.abilityTimer = 1; break; }
                 this.onDomainEffect?.('ability_robot', d.castPos, d.def.radius);
                 break;
             }
@@ -469,7 +470,10 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'pirate': {
-                // CANNONBALL: no theme subversion here. pirates shoot cannons. direct hit. 35 dmg.
+                // CANNONBALL: only fires if player is within 75% of domain radius.
+                // too far back and the cannonball arc misses. you have to be in range.
+                const distPirate = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+                if (distPirate > d.def.radius * 0.75) { d.abilityTimer = 1; break; }
                 onPlayerDamage(35);
                 this.onDomainEffect?.('ability_pirate', d.castPos, d.def.radius);
                 break;
@@ -488,7 +492,9 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'vampire': {
-                // LIFEDRAIN CLAMP: steals HP directly. very on-brand. no creative interpretation needed.
+                // LIFEDRAIN CLAMP: only triggers if player HP < 75%.
+                // the vampire scents weakness. at full health it just watches. patient. predatory.
+                if (this._playerHpPct >= 0.75) { d.abilityTimer = 1.5; break; }
                 onPlayerDamage(25);
                 d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 25); // vampire gets it back
                 this.onDomainEffect?.('ability_vampire', d.castPos, d.def.radius);
@@ -502,8 +508,10 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'shadow': {
-                // BLACK FLASH: screen goes pitch black + 45 dmg. the shadow strikes from darkness.
-                // this ones damage bc thats what shadow DOES
+                // BLACK FLASH: only fires if player HP < 60% OR player is within 35% of domain radius.
+                // shadow doesn't strike randomly. it waits until you're bleeding. then it comes from nowhere.
+                const distShadow = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+                if (this._playerHpPct >= 0.6 && distShadow > d.def.radius * 0.35) { d.abilityTimer = 1.5; break; }
                 onPlayerDamage(45);
                 this.onDomainEffect?.('ability_shadow', d.castPos, d.def.radius);
                 break;
@@ -518,8 +526,9 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'emo': {
-                // RESONANCE WAVE: 40 dmg. the emo is a glass cannon. they hit hard or they dont exist.
-                // also blinds screen -- perception bleak as the emo's soul
+                // RESONANCE WAVE: domain must be active >= 5s first. emotional damage isnt instant.
+                // the pain festers. it builds up in silence. THEN it detonates. not before.
+                if (d.uniqueTimer < 5) { d.abilityTimer = 1; break; }
                 onPlayerDamage(40);
                 this.onDomainEffect?.('ability_emo', d.castPos, d.def.radius);
                 break;
@@ -531,14 +540,19 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'buffcat': {
-                // IRON FIST: 50 dmg. thats it. buffcat doesnt have themes. buffcat has biceps.
+                // IRON FIST: only fires if player is within 50% of domain radius. buffcat is melee.
+                // from across the room buffcat just flexes at you. you have to walk into the punch.
+                const distBuff = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+                if (distBuff > d.def.radius * 0.5) { d.abilityTimer = 0.8; break; }
                 onPlayerDamage(50);
                 this.onDomainEffect?.('ability_buffcat', d.castPos, d.def.radius);
                 break;
             }
             case 'voidcat': {
-                // VOID PERCEPTION: hides the entire HUD. no dmg. voidcat fights with confusion.
-                // you cant see your hp. you cant see anything. somewhere in the dark, the void cat waits.
+                // VOID PERCEPTION: requires domain active >= 4s AND player HP < 80%.
+                // voidcat is impossibly patient. it waits. it watches. it strikes when youre already hurt.
+                // at full hp it just stares at you from the dark. which is honestly worse.
+                if (d.uniqueTimer < 4 || this._playerHpPct >= 0.8) { d.abilityTimer = 1.5; break; }
                 const vAngle = Math.random() * Math.PI * 2;
                 const vR = d.def.radius * 0.8;
                 this.onPlayerPushback?.(new THREE.Vector3(
