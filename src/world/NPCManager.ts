@@ -142,6 +142,27 @@ export class NPCManager {
             npc.tickStun(deltaTime);
             npc.update(deltaTime);
 
+            // DOMAIN WALL ENFORCEMENT: NPCs cant just moonwalk through active domain spheres
+            // henceforth, no creature shall pass through these cursed walls without consequence ⚔️
+            if (this.domainSystem) {
+                for (const domain of this.domainSystem.activeDomains) {
+                    const nPos = npc.getPosition();
+                    const dx = nPos.x - domain.castPos.x;
+                    const dz = nPos.z - domain.castPos.z;
+                    const dist2D = Math.sqrt(dx * dx + dz * dz);
+                    const r = domain.def.radius;
+                    // NPC drifted inside -- push them back outside the wall
+                    if (dist2D < r - 0.5) {
+                        const len = dist2D > 0.01 ? dist2D : 0.01;
+                        npc.setPosition(new THREE.Vector3(
+                            domain.castPos.x + (dx / len) * (r + 0.8),
+                            nPos.y,
+                            domain.castPos.z + (dz / len) * (r + 0.8),
+                        ));
+                    }
+                }
+            }
+
             // domain expansion tick -- might return true if it just awakened right now
             if (this.domainSystem) {
                 const justOpened = npc.tickDomain(deltaTime);

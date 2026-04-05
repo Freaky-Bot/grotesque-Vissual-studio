@@ -174,6 +174,13 @@ export abstract class BaseNPC {
         return this.position;
     }
 
+    // teleport the npc to a new position -- used by domain wall enforcement so they dont phase through walls
+    // verily this method doth move the entity to its appointed coordinates. honor demands it.
+    public setPosition(p: THREE.Vector3): void {
+        this.position.copy(p);
+        this.mesh.position.set(p.x, this.mesh.position.y, p.z); // preserve y (head bob offset)
+    }
+
     public isAlive(): boolean {
         return this.isAlive_;
     }
