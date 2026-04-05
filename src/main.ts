@@ -243,7 +243,7 @@ class CatGodWorld {
             requestAnimationFrame(animate);
 
             // Update
-            const deltaTime = 1 / 60; // Assuming 60 FPS
+            const deltaTime = 1 / 120; // ugh half speed now. whatever. someone asked for this.
 
             // feed mobile joystick + camera touch into the systems
             let joyDx = 0, joyDy = 0;

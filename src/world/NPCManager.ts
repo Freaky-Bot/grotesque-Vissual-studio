@@ -155,6 +155,8 @@ export class NPCManager {
     }
 
     private spawnBarney(): void {
+        // only ONE barney allowed. he is unique. he is the only one. THE ONLY ONE.
+        if (this.npcs.some(n => n.getType() === 'barney')) return;
         const angle = Math.random() * Math.PI * 2;
         const dist = 30 + Math.random() * 80;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);

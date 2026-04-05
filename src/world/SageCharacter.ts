@@ -217,10 +217,12 @@ export class SageCharacter {
             moveRight += joystickDx * spd;
         }
 
-        // Apply camera-relative directional movement
-        // Forward direction is based on camera viewing angle
-        this.velocity.x = Math.sin(cameraAngleY) * moveForward + Math.cos(cameraAngleY) * moveRight;
-        this.velocity.z = Math.cos(cameraAngleY) * moveForward - Math.sin(cameraAngleY) * moveRight;
+        // camera-relative movement for real this time
+        // forward = direction FROM camera TO player (i.e. where camera is pointing)
+        // camera sits at (sin(Y)*dist, h, cos(Y)*dist) relative to player, so forward = (-sin, 0, -cos)
+        // right = cross(forward, up) = (cos(Y), 0, -sin(Y))
+        this.velocity.x = -Math.sin(cameraAngleY) * moveForward + Math.cos(cameraAngleY) * moveRight;
+        this.velocity.z = -Math.cos(cameraAngleY) * moveForward - Math.sin(cameraAngleY) * moveRight;
 
         // Apply movement
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
