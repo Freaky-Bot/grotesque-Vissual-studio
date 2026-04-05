@@ -254,6 +254,10 @@ export class SageCharacter {
         return this.position;
     }
 
+    public getRotationY(): number {
+        return this.mesh.rotation.y;
+    }
+
     public getMesh(): THREE.Group {
         return this.mesh;
     }

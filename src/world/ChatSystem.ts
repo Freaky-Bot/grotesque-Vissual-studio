@@ -89,6 +89,10 @@ export class ChatSystem {
         this.onPlayerSend = fn;
     }
 
+    public getOnPlayerSend(): ((text: string) => void) | null {
+        return this.onPlayerSend;
+    }
+
     public addMessage(type: ChatMessageType, text: string): void {
         const msg: ChatMessage = { type, text, timestamp: Date.now() };
         this.messages.push(msg);

@@ -14,6 +14,8 @@ import { UgandanKnucklesEvent } from './world/UgandanKnucklesEvent';
 import { ChatSystem } from './world/ChatSystem';
 import { ChatBubbleManager } from './world/ChatBubbleManager';
 import { MobileControls } from './world/MobileControls';
+import { MultiplayerClient } from './world/MultiplayerClient';
+import { RemotePlayer } from './world/RemotePlayer';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -31,6 +33,8 @@ class CatGodWorld {
     private bubbles: ChatBubbleManager;
     private mobileControls: MobileControls | null = null; // null on desktop, its fine
     private audioManager: AudioManager;
+    private multiplayer: MultiplayerClient;
+    private remotePlayers: Map<string, RemotePlayer> = new Map();
     private scene: THREE.Scene;
     private keyPressed: Record<string, boolean> = {};
     private jojoMessageCounter: number = 0;
@@ -80,6 +84,9 @@ class CatGodWorld {
         this.catGod.setSpeakCallback(bubbleFn);
         this.sageCharacter.setBubbleCallback(bubbleFn);
         this.chat.setOnPlayerSend((text) => this.sageCharacter.showBubble(text));
+
+        // setup multiplayer -- auto-connect to local server, silently no-ops if server not running
+        this.multiplayer = this.initMultiplayer();
 
         // mobile joystick -- only init on touch devices, no point on desktop
         if (MobileControls.isMobile()) {
@@ -173,6 +180,15 @@ class CatGodWorld {
 
             this.physicsWorld.update(deltaTime);
             this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx, joyDy);
+
+            // broadcast our position to the server at ~20hz (throttled internally)
+            const p = this.sageCharacter.getPosition();
+            this.multiplayer.sendPosition(p.x, p.y, p.z, this.sageCharacter.getRotationY());
+
+            // update all remote player lerps
+            for (const rp of this.remotePlayers.values()) {
+                rp.update(deltaTime);
+            }
             this.catGod.update(deltaTime, this.sageCharacter.getPosition());
             this.npcManager.update(deltaTime);
             this.worldGenerator.update(deltaTime, this.sageCharacter.getPosition());
@@ -206,6 +222,89 @@ class CatGodWorld {
         };
 
         animate();
+    }
+
+    private initMultiplayer(): MultiplayerClient {
+        // try the url param first, fall back to localhost for local dev
+        const urlParams = new URLSearchParams(window.location.search);
+        const serverUrl = urlParams.get('server') || 'ws://localhost:8080';
+
+        // grab or generate a username -- persist it in localStorage so it stays between sessions
+        let username = localStorage.getItem('catworld_username');
+        if (!username) {
+            // random cat-style name because why not
+            const adjectives = ['Fuzzy', 'Cursed', 'Divine', 'Chaotic', 'Blessed', 'Dreamy', 'Silly', 'Spooky'];
+            const nouns = ['Paw', 'Orb', 'Cat', 'Bean', 'Knuckle', 'Sage', 'Ghost', 'Specter'];
+            username = adjectives[Math.floor(Math.random() * adjectives.length)] +
+                nouns[Math.floor(Math.random() * nouns.length)] +
+                Math.floor(Math.random() * 999);
+            localStorage.setItem('catworld_username', username);
+        }
+
+        console.log('%cmultiplayer: connecting as ' + username + ' to ' + serverUrl, 'color: cyan');
+        const client = new MultiplayerClient(serverUrl, username);
+
+        // someone new joined -- add their orb to the scene
+        client.onPlayerJoin = (player) => {
+            const rp = new RemotePlayer(this.scene, player.id, player.username, player.x, player.y, player.z);
+            rp.setBubbleCallback((pos, text, h) => this.bubbles.showBubbleLive(pos, text, h));
+            this.remotePlayers.set(player.id, rp);
+            this.chat.addMessage('system', `${player.username} joined the world`);
+            this.updatePlayerCountUI();
+        };
+
+        // player disconnected -- remove their orb
+        client.onPlayerLeave = (id) => {
+            const rp = this.remotePlayers.get(id);
+            if (rp) {
+                this.chat.addMessage('system', `${rp.username} left the world`);
+                rp.destroy();
+                this.remotePlayers.delete(id);
+            }
+            this.updatePlayerCountUI();
+        };
+
+        // position update from another player -- set lerp target
+        client.onPlayerMove = (id, x, y, z, ry) => {
+            this.remotePlayers.get(id)?.setTarget(x, y, z, ry);
+        };
+
+        // another player sent a chat message
+        client.onPlayerChat = (id, uname, text) => {
+            this.chat.addMessage('player', `${uname}: ${text}`);
+            this.remotePlayers.get(id)?.showBubble(text);
+        };
+
+        // server sent the welcome packet -- spawn all existing players
+        client.onConnected = (_myId, players) => {
+            for (const player of players) {
+                const rp = new RemotePlayer(this.scene, player.id, player.username, player.x, player.y, player.z);
+                rp.setBubbleCallback((pos, text, h) => this.bubbles.showBubbleLive(pos, text, h));
+                this.remotePlayers.set(player.id, rp);
+            }
+            this.chat.addMessage('system', `Connected! ${players.length} other player(s) in world`);
+            this.updatePlayerCountUI();
+        };
+
+        // update status badge when connectivity changes
+        client.onStatusChange = (status) => {
+            const el = document.getElementById('mp-status');
+            if (el) el.textContent = `Multiplayer: ${status}`;
+        };
+
+        // when local player sends a chat message, also relay it to the server
+        const originalOnSend = this.chat.getOnPlayerSend();
+        this.chat.setOnPlayerSend((text) => {
+            originalOnSend?.(text); // still show bubble locally
+            client.sendChat(text);  // send to server
+        });
+
+        return client;
+    }
+
+    private updatePlayerCountUI(): void {
+        const el = document.getElementById('mp-players');
+        if (el) el.textContent = `Online: ${this.remotePlayers.size + 1}`; // +1 for yourself
     }
 
     private updateUI(): void {

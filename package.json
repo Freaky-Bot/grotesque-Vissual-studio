@@ -6,14 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server.js"
   },
   "dependencies": {
     "three": "latest",
-    "cannon-es": "^0.20.0"
+    "cannon-es": "^0.20.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/three": "latest",
+    "@types/ws": "^8.5.14",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }
