@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BaseNPC } from './BaseNPC';
 import { CatNPC, CatType } from './CatNPC';
+import { BarneyNPC } from './BarneyNPC';
 
 export class NPCManager {
     private npcs: BaseNPC[] = [];
@@ -11,6 +12,8 @@ export class NPCManager {
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
+        // spawn barney right away, he's always here, he was always here
+        this.spawnBarney();
     }
 
     public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
@@ -60,6 +63,11 @@ export class NPCManager {
     }
 
     private spawnNewNPC(): void {
+        // 12% chance to be barney instead of a cat -- he shows up sometimes
+        if (Math.random() < 0.12) {
+            this.spawnBarney();
+            return;
+        }
         // Random cat type - JOJO EDITION!! ゴゴゴゴゴ
         const catTypes = [
             CatType.NORMAL,
@@ -89,6 +97,17 @@ export class NPCManager {
         if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // dont forget this one
         this.addNPC(npc);
         this.scene.add(npc.getMesh());
+    }
+
+    private spawnBarney(): void {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 80;
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const barney = new BarneyNPC(pos);
+        if (this.bubbleCb) barney.setSpeakCallback(this.bubbleCb);
+        this.addNPC(barney);
+        this.scene.add(barney.getMesh());
+        console.log('%c🦕 BARNEY HAS ARRIVED. I LOVE YOU, YOU LOVE ME', 'color: #6B2FA0; font-weight: bold; font-size: 14px');
     }
 
     public getNPCCount(): number {
