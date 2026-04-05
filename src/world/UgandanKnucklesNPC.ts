@@ -1,21 +1,83 @@
 import * as THREE from 'three';
 import { BaseNPC } from './BaseNPC';
 
-// DO U KNO DA WEY
-// this is the ugandan knuckles npc, very important for the game lore
-// they click their tongues and look for their queen, totally normal stuff
+// DO U KNO DA WEY -- HERD MENTALITY EDITION
+// one leader decides da wey. all followers converge on the leader like a proper zombie horde.
+// the leader chases the player. followers chase the leader. chaos. beautiful chaos.
+// idk what zombie game the user meant but this is my Left 4 Dead tribute ig. whatever.
+
+// static audio buffer shared across ALL knuckles -- load da mp3 once, play many
+// nobody wants 20 audio fetch calls. be smart about it.
+let _sharedAudioCtx: AudioContext | null = null;
+let _clickBuffer: AudioBuffer | null = null;
+let _bufferLoading: boolean = false;
+
+function getAudioCtx(): AudioContext | null {
+    if (_sharedAudioCtx) return _sharedAudioCtx;
+    try {
+        _sharedAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        return _sharedAudioCtx;
+    } catch { return null; }
+}
+
+function loadClickBuffer(): void {
+    if (_bufferLoading || _clickBuffer) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    _bufferLoading = true;
+    fetch('./knuckles-click.mp3')
+        .then(r => r.arrayBuffer())
+        .then(ab => ctx.decodeAudioData(ab))
+        .then(buf => { _clickBuffer = buf; _bufferLoading = false; })
+        .catch(() => { _bufferLoading = false; /* no audio for u */ });
+}
+
+function playClick(vol: number = 0.4): void {
+    const ctx = getAudioCtx();
+    if (!ctx || !_clickBuffer) return;
+    try {
+        const src = ctx.createBufferSource();
+        src.buffer = _clickBuffer;
+        // trim: only play the first 0.9s so it stays punchy, not a full song
+        const gain = ctx.createGain();
+        gain.gain.value = vol;
+        src.connect(gain);
+        gain.connect(ctx.destination);
+        src.start(0, 0, 0.9); // start at 0s, play 0.9s only
+    } catch { /* audio ctx suspended or smth */ }
+}
 
 export class UgandanKnucklesNPC extends BaseNPC {
-    private clickTimer: number = Math.random() * 2; // random offset so they dont all click at once lol
-    private clickInterval: number = 0.8 + Math.random() * 1.2; // between 0.8-2 seconds
-    private fallSpeed: number = 8 + Math.random() * 6; // raining down from sky yolo
+    private clickTimer: number = Math.random() * 2;
+    private clickInterval: number = 0.6 + Math.random() * 1.2;
+    private fallSpeed: number = 8 + Math.random() * 6;
     private hasLanded: boolean = false;
     private wanderTimer: number = 0;
-    private audioCtx: AudioContext | null = null;
+
+    // ---- HERD SYSTEM ----
+    // the one true leader thinks. everybody else is a zombie following it.
+    public isLeader: boolean = false;
+    public leaderRef: UgandanKnucklesNPC | null = null; // set by Event manager for followers
+    public playerPosRef: THREE.Vector3 | null = null;   // set by Event manager every frame
+
+    // leader-only: state machine
+    private leaderState: 'searching' | 'chasing' | 'alert' = 'searching';
+    private leaderDecideTimer: number = 2 + Math.random() * 3; // seconds until leader picks new direction
+    private leaderTarget: THREE.Vector3 | null = null;
+
+    // follower-only: slight random offset so they dont all stack on same pixel
+    private herdOffset: THREE.Vector3 = new THREE.Vector3(
+        (Math.random() - 0.5) * 4,
+        0,
+        (Math.random() - 0.5) * 4,
+    );
+
+    // crown mesh ref -- leaders get a crown. respect da leader.
+    private crownMesh: THREE.Group | null = null;
 
     constructor(position: THREE.Vector3) {
         super(position);
-        this.bubbleHeadOffset = 2.5; // short lil guy, dont need much offset
+        this.bubbleHeadOffset = 2.5;
         this.mesh = this.buildMesh();
         this.mesh.position.copy(this.position);
         this.dialogues = [
@@ -26,14 +88,51 @@ export class UgandanKnucklesNPC extends BaseNPC {
             'DA WEY IS DAT WAY BRUDDA',
             '*CLICKING INTENSIFIES*',
             'BRUDDA BRUDDA BRUDDA',
-            'SHOW ME DA WEY'
+            'SHOW ME DA WEY',
+            'FOLLOW DA LEADER BRUDDAS',
+            'DIS IS DA WEY',
         ];
-        // try to get audio context, might fail if browser is being weird
-        try {
-            this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        } catch (e) {
-            // no audio i guess, whatever
+        // kick off the buffer load -- no-ops if already loading/loaded
+        loadClickBuffer();
+    }
+
+    // called by UgandanKnucklesEvent to crown one as leader
+    public makeLeader(): void {
+        this.isLeader = true;
+        // build the crown and attach it to the mesh
+        this.crownMesh = this.buildCrown();
+        this.mesh.add(this.crownMesh);
+        console.log('%c👑 DA LEADER HAS BEEN CHOSEN. FOLLOW DA WEY.', 'color:gold;font-weight:bold;font-size:14px');
+    }
+
+    private buildCrown(): THREE.Group {
+        // a lil golden crown floating above da leader's head. respect it.
+        const g = new THREE.Group();
+        g.position.set(0, 1.8, 0); // sits above the dreads
+
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8, roughness: 0.2 });
+        const redGemMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
+
+        // crown ring base
+        const ringGeo = new THREE.TorusGeometry(0.55, 0.1, 8, 20);
+        const ring = new THREE.Mesh(ringGeo, goldMat);
+        ring.rotation.x = Math.PI / 2;
+        g.add(ring);
+
+        // 5 crown points
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 6), goldMat);
+            spike.position.set(Math.cos(angle) * 0.52, 0.3, Math.sin(angle) * 0.52);
+            g.add(spike);
+            // gem on every other spike
+            if (i % 2 === 0) {
+                const gem = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), redGemMat);
+                gem.position.set(Math.cos(angle) * 0.52, 0.5, Math.sin(angle) * 0.52);
+                g.add(gem);
+            }
         }
+        return g;
     }
 
     private buildMesh(): THREE.Group {
@@ -174,61 +273,132 @@ export class UgandanKnucklesNPC extends BaseNPC {
     }
 
     private doClickSound(): void {
-        if (!this.audioCtx) return;
-        try {
-            // make a clicky noise using a buffer of noise, classic ugandan click
-            const bufferSize = this.audioCtx.sampleRate * 0.04; // 40ms click
-            const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                // exponential decay white noise = tongue click sound roughly
-                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 8);
-            }
-            const source = this.audioCtx.createBufferSource();
-            source.buffer = buffer;
+        // leaders click louder -- they are the leader. they earned it.
+        playClick(this.isLeader ? 0.6 : 0.25);
+    }
 
-            const gain = this.audioCtx.createGain();
-            gain.gain.value = 0.3;
-            source.connect(gain);
-            gain.connect(this.audioCtx.destination);
-            source.start();
-        } catch (e) {
-            // audio context probably suspended or something, whatever
+    // ---- LEADER BRAIN ----
+    // leader decides the direction every few seconds, or just chases player if close
+    private updateLeader(deltaTime: number): void {
+        if (!this.hasLanded) return;
+
+        this.leaderDecideTimer -= deltaTime;
+
+        const playerPos = this.playerPosRef;
+        const distToPlayer = playerPos ? playerPos.distanceTo(this.position) : 999;
+
+        // if player is within 35 units, CHASE
+        if (playerPos && distToPlayer < 35) {
+            this.leaderState = 'chasing';
+            this.leaderTarget = playerPos.clone();
+        } else if (this.leaderDecideTimer <= 0) {
+            // pick a new random wander target near current pos
+            this.leaderDecideTimer = 3 + Math.random() * 4;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 15 + Math.random() * 25;
+            this.leaderTarget = new THREE.Vector3(
+                this.position.x + Math.cos(angle) * dist,
+                2,
+                this.position.z + Math.sin(angle) * dist,
+            );
+            this.leaderState = 'searching';
+        }
+
+        // move toward target if we have one
+        if (this.leaderTarget) {
+            const dir = this.leaderTarget.clone().sub(this.position);
+            dir.y = 0;
+            const dist = dir.length();
+            if (dist > 1.5) {
+                dir.normalize();
+                const speed = this.leaderState === 'chasing' ? 6.5 : 3.5;
+                this.position.addScaledVector(dir, speed * deltaTime);
+                this.position.y = 2;
+                this.mesh.position.copy(this.position);
+                // face direction of travel
+                this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+            }
+        }
+    }
+
+    // ---- FOLLOWER BRAIN ----
+    // zombies. they follow the leader. that's it. that's their whole personality.
+    private updateFollower(deltaTime: number): void {
+        if (!this.hasLanded || !this.leaderRef || !this.leaderRef.isAlive()) {
+            // leader died -- just wander aimlessly. lost without guidance. very sad.
+            this.randomWalk(deltaTime, 2.5);
+            return;
+        }
+
+        const leaderPos = this.leaderRef.getPosition();
+        // target = leader pos + this follower's personal offset so they dont stack
+        const target = leaderPos.clone().add(this.herdOffset);
+        target.y = 2;
+
+        const dir = target.clone().sub(this.position);
+        dir.y = 0;
+        const dist = dir.length();
+
+        // only move if not already close enough (avoid jitter when stacked)
+        if (dist > 1.0) {
+            dir.normalize();
+            // followers are slightly FASTER than leader when far, slows down when close
+            // this gives the zombie surge effect -- they bunch up then slow down
+            const speed = Math.min(7.0, 2.5 + dist * 0.3);
+            this.position.addScaledVector(dir, speed * deltaTime);
+            this.position.y = 2;
+            this.mesh.position.copy(this.position);
+            this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
         }
     }
 
     public update(deltaTime: number): void {
         if (!this.hasLanded) {
-            // still falling from sky, rain em down
+            // raining from sky, spinning down
             this.position.y -= this.fallSpeed * deltaTime;
-            this.mesh.rotation.x += deltaTime * 3; // spinning as they fall lol
+            this.mesh.rotation.x += deltaTime * 3;
             if (this.position.y <= 2) {
                 this.position.y = 2;
                 this.hasLanded = true;
-                this.mesh.rotation.x = 0; // stop spinning once landed
-                console.log('🦔 *THUD* DO U KNO DA WEY');
+                this.mesh.rotation.x = 0;
+                if (this.isLeader) {
+                    console.log('👑 *THUD* DA LEADER HAS LANDED. FIND DA WEY BRUDDAS.');
+                    this.speak();
+                }
             }
             this.mesh.position.copy(this.position);
             return;
         }
 
-        // landed - now wander around looking for queen
-        this.randomWalk(deltaTime, 4 + Math.random() * 0.5);
+        // herd brain -- leader thinks, followers react
+        if (this.isLeader) {
+            this.updateLeader(deltaTime);
+        } else {
+            this.updateFollower(deltaTime);
+        }
 
-        // clicking tongue timer
+        // clicking -- everyone clicks but leader clicks more often
         this.clickTimer += deltaTime;
         if (this.clickTimer >= this.clickInterval) {
             this.clickTimer = 0;
-            this.clickInterval = 0.6 + Math.random() * 1.4; // vary it up
+            this.clickInterval = this.isLeader
+                ? (0.4 + Math.random() * 0.8)   // leader clicks urgently
+                : (0.8 + Math.random() * 1.6);   // followers click lazily
             this.doClickSound();
-            if (Math.random() < 0.3) {
-                this.speak(); // occasionally yell about the queen
+            if (Math.random() < (this.isLeader ? 0.5 : 0.2)) {
+                this.speak();
             }
         }
 
-        // lil bob animation while walking
-        this.wanderTimer += deltaTime * 8;
+        // head bob -- more frantic when chasing
+        this.wanderTimer += deltaTime * (this.leaderState === 'chasing' ? 14 : 8);
         this.mesh.position.y = this.position.y + Math.abs(Math.sin(this.wanderTimer)) * 0.3;
+
+        // crown bobs with a lil float -- look at da leader go
+        if (this.crownMesh) {
+            this.crownMesh.position.y = 1.8 + Math.sin(Date.now() * 0.003) * 0.12;
+            this.crownMesh.rotation.y += deltaTime * 0.8;
+        }
     }
 
     public getType(): string {
