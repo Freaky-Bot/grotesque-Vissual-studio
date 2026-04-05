@@ -35,6 +35,18 @@ export class SageCharacter {
     private readonly GRAVITY: number = -28;
     private readonly JUMP_FORCE: number = 13;
 
+    // dodge roll -- double-tap WASD within 250ms. 0.3s i-frames + speed burst. 1.5s cooldown.
+    // "i've been saying dodge-rolling matters since day one" -- conspiracy theorist
+    private dodgeActive_: boolean = false;
+    private dodgeCooldown_: number = 0;
+    private dodgeTimer_: number = 0;            // how long dodge is still active
+    private dodgeVel: THREE.Vector3 = new THREE.Vector3();  // direction * burst speed
+    private lastKeyTime_: Record<string, number> = {};       // tracks last tap time per key
+    private readonly DODGE_DURATION: number = 0.28;
+    private readonly DODGE_COOLDOWN: number = 1.5;
+    private readonly DODGE_SPEED: number = 90;  // burst speed during dodge
+    private dodgeCallback_: (() => void) | null = null;      // called when dodge triggers (for sound/fx)
+
     constructor(scene: THREE.Scene) {
         this.position = new THREE.Vector3(10, 2, -10);
         this.velocity = new THREE.Vector3(0, 0, 0);
@@ -184,7 +196,16 @@ export class SageCharacter {
 
     private setupControls(): void {
         document.addEventListener('keydown', (e) => {
-            this.keys[e.key.toLowerCase()] = true;
+            const k = e.key.toLowerCase();
+            this.keys[k] = true;
+            // dodge roll: detect double-tap on WASD -- if same key hit twice within 250ms, ROLL
+            if (['w','a','s','d'].includes(k)) {
+                const now = Date.now();
+                if (this.lastKeyTime_[k] && now - this.lastKeyTime_[k] < 250) {
+                    this.tryDodgeRoll(k);
+                }
+                this.lastKeyTime_[k] = now;
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -242,6 +263,26 @@ export class SageCharacter {
         // right = cross(forward, up) = (cos(Y), 0, -sin(Y))
         this.velocity.x = -Math.sin(cameraAngleY) * moveForward + Math.cos(cameraAngleY) * moveRight;
         this.velocity.z = -Math.cos(cameraAngleY) * moveForward - Math.sin(cameraAngleY) * moveRight;
+
+        // dodge roll: override velocity with burst if active, tick down timer
+        if (this.dodgeCooldown_ > 0) this.dodgeCooldown_ -= deltaTime;
+        if (this.dodgeActive_) {
+            this.dodgeTimer_ -= deltaTime;
+            if (this.dodgeTimer_ <= 0) {
+                this.dodgeActive_ = false;
+                this.mesh.scale.set(1, 1, 1); // snap back from squish
+            } else {
+                // override velocity with the stored burst direction -- no friction, no slowdown
+                this.velocity.x = this.dodgeVel.x;
+                this.velocity.z = this.dodgeVel.z;
+                // squish the character flat during roll -- subtle visual feedback
+                const rollProg = 1 - this.dodgeTimer_ / this.DODGE_DURATION;
+                const squish = rollProg < 0.5 ? 1 - rollProg * 0.7 : 0.65 + rollProg * 0.35;
+                this.mesh.scale.set(1.3, squish, 1.3);
+            }
+        } else if (this.mesh.scale.y !== 1) {
+            this.mesh.scale.set(1, 1, 1); // cleanup in case it got stuck
+        }
 
         // Apply movement
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
@@ -347,19 +388,28 @@ export class SageCharacter {
         if (this.domainActive_ || this.domainCooldown_ > 0) return false;
         this.domainActive_ = true;
         this.domainHasAwakened = true;
+        this.domainTimer_ = this.DOMAIN_DURATION; // hard 15s cap on manual activate too
         return true;
     }
 
-    // call every frame -- handles cooldown tick + auto-awaken check only
-    // domain no longer expires on a timer -- it closes when the player dies or all enemies die
-    // returns 'opened' if just auto-awakened, null otherwise
-    public tickPlayerDomain(dt: number): 'opened' | null {
+    // call every frame -- handles cooldown tick + auto-awaken check + 15s expiry
+    // returns 'opened' if just auto-awakened, 'expired' if 15s ran out, null otherwise
+    public tickPlayerDomain(dt: number): 'opened' | 'expired' | null {
         if (this.domainCooldown_ > 0) this.domainCooldown_ -= dt;
+        // tick life timer if active -- hard 15s rule. the throne falls.
+        if (this.domainActive_) {
+            this.domainTimer_ -= dt;
+            if (this.domainTimer_ <= 0) {
+                this.forceCloseDomain();
+                return 'expired';
+            }
+        }
         // auto-awaken at 20% HP -- once per life
         if (!this.domainActive_ && this.domainCooldown_ <= 0 && !this.domainHasAwakened) {
             if (this.hp > 0 && this.hp / this.maxHp <= 0.20) {
                 this.domainHasAwakened = true;
                 this.domainActive_ = true;
+                this.domainTimer_ = this.DOMAIN_DURATION; // reset timer on open
                 return 'opened';
             }
         }
@@ -419,5 +469,38 @@ export class SageCharacter {
 
     public getAttackDamage(bonusDmg: number = 0): number {
         return this.BASE_ATTACK_DMG + bonusDmg;
+    }
+
+    // dodge roll trigger -- called on double-tap detection. inframes for 0.28s. 1.5s cooldown.
+    // "INTRODUCING: THE DODGE ROLL!! 0.28 seconds of pure invincibility!! operators standing by!!" -- infomercial energy
+    private tryDodgeRoll(key: string): void {
+        if (this.dodgeCooldown_ > 0 || this.dodgeActive_) return;
+        // camera angle is stashed -- we need it to build the dodge direction. bit of a hack.
+        // approximate: use the mesh's current rotation to get "facing" direction. good enough.
+        let dx = 0, dz = 0;
+        switch (key) {
+            case 'w': dx = -Math.sin(this.mesh.rotation.y); dz = -Math.cos(this.mesh.rotation.y); break;
+            case 's': dx =  Math.sin(this.mesh.rotation.y); dz =  Math.cos(this.mesh.rotation.y); break;
+            case 'a': dx = -Math.cos(this.mesh.rotation.y); dz =  Math.sin(this.mesh.rotation.y); break;
+            case 'd': dx =  Math.cos(this.mesh.rotation.y); dz = -Math.sin(this.mesh.rotation.y); break;
+        }
+        const len = Math.sqrt(dx * dx + dz * dz) || 1;
+        this.dodgeVel.set(dx / len * this.DODGE_SPEED, 0, dz / len * this.DODGE_SPEED);
+        this.dodgeActive_ = true;
+        this.dodgeTimer_   = this.DODGE_DURATION;
+        this.dodgeCooldown_ = this.DODGE_COOLDOWN;
+        this.dodgeCallback_?.();
+        // announce it to the world
+        try { (window as any).showDodgeIndicator?.(); } catch (_) {}
+    }
+
+    // public -- is the player currently in the dodge roll i-frame window?
+    public isDodging(): boolean {
+        return this.dodgeActive_;
+    }
+
+    // optional callback when dodge triggers -- for sfx or screen fx from main.ts
+    public setDodgeCallback(fn: () => void): void {
+        this.dodgeCallback_ = fn;
     }
 }

@@ -28,6 +28,15 @@ import { BaseNPC } from './world/BaseNPC';
 import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
 import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
 
+// global UI helpers declared in index.html -- these scream at the player in dramatic ways
+declare function spawnDmgNumber(sx: number, sy: number, dmg: number, isCrit: boolean, color?: string): void;
+declare function flashVignette(intensity?: number): void;
+declare function screenShake(heavy?: boolean): void;
+declare function addKillFeed(text: string, isPlayerKill: boolean): void;
+declare function drawMinimap(px: number, pz: number, npcs: {x:number,z:number,type:string,alive:boolean}[]): void;
+declare function showDodgeIndicator(): void;
+declare function updateStatusEffects(effects: {icon:string,label:string}[]): void;
+
 class CatGodWorld {
     private renderEngine: RenderEngine;
     private catGod: CatGodNPC;
@@ -80,6 +89,12 @@ class CatGodWorld {
     // domain debuffs -- applied by sure-hit abilities. real nasty stuff.
     private attackPenaltyTimer: number = 0;   // player deals 0 dmg while this is active
     private hudHideTimer: number = 0;          // player HUD hidden -- voidcat messes with ur perception
+
+    // death particles -- tiny explosions when npcs die. satisfying.
+    private deathParticles: { mesh: THREE.Points, vel: THREE.Vector3[], life: number, maxLife: number }[] = [];
+
+    // campfire positions -- checked each frame for proximity regen. like a cozy little warmth zone.
+    private campfirePositions: THREE.Vector3[] = [];
 
     constructor() {
         this.renderEngine = new RenderEngine();
@@ -154,6 +169,17 @@ class CatGodWorld {
         // Add initial world
         this.worldGenerator.generateInitialWorld();
 
+        // scatter some campfires around the world -- warm lil healing zones. cozy. desperate. alone.
+        const campfireSpots = [
+            new THREE.Vector3(20, 0, 20),   new THREE.Vector3(-30, 0, 40),
+            new THREE.Vector3(50, 0, -20),  new THREE.Vector3(-60, 0, -30),
+            new THREE.Vector3(0, 0, -50),   new THREE.Vector3(80, 0, 60),
+        ];
+        campfireSpots.forEach(p => {
+            this.campfirePositions.push(p);
+            this.spawnCampfire(p.x, p.z);
+        });
+
         // Setup lighting
         this.setupLighting();
 
@@ -190,12 +216,19 @@ class CatGodWorld {
             const actual = Math.ceil(dmg * this.inventory.getDamageTakenMult());
             this.sageCharacter.takeDamage(actual);
             this.chat.addMessage('event', `💢 Ouch! -${actual} HP`);
+            // red vignette + screen shake on player hit -- now it FEELS like getting hit
+            flashVignette(actual >= 30 ? 1 : 0.7);
+            screenShake(actual >= 40);
             const bar = document.getElementById('hp-bar-fill');
             if (bar) { bar.style.background = '#ff2222'; setTimeout(() => { if (bar) bar.style.background = ''; }, 200); }
         };
 
         // npc dies: roll loot, double it if lucky charm equipped
-        this.npcManager.onNpcKilled = (npcType, _pos) => {
+        this.npcManager.onNpcKilled = (npcType, pos) => {
+            // death particles BOOM -- satisfying lil explosion on kill
+            this.spawnDeathParticles(pos);
+            // kill feed entry -- NPC killed by anything (domain, fall, etc)
+            addKillFeed(`${npcType} eliminated`, false);
             const attempts = this.inventory.isLuckyCharmActive() ? 2 : 1;
             for (let i = 0; i < attempts; i++) {
                 const loot = InventorySystem.rollLoot(npcType);
@@ -474,7 +507,12 @@ class CatGodWorld {
         const playerPos = this.sageCharacter.getPosition();
         const range = this.sageCharacter.getAttackRange(this.inventory.getRangeBonus());
         const baseDmg = this.sageCharacter.getAttackDamage(this.inventory.getAttackBonus());
-        const dmg = Math.ceil(baseDmg * this.inventory.getDamageDealtMult());
+        let dmg = Math.ceil(baseDmg * this.inventory.getDamageDealtMult());
+
+        // critical hit -- 15% chance to double damage. gold flash. scream it.
+        const isCrit = Math.random() < 0.15;
+        if (isCrit) dmg = Math.ceil(dmg * 2);
+
         let closest: BaseNPC | null = null;
         let closestDist = range;
         for (const npc of this.npcManager.getNPCs()) {
@@ -486,10 +524,92 @@ class CatGodWorld {
             closest.takeDamage(dmg);
             this.sageCharacter.markAttacked();
             const died = !closest.isAlive();
-            this.chat.addMessage('event', died
-                ? `⚔ Killed a ${closest.getType()}! (+${dmg} dmg)`
-                : `⚔ Hit ${closest.getType()} for ${dmg} dmg`
-            );
+
+            // spawn floating damage number -- project 3d npc pos to 2d screen coords
+            try {
+                const camera = this.renderEngine.getCamera();
+                const npcPos3 = closest.getPosition().clone();
+                npcPos3.y += 2; // pop up from head height
+                const projected = npcPos3.project(camera);
+                const sx = (projected.x + 1) / 2 * window.innerWidth;
+                const sy = (-projected.y + 1) / 2 * window.innerHeight;
+                if (projected.z < 1) { // only if visible (in front of camera)
+                    spawnDmgNumber(sx, sy, dmg, isCrit);
+                }
+            } catch (_) {}
+
+            // screen shake on heavy hits (crits or high damage)
+            if (isCrit || dmg >= 40) screenShake(isCrit && dmg >= 40);
+
+            if (died) {
+                this.chat.addMessage('event', isCrit
+                    ? `💥 CRITICAL KILL ${closest.getType()}! (+${dmg} dmg)`
+                    : `⚔ Killed a ${closest.getType()}! (+${dmg} dmg)`
+                );
+                addKillFeed(`You → ${closest.getType()} (${dmg})`, true);
+                this.spawnDeathParticles(closest.getPosition());
+            } else {
+                this.chat.addMessage('event', isCrit
+                    ? `💥 CRIT! Hit ${closest.getType()} for ${dmg} dmg`
+                    : `⚔ Hit ${closest.getType()} for ${dmg} dmg`
+                );
+            }
+        }
+    }
+
+    // spawnDeathParticles -- tiny colorful explosion of spheres when an npc dies. ur welcome.
+    // "the realm doth shatter into glorious fragments" -- medieval knight energy
+    private spawnDeathParticles(pos: THREE.Vector3): void {
+        const count = 12 + Math.floor(Math.random() * 8);
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+        const velocities: THREE.Vector3[] = [];
+
+        for (let i = 0; i < count; i++) {
+            positions[i * 3]     = pos.x;
+            positions[i * 3 + 1] = pos.y + 1;
+            positions[i * 3 + 2] = pos.z;
+            const angle = Math.random() * Math.PI * 2;
+            const up = 4 + Math.random() * 8;
+            const out = 3 + Math.random() * 7;
+            velocities.push(new THREE.Vector3(
+                Math.cos(angle) * out, up, Math.sin(angle) * out
+            ));
+        }
+
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const colors = [0xff4444, 0xff8844, 0xffff44, 0xffffff, 0xaa44ff, 0x44ffaa];
+        const mat = new THREE.PointsMaterial({
+            color: colors[Math.floor(Math.random() * colors.length)],
+            size: 0.4 + Math.random() * 0.3,
+            transparent: true, opacity: 1.0,
+        });
+        const points = new THREE.Points(geo, mat);
+        this.scene.add(points);
+        this.deathParticles.push({ mesh: points, vel: velocities, life: 0.7, maxLife: 0.7 });
+    }
+
+    // updateDeathParticles -- moves particles outward + fades them to nothing. poetic. nobody asked. idc.
+    private updateDeathParticles(dt: number): void {
+        for (let i = this.deathParticles.length - 1; i >= 0; i--) {
+            const p = this.deathParticles[i];
+            p.life -= dt;
+            if (p.life <= 0) {
+                this.scene.remove(p.mesh);
+                p.mesh.geometry.dispose();
+                (p.mesh.material as THREE.PointsMaterial).dispose();
+                this.deathParticles.splice(i, 1);
+                continue;
+            }
+            const posAttr = p.mesh.geometry.attributes['position'] as THREE.BufferAttribute;
+            for (let j = 0; j < p.vel.length; j++) {
+                posAttr.array[j * 3]     += p.vel[j].x * dt;
+                posAttr.array[j * 3 + 1] += p.vel[j].y * dt;
+                posAttr.array[j * 3 + 2] += p.vel[j].z * dt;
+                p.vel[j].y -= 15 * dt; // gravity
+            }
+            posAttr.needsUpdate = true;
+            (p.mesh.material as THREE.PointsMaterial).opacity = p.life / p.maxLife;
         }
     }
 
@@ -783,6 +903,51 @@ class CatGodWorld {
             setTimeout(() => { if (banner) banner.style.opacity = '0'; }, 3500);
     }
 
+    // spawnCampfire -- TIRED OF TAKING DAMAGE WITH NO RECOVERY?? walk near one!! HEALS YOU!! wow!!
+    private spawnCampfire(x: number, z: number): void {
+        const group = new THREE.Group();
+
+        // logs -- two crossed cylinders
+        const logMat = new THREE.MeshBasicMaterial({ color: 0x5c3a1e });
+        const logGeo = new THREE.CylinderGeometry(0.12, 0.15, 1.8, 6);
+        const log1 = new THREE.Mesh(logGeo, logMat);
+        log1.rotation.z = 0.4;
+        log1.position.set(0, 0.5, 0);
+        group.add(log1);
+        const log2 = new THREE.Mesh(logGeo, logMat);
+        log2.rotation.z = -0.4;
+        log2.rotation.y = Math.PI / 2;
+        log2.position.set(0, 0.5, 0);
+        group.add(log2);
+
+        // rocks around the base
+        const rockMat = new THREE.MeshBasicMaterial({ color: 0x666666 });
+        const rockGeo = new THREE.SphereGeometry(0.3, 6, 4);
+        for (let i = 0; i < 6; i++) {
+            const r = new THREE.Mesh(rockGeo, rockMat);
+            const a = (i / 6) * Math.PI * 2;
+            r.position.set(Math.cos(a) * 0.9, 0.2, Math.sin(a) * 0.9);
+            r.scale.set(0.8 + Math.random() * 0.4, 0.5, 0.8 + Math.random() * 0.4);
+            group.add(r);
+        }
+
+        // flame cone
+        const flameMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.85 });
+        const flameGeo = new THREE.ConeGeometry(0.35, 1.2, 8);
+        const flame = new THREE.Mesh(flameGeo, flameMat);
+        flame.position.set(0, 1.4, 0);
+        flame.name = 'campfire-flame';
+        group.add(flame);
+
+        // orange point light -- the warmth u never had
+        const light = new THREE.PointLight(0xff6600, 1.5, 12);
+        light.position.set(0, 1.0, 0);
+        group.add(light);
+
+        group.position.set(x, 2, z);
+        this.scene.add(group);
+    }
+
     private setupLighting(): void {
         // Ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -942,6 +1107,10 @@ class CatGodWorld {
                 if (ds2 && !ds2.isPlayerDomainActive()) ds2.openPlayerDomain(this.sageCharacter.getPosition());
                 this.showDomainBanner('Aberrant Throne', 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.');
                 this.chat.addMessage('event', '⚡ Domain Expansion ABERRANT THRONE awakened at low HP!!');
+            } else if (domainTick === 'expired') {
+                // 15s hard cap ran out -- close it forcefully
+                this.npcManager.getDomainSystem()?.forceClosePlayerDomain();
+                this.chat.addMessage('event', '💨 Aberrant Throne collapsed after 15 seconds. 90s cooldown.');
             }
             // update the player domain sphere + deal npc damage each frame
             this.npcManager.getDomainSystem()?.updatePlayerDomain(
@@ -977,6 +1146,24 @@ class CatGodWorld {
 
             // Update UI
             this.updateUI();
+
+            // death particle bursts -- they scatter and fade. poetic ending for every npc.
+            this.updateDeathParticles(effectiveDt);
+
+            // campfire proximity regen -- walk near fire = +2 HP/s. cozy little heal zone.
+            let nearCampfire = false;
+            const sagePos2 = this.sageCharacter.getPosition();
+            for (const cf of this.campfirePositions) {
+                if (sagePos2.distanceTo(cf) < 5) {
+                    nearCampfire = true;
+                    if (!this.sageCharacter.isDead()) {
+                        this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 2 * deltaTime);
+                    }
+                    break;
+                }
+            }
+            const campfireHud = document.getElementById('campfire-hud');
+            if (campfireHud) campfireHud.classList.toggle('show', nearCampfire);
 
             // Render
             this.renderEngine.render();
@@ -1088,6 +1275,37 @@ class CatGodWorld {
     private updateUI(): void {
         // voidcat domain: hide entire HUD while hudHideTimer is active. you cant see anything.
         const uiEl = document.getElementById('ui') as HTMLElement | null;
+
+        // minimap update every frame -- project all npc positions for the little dots
+        // the minimap sees them all. it always has. do your own research.
+        try {
+            const sageXZ = this.sageCharacter.getPosition();
+            const npcDots = this.npcManager.getNPCs().map(n => ({
+                x: n.getPosition().x,
+                z: n.getPosition().z,
+                type: n.getType(),
+                alive: n.isAlive(),
+            }));
+            drawMinimap(sageXZ.x, sageXZ.z, npcDots);
+        } catch (_) {}
+
+        // status effects row -- show active debuffs/buffs as icons below HP panel
+        try {
+            const effects: {icon:string,label:string}[] = [];
+            if (this.invincibleTimer > 0)      effects.push({ icon: '⭐', label: `Invincible ${Math.ceil(this.invincibleTimer)}s` });
+            if (this.slowMoTimer > 0)          effects.push({ icon: '💎', label: `Slow-Mo ${Math.ceil(this.slowMoTimer)}s` });
+            if (this.confuseTimer > 0)         effects.push({ icon: '🍩', label: `Confused ${Math.ceil(this.confuseTimer)}s` });
+            if (this.bandageTimer > 0)         effects.push({ icon: '🩹', label: `Regen ${Math.ceil(this.bandageTimer)}s` });
+            if (this.hotSauceTimer > 0)        effects.push({ icon: '🌶️', label: `Hot Sauce ${Math.ceil(this.hotSauceTimer)}s` });
+            if (this.onionLayerActive)         effects.push({ icon: '🧅', label: 'Onion Layer' });
+            if (this.shieldHitsRemaining > 0)  effects.push({ icon: '🛡', label: `Shield x${this.shieldHitsRemaining}` });
+            if (this.soulGemActive)            effects.push({ icon: '💎', label: 'Soul Gem' });
+            if (this.attackPenaltyTimer > 0)   effects.push({ icon: '🤖', label: `Locked ${Math.ceil(this.attackPenaltyTimer)}s` });
+            if (this.mudSlowTimer > 0)         effects.push({ icon: '💩', label: `Mud ${Math.ceil(this.mudSlowTimer)}s` });
+            if (this.hudHideTimer > 0)         effects.push({ icon: '⬛', label: `Void ${Math.ceil(this.hudHideTimer)}s` });
+            if (this.sageCharacter.isDodging?.()) effects.push({ icon: '💨', label: 'Dodging' });
+            updateStatusEffects(effects);
+        } catch (_) {}
         const hpEl = document.getElementById('hp-panel') as HTMLElement | null;
         const hidden = this.hudHideTimer > 0;
         if (uiEl) uiEl.style.visibility = hidden ? 'hidden' : '';

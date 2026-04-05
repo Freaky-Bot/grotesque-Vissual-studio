@@ -409,8 +409,187 @@
         }
         .menu-item:hover  { background: rgba(255,255,255,0.1);  color: #fff; }
         .menu-item:active { background: rgba(255,255,255,0.18); }
+
+        /* ---- damage numbers -- they pop up and float away like dramatic little ghosts ---- */
+        /* INTRODUCING: floating damage numbers!! tired of not knowing how much you hurt them?? NOT ANYMORE!! */
+        .dmg-num {
+            position: fixed;
+            pointer-events: none;
+            z-index: 460;
+            font-family: Arial Black, Arial, sans-serif;
+            font-weight: 900;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+            animation: floatDmgUp 0.85s ease-out forwards;
+            white-space: nowrap;
+            transform-origin: center bottom;
+        }
+        @keyframes floatDmgUp {
+            0%   { transform: translateY(0)    scale(1.1); opacity: 1; }
+            20%  { transform: translateY(-12px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-58px) scale(0.6); opacity: 0; }
+        }
+        .dmg-num-crit { animation: floatDmgUpCrit 1.0s ease-out forwards; }
+        @keyframes floatDmgUpCrit {
+            0%   { transform: translateY(0)    scale(1.4) rotate(-4deg); opacity: 1; }
+            15%  { transform: translateY(-8px)  scale(1.8) rotate(3deg);  opacity: 1; }
+            100% { transform: translateY(-72px) scale(0.7) rotate(0deg);  opacity: 0; }
+        }
+
+        /* ---- red vignette flash when player takes damage ---- */
+        /* this took me 3 hours and nobody will ever notice -- edgy teenager energy */
+        #damage-vignette {
+            position: fixed; inset: 0; pointer-events: none; z-index: 450;
+            opacity: 0;
+            background: radial-gradient(ellipse at center, transparent 45%, rgba(200, 0, 0, 0.75) 100%);
+            transition: opacity 0.07s ease-in;
+        }
+
+        /* ---- kill feed -- top right corner below menu btn. like a real shooter. ---- */
+        /* henceforth this feed shall chronicle the carnage. each kill, an honorable entry. */
+        #kill-feed {
+            position: fixed;
+            top: 105px;
+            right: 52px; /* sits left of menu btn */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            pointer-events: none;
+            z-index: 115;
+            max-width: 260px;
+        }
+        .kill-entry {
+            background: rgba(0,0,0,0.7);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            animation: killFadeIn 0.2s ease-out;
+            white-space: nowrap;
+            border-left: 3px solid #ff4444;
+        }
+        .kill-entry.player-kill { border-left-color: #44ff88; }
+        @keyframes killFadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ---- minimap -- bottom right corner above version hud ---- */
+        /* the algorithm knows where you are. the minimap confirms it. -- conspiracy */
+        #minimap-wrap {
+            position: fixed;
+            bottom: 24px;
+            right: 10px;
+            z-index: 106;
+            pointer-events: none;
+        }
+        #minimap {
+            display: block;
+            width: 130px; height: 130px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.25);
+            background: rgba(0,0,0,0.5);
+            image-rendering: pixelated;
+        }
+        #minimap-label {
+            text-align: center;
+            color: rgba(255,255,255,0.35);
+            font-size: 9px;
+            font-family: Arial, sans-serif;
+            margin-top: 2px;
+        }
+
+        /* ---- screen shake -- the canvas shakes on heavy hits ---- */
+        /* SCREEN SHAKES ON HEAVY HITS!! revolutionary!! players LOVE it!! */
+        @keyframes screenShakeAnim {
+            0%   { transform: translate(0,0) rotate(0deg); }
+            10%  { transform: translate(-4px, 3px) rotate(-0.3deg); }
+            25%  { transform: translate(5px, -3px) rotate(0.4deg); }
+            40%  { transform: translate(-3px, 5px) rotate(-0.2deg); }
+            55%  { transform: translate(4px, -2px) rotate(0.3deg); }
+            70%  { transform: translate(-2px, 3px) rotate(-0.1deg); }
+            85%  { transform: translate(2px, -1px) rotate(0.1deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        body.shaking { animation: screenShakeAnim 0.35s ease-out forwards; }
+        body.shaking-heavy { animation: screenShakeAnim 0.5s ease-out forwards; }
+
+        /* ---- dodge roll flash indicator ---- */
+        #dodge-indicator {
+            position: fixed;
+            bottom: 50px; left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 455;
+            font-family: Arial Black, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: 900;
+            color: #88eeff;
+            text-shadow: 0 0 12px #44aaff, 0 2px 4px rgba(0,0,0,0.9);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        #dodge-indicator.show { opacity: 1; }
+
+        /* ---- campfire / chest indicators ---- */
+        #campfire-hud {
+            position: fixed;
+            bottom: 155px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 112;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #ffaa44;
+            text-shadow: 0 0 8px #ff6600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+        #campfire-hud.show { opacity: 1; }
+        #chest-prompt {
+            position: fixed;
+            bottom: 175px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 112;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffaa00;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #chest-prompt.show { opacity: 1; }
+
+        /* ---- status effect icons row below HP panel ---- */
+        #status-effects {
+            position: fixed;
+            top: 58px;
+            right: 54px;
+            display: flex;
+            gap: 4px;
+            pointer-events: none;
+            z-index: 111;
+        }
+        .status-icon {
+            width: 22px; height: 22px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: statusPulse 1.2s infinite ease-in-out;
+        }
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
     </style>
-  <script type="module" crossorigin src="./assets/index-xEh8h9qd.js"></script>
+  <script type="module" crossorigin src="./assets/index-B4Qk6wSv.js"></script>
 </head>
 <body>
     <div id="ui">
@@ -435,7 +614,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -474,6 +653,172 @@
             menuBtn.classList.remove('open');
         });
         menuPanel.addEventListener('click', (e) => e.stopPropagation()); // dont close on inner click
+
+        // =====================================================
+        // FLOATING DAMAGE NUMBERS -- yes they pop up. yes u want them. INTRODUCING!! 🎉
+        // =====================================================
+        window.spawnDmgNumber = function(screenX, screenY, dmg, isCrit, color) {
+            const el = document.createElement('div');
+            el.className = 'dmg-num' + (isCrit ? ' dmg-num-crit' : '');
+            el.style.left = (screenX - 20) + 'px';
+            el.style.top  = (screenY - 20) + 'px';
+            // size scales with damage. small hits = small font. crits = BIG font
+            const baseSize = isCrit ? 28 : Math.max(14, Math.min(24, 11 + dmg * 0.3));
+            el.style.fontSize = baseSize + 'px';
+            el.style.color = color || (isCrit ? '#ffd700' : '#ff4444');
+            el.textContent = (isCrit ? '💥 ' : '') + dmg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 900);
+        };
+
+        // =====================================================
+        // RED VIGNETTE -- flash on player damage. i've been saying the vignette matters since day one
+        // =====================================================
+        window.flashVignette = function(intensity) {
+            const v = document.getElementById('damage-vignette');
+            if (!v) return;
+            v.style.opacity = String(intensity || 1);
+            clearTimeout(v._fadeTimer);
+            v._fadeTimer = setTimeout(() => { v.style.opacity = '0'; }, 140);
+        };
+
+        // =====================================================
+        // SCREEN SHAKE -- verily the realm doth tremble on heavy blows
+        // =====================================================
+        window.screenShake = function(heavy) {
+            document.body.classList.remove('shaking', 'shaking-heavy');
+            void document.body.offsetWidth; // force reflow to restart animation
+            document.body.classList.add(heavy ? 'shaking-heavy' : 'shaking');
+            clearTimeout(document.body._shakeTimer);
+            document.body._shakeTimer = setTimeout(() => {
+                document.body.classList.remove('shaking', 'shaking-heavy');
+            }, heavy ? 520 : 380);
+        };
+
+        // =====================================================
+        // KILL FEED -- chronicles the carnage. the realm demands witnesses.
+        // =====================================================
+        window.addKillFeed = function(text, isPlayerKill) {
+            const feed = document.getElementById('kill-feed');
+            if (!feed) return;
+            const el = document.createElement('div');
+            el.className = 'kill-entry' + (isPlayerKill ? ' player-kill' : '');
+            el.textContent = text;
+            feed.appendChild(el);
+            // cap at 5 entries
+            while (feed.children.length > 5) feed.removeChild(feed.firstChild);
+            // auto remove after 4s
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.4s';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 420);
+            }, 4000);
+        };
+
+        // =====================================================
+        // MINIMAP DRAW -- called every frame from main.ts updateUI()
+        // the minimap knows where everyone is. connect the dots.
+        // =====================================================
+        window.drawMinimap = function(playerX, playerZ, npcs) {
+            const canvas = document.getElementById('minimap');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = 130, H = 130, cx = 65, cy = 65;
+            // scale: world is -200 to +200, canvas 130px, so 1 unit = 0.325px
+            const SCALE = 0.325;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // background circle
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, 63, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.55)';
+            ctx.fill();
+            ctx.clip();
+
+            // grid lines -- subtle
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for (let gx = -200; gx <= 200; gx += 50) {
+                const px = cx + gx * SCALE;
+                ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+            }
+            for (let gz = -200; gz <= 200; gz += 50) {
+                const py = cy + gz * SCALE;
+                ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+            }
+
+            // NPC dots -- colored by type
+            const typeColors = {
+                normal: '#ff8844', jesus: '#ffffaa', robot: '#44ffff', orb: '#ff44ff',
+                angel: '#ffffff', pirate: '#8866ff', wizard: '#aa44ff', vampire: '#ff2244',
+                disco: '#ff88ff', shadow: '#444466', barney: '#cc44cc', emo: '#334433',
+                shrek: '#44aa33', buffcat: '#ff6633', voidcat: '#222244', hybrid: '#ff8800',
+                obama: '#3366ff', trump: '#ff6633'
+            };
+            if (npcs && npcs.length) {
+                for (const npc of npcs) {
+                    if (!npc.alive) continue;
+                    const nx = cx + npc.x * SCALE;
+                    const ny = cy + npc.z * SCALE;
+                    ctx.beginPath();
+                    ctx.arc(nx, ny, 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = typeColors[npc.type] || '#aaaaaa';
+                    ctx.fill();
+                }
+            }
+
+            // player dot -- always white, center-ish
+            const px = cx + playerX * SCALE;
+            const py = cy + playerZ * SCALE;
+            // player glow
+            ctx.beginPath();
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(200,150,255,0.35)';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+
+            ctx.restore();
+
+            // border circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, 63, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        };
+
+        // =====================================================
+        // DODGE INDICATOR -- brief flash when dodge roll triggers
+        // =====================================================
+        window.showDodgeIndicator = function() {
+            const el = document.getElementById('dodge-indicator');
+            if (!el) return;
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 600);
+        };
+
+        // =====================================================
+        // STATUS EFFECTS HUD update -- called from main.ts
+        // tired of not knowing ur debuffs? NOT ANYMORE!!
+        // =====================================================
+        window.updateStatusEffects = function(effects) {
+            const el = document.getElementById('status-effects');
+            if (!el) return;
+            el.innerHTML = '';
+            for (const eff of effects) {
+                const icon = document.createElement('div');
+                icon.className = 'status-icon';
+                icon.title = eff.label;
+                icon.textContent = eff.icon;
+                el.appendChild(icon);
+            }
+        };
     </script>
 
     <!-- hotbar bottom center -- 6 item slots, 1-6 to select, E to use -->
@@ -497,7 +842,31 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v1.0.0</div>
+    <div id="version-hud">v1.1.0</div>
+
+    <!-- damage vignette -- red pulse on player hit. they don't want you to feel safe. -->
+    <div id="damage-vignette"></div>
+
+    <!-- kill feed -- top right, chronicles the carnage like a shooter. meow meow 😸 -->
+    <div id="kill-feed"></div>
+
+    <!-- dodge indicator -- brief "DODGE!" flash when rolling -->
+    <div id="dodge-indicator">💨 DODGE ROLL</div>
+
+    <!-- campfire proximity hud -->
+    <div id="campfire-hud">🔥 +2 HP/s (campfire)</div>
+
+    <!-- chest prompt -->
+    <div id="chest-prompt">📦 Press E to open chest!</div>
+
+    <!-- status effect row -->
+    <div id="status-effects"></div>
+
+    <!-- minimap -- bottom right. the algorithm tracks you. embrace it. -->
+    <div id="minimap-wrap">
+        <canvas id="minimap" width="130" height="130"></canvas>
+        <div id="minimap-label">minimap</div>
+    </div>
 
     <!-- COMBO OVERLAY -- the purrfect combo screen flash -->
     <div id="combo-overlay" style="

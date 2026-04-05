@@ -333,6 +333,10 @@ export class NPCManager {
     // call this every frame from main.ts with the player's position
     public setPlayerPos(pos: THREE.Vector3): void {
         this.playerPos = pos;
+        // update flee targets for all alive npcs -- they run from the player when hp drops low
+        for (const npc of this.npcs) {
+            if (npc.isAlive()) npc.setFleeTarget(pos);
+        }
     }
 
     // wire in mud slowness from main

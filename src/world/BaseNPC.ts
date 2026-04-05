@@ -117,6 +117,13 @@ export abstract class BaseNPC {
     private readonly GRAVITY: number = -28;
     private readonly NPC_JUMP_FORCE: number = 10;
 
+    // flee at low HP -- when we're at death's door, haul ass away from the player.
+    // i'm not angry. i'm just disappointed that we didn't add this earlier. -- disappointed parent
+    protected fleeTarget: THREE.Vector3 | null = null;  // flee away from this position
+    protected fleeTimer_: number = 0;                   // how long to keep fleeing (reset each hit)
+    private readonly FLEE_THRESHOLD: number = 0.20;     // flee below 20% HP
+    private readonly FLEE_SPEED_MULT: number = 2.2;     // flee faster than normal move
+
     constructor(position: THREE.Vector3) {
         this.position = position.clone();
         this.velocity = new THREE.Vector3(0, 0, 0);
@@ -130,6 +137,28 @@ export abstract class BaseNPC {
         if (this.isStunned()) {
             this.applyGravity(deltaTime);
             this.mesh.position.copy(this.position);
+            return;
+        }
+
+        // FLEE MODE -- activated at low HP. the npc runs away like a coward. smart coward.
+        if (this.fleeTimer_ > 0) this.fleeTimer_ -= deltaTime;
+        const hpPct = this.hp / Math.max(1, this.maxHp);
+        const shouldFlee = hpPct < this.FLEE_THRESHOLD && this.fleeTarget !== null;
+        if (shouldFlee) {
+            // flee timer: keep fleeing a bit even after fleeTarget cleared
+            if (this.fleeTimer_ <= 0) this.fleeTimer_ = 2.5;
+            // point away from the threat
+            const awayDir = this.position.clone().sub(this.fleeTarget!).normalize();
+            const fleeSpeed = speed * this.FLEE_SPEED_MULT * this.domainSpeedMult;
+            this.velocity.x = awayDir.x * fleeSpeed;
+            this.velocity.z = awayDir.z * fleeSpeed;
+            this.targetAngle = Math.atan2(this.velocity.x, this.velocity.z);
+            this.applyGravity(deltaTime);
+            this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
+            this.position.x = Math.max(-200, Math.min(200, this.position.x));
+            this.position.z = Math.max(-200, Math.min(200, this.position.z));
+            this.mesh.position.copy(this.position);
+            if (this.mesh.rotation) this.mesh.rotation.y += (this.targetAngle - this.mesh.rotation.y) * 0.15;
             return;
         }
         // just vibing randomly lol
@@ -222,6 +251,12 @@ export abstract class BaseNPC {
 
     // force an npc to say something -- for party hat etc
     public triggerSpeak(): void { this.speak(); }
+
+    // setFleeTarget -- NPCManager calls this every frame with the player position
+    // when HP < 20%, the npc will bolt away from this position. cowardly. sensible.
+    public setFleeTarget(pos: THREE.Vector3 | null): void {
+        this.fleeTarget = pos;
+    }
 
     // set hp ceiling + refill -- call this right after constructing the npc
     public setMaxHp(newMax: number): void {

@@ -341,6 +341,7 @@ export interface ActivePlayerDomain {
     }>;
     slashTimer: number;
     shrineMarks: THREE.Mesh[];    // static floor cross sigil at domain center
+    lifeTimer: number;            // hard 15s cap. it WILL close. no exceptions.
 }
 
 export class DomainExpansionSystem {
@@ -901,67 +902,83 @@ export class DomainExpansionSystem {
         this.playerDomain = {
             def, castPos: fixedPos, playerLockedInside: true,
             sphere, light, pillars, pillarLights,
-            slashes: [], slashTimer: 0.15, shrineMarks,
+            slashes: [], slashTimer: 0.15, shrineMarks, lifeTimer: 15,
         };
         this.onDomainOpen?.(def.name, def.flavorText);
     }
 
-    // MALEVOLENT SHRINE: fires radial slash waves -- dismantle (wide horizontal) + cleave (tall vertical)
-    // keeps the throne purple theme but the mechanic is exactly sukuna's guaranteed hit slash pattern
-    // nobody asked if we could do this. we just did it. u r welcome. -- infomercial energy
+    // MALEVOLENT SHRINE: fires radial slash waves in ALL directions -- way more cuts, 4 wave patterns
+    // this is what happens when sukuna has the throne. you dont dodge. you just take it.
+    // for the love of god there are a LOT of slashes now. -- disappointed parent who also loves this
     private spawnPlayerSlashWave(
         pd: ActivePlayerDomain,
         npcs: Array<{ getPosition(): THREE.Vector3; takeDamage(d: number): void; isAlive(): boolean }>
     ): void {
-        const count = 5 + Math.floor(Math.random() * 4); // 5-8 per wave
+        const waveType = Math.floor(Math.random() * 4);
         const baseAngle = Math.random() * Math.PI * 2;
+        let count: number;
+
+        if (waveType === 0) count = 24 + Math.floor(Math.random() * 12); // radial burst: 24-36, every direction
+        else if (waveType === 1) count = 12;                               // cross double-sweep
+        else if (waveType === 2) count = 20;                               // spiral
+        else                     count = 36 + Math.floor(Math.random() * 20); // chaos storm: 36-56
 
         for (let i = 0; i < count; i++) {
-            const isDismantle = Math.random() < 0.55; // slightly more horizontal cuts
-            const angle = baseAngle + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+            let angle: number;
+            if (waveType === 0)      angle = baseAngle + (i / count) * Math.PI * 2;
+            else if (waveType === 1) angle = baseAngle + (i < 6 ? (i / 6) * Math.PI * 2 : ((i - 6) / 6) * Math.PI * 2 + Math.PI / 6);
+            else if (waveType === 2) angle = baseAngle + (i / count) * Math.PI * 4; // spiral = 2 full rotations
+            else                     angle = Math.random() * Math.PI * 2;
+
+            const isDismantle = Math.random() < 0.5;
+            const isCross     = Math.random() < 0.12;
             const dir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)).normalize();
 
-            // dismantle: wide, flat, horizontal sweep across the field
-            // cleave: narrow, tall, vertical slice - single track - the one that really hurts
-            const geo = isDismantle
-                ? new THREE.BoxGeometry(3.2 + Math.random() * 2.2, 0.09, 0.45)
-                : new THREE.BoxGeometry(0.1, 2.8 + Math.random() * 2.2, 0.45);
-            const color = isDismantle
-                ? (Math.random() < 0.5 ? 0xcc88ff : 0xaa44ee)
-                : (Math.random() < 0.5 ? 0xffffff : 0xee99ff);
-            const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.82 + Math.random() * 0.15 });
+            let geo: THREE.BufferGeometry;
+            if (isCross) {
+                geo = new THREE.BoxGeometry(3.0 + Math.random() * 2.0, 2.8 + Math.random() * 2.0, 0.08);
+            } else if (isDismantle) {
+                geo = new THREE.BoxGeometry(3.5 + Math.random() * 3.5, 0.07, 0.45 + Math.random() * 0.4);
+            } else {
+                geo = new THREE.BoxGeometry(0.08, 3.5 + Math.random() * 3.5, 0.45 + Math.random() * 0.4);
+            }
+
+            const colors = [0xcc88ff, 0xffffff, 0xee99ff, 0xdd44ff, 0xbb22ee, 0xffccff, 0x9900ff, 0xaa00cc];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.75 + Math.random() * 0.22 });
             const mesh = new THREE.Mesh(geo, mat);
 
-            const startDist = 1.5 + Math.random() * 2.0;
+            // chaos storm starts from random positions mid-field; others start near center
+            const startDist = waveType === 3
+                ? Math.random() * pd.def.radius * 0.55
+                : 0.5 + Math.random() * 3.5;
+
             mesh.position.set(
                 pd.castPos.x + dir.x * startDist,
-                isDismantle ? 0.2 + Math.random() * 0.4 : 0.6 + Math.random() * 2.0,
+                isDismantle ? 0.1 + Math.random() * 1.0 : 0.2 + Math.random() * 3.5,
                 pd.castPos.z + dir.z * startDist,
             );
-            // +Z becomes the travel direction (lookAt target = position + dir)
             mesh.lookAt(mesh.position.clone().add(dir));
-            // random roll for natural slash angle variation -- sukuna's cuts arent perfectly straight either
-            mesh.rotateZ((Math.random() - 0.5) * (isDismantle ? 0.55 : 0.9));
+            mesh.rotateZ((Math.random() - 0.5) * (isDismantle ? 0.7 : 1.3));
             this.scene.add(mesh);
 
             pd.slashes.push({
                 mesh, dir,
-                speed: 18 + Math.random() * 20, // FAST -- guaranteed hit = you dont have time to process it
+                speed: 12 + Math.random() * 34,  // wide range -- sneaky slow to blink fast
                 distTraveled: startDist,
-                maxDist: pd.def.radius * 0.96,
+                maxDist: pd.def.radius * 0.97,
                 type: isDismantle ? 'dismantle' : 'cleave',
             });
         }
 
-        // GUARANTEED HIT: the whole point of a domain expansion -- the slashes connect with everything
-        // deal wave burst damage to all npcs inside
+        // guaranteed hit burst on every wave -- the whole territory gets carved
         for (const npc of npcs) {
             if (!npc.isAlive()) continue;
             const np = npc.getPosition();
             const dx = np.x - pd.castPos.x;
             const dz = np.z - pd.castPos.z;
             if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
-                npc.takeDamage(10); // slash burst -- the domain doesnt miss. ever.
+                npc.takeDamage(10);
             }
         }
     }
@@ -1028,11 +1045,19 @@ export class DomainExpansionSystem {
                 }
             }
         }
+        // HARD LIFE TIMER: 15 seconds, no exceptions, throne collapses. you had your fun.
+        pd.lifeTimer -= dt;
+        if (pd.lifeTimer <= 0) {
+            this.onPlayerDomainClose?.(pd.def.name);
+            this.forceClosePlayerDomain();
+            return;
+        }
+
         // SLASH WAVE TIMER -- fire new malevolent shrine wave on interval
         pd.slashTimer -= dt;
         if (pd.slashTimer <= 0) {
             this.spawnPlayerSlashWave(pd, npcs);
-            pd.slashTimer = 0.38 + Math.random() * 0.28; // 0.38-0.66s between waves
+            pd.slashTimer = 0.22 + Math.random() * 0.18; // 0.22-0.40s between waves -- way more frequent
         }
 
         // ANIMATE SLASHES: fly outward, scale grows, opacity fades at boundary, die at edge
