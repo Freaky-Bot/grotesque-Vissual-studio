@@ -6,6 +6,8 @@ import { EmoNPC } from './EmoNPC';
 import { ShrekNPC } from './ShrekNPC';
 import { BuffCatNPC } from './BuffCatNPC';
 import { VoidCatNPC } from './VoidCatNPC';
+import { ObamaNPC } from './ObamaNPC';
+import { TrumpNPC } from './TrumpNPC';
 import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
 import { InventorySystem, ITEM_INFO } from './InventorySystem';
 
@@ -55,6 +57,8 @@ export class NPCManager {
         buffcat: '6x damage + 50% armor -- THE MOST JACKED THING ON THIS MAP',
         voidcat: 'INVULNERABLE + 3x damage -- VOID CAT PHASES OUT OF REALITY',
         hybrid:  'RANDOM BUFFS -- nobody knows. not even the hybrid. chaos.',
+        obama:   '2x speed + 2x damage + 30% armor -- YES WE CAN. AND YES HE WILL.',
+        trump:   '2.5x damage + 60% armor -- THE TREMENDOUS WALL PROTECTS HIM. BELIEVE ME.',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -66,6 +70,8 @@ export class NPCManager {
         buffcat: { dmg: 15, range: 3.5 },
         voidcat: { dmg: 8,  range: 5.0 },
         hybrid:  { dmg: 10, range: 3.0 },
+        obama:   { dmg: 12, range: 4.5 }, // hope hurts apparently
+        trump:   { dmg: 15, range: 3.5 }, // tremendous damage. bigly.
     };
 
     constructor(scene: THREE.Scene) {
@@ -84,6 +90,9 @@ export class NPCManager {
         this.spawnBuffCat();
         // void cat -- one at all times in the world, watching
         this.spawnVoidCat();
+        // the political duo. unexpected. unasked for. here anyway.
+        this.spawnObama();
+        this.spawnTrump();
     }
 
     public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
@@ -116,6 +125,13 @@ export class NPCManager {
             }
             // shrek gets player pos for mud attacks
             if (npc instanceof ShrekNPC && this.playerPos) {
+                npc.setPlayerRef(this.playerPos);
+            }
+            // obama + trump need player pos for their projectiles ugh
+            if (npc instanceof ObamaNPC && this.playerPos) {
+                npc.setPlayerRef(this.playerPos);
+            }
+            if (npc instanceof TrumpNPC && this.playerPos) {
                 npc.setPlayerRef(this.playerPos);
             }
             // buff cat doing zoomies can damage buildings
@@ -274,6 +290,8 @@ export class NPCManager {
         if (roll < 0.20) { this.spawnShrek(); return; }
         if (roll < 0.26) { this.spawnBuffCat(); return; }
         if (roll < 0.31) { this.spawnVoidCat(); return; }
+        if (roll < 0.35) { this.spawnObama(); return; }
+        if (roll < 0.39) { this.spawnTrump(); return; }
         // Random cat type - JOJO EDITION!! ゴゴゴゴゴ
         const catTypes = [
             CatType.NORMAL,
@@ -399,5 +417,35 @@ export class NPCManager {
         this.addNPC(voidCat);
         this.scene.add(voidCat.getMesh());
         console.log('%c🌑 VOID CAT MATERIALIZED FROM THE DARKNESS', 'color: #330044; font-weight: bold; font-size: 14px');
+    }
+
+    private spawnObama(): void {
+        // only one obama at a time. he is a singular presence.
+        if (this.npcs.some(n => n.getType() === 'obama')) return;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 80;
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const obama = new ObamaNPC(pos);
+        obama.setMaxHp(90); // presidential hp
+        if (this.bubbleCb) obama.setSpeakCallback(this.bubbleCb);
+        if (this.playerPos) obama.setPlayerRef(this.playerPos);
+        if (Math.random() < 0.10) obama.forceActivateDomain(13);
+        this.addNPC(obama);
+        this.scene.add(obama.getMesh());
+    }
+
+    private spawnTrump(): void {
+        // only one trump. the world cannot handle more than one.
+        if (this.npcs.some(n => n.getType() === 'trump')) return;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 80;
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const trump = new TrumpNPC(pos);
+        trump.setMaxHp(100); // tremendous hp. the most hp. believe me.
+        if (this.bubbleCb) trump.setSpeakCallback(this.bubbleCb);
+        if (this.playerPos) trump.setPlayerRef(this.playerPos);
+        if (Math.random() < 0.10) trump.forceActivateDomain(14);
+        this.addNPC(trump);
+        this.scene.add(trump.getMesh());
     }
 }

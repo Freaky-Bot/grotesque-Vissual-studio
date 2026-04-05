@@ -139,6 +139,21 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         damage: 18, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
         killBurst: 40, executeHpPct: 0.15, pullRadius: 46,
     },
+    // ----- POLITICAL ZONE -- you did not expect this. nobody did. -----
+    obama:    {
+        name: 'Hope and Change',
+        npcType: 'obama', flavorText: 'YES WE CAN. AND YES, YOU ARE TRAPPED IN HERE WITH ME.',
+        radius: 33, domainColor: 0x1A53FF, fogColor: 0x001155,
+        damage: 14, npcDamage: 0, stunPulse: 2.5, healPerSec: 4, duration: 13, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 35, executeHpPct: 0.13, pullRadius: 42,
+    },
+    trump:    {
+        name: 'Tremendous Domain',
+        npcType: 'trump', flavorText: "IT'S THE GREATEST DOMAIN. PEOPLE ARE SAYING IT'S THE BEST. BELIEVE ME.",
+        radius: 38, domainColor: 0xFFD700, fogColor: 0x332200,
+        damage: 22, npcDamage: 0, stunPulse: 1.5, healPerSec: 3, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 50, executeHpPct: 0.18, pullRadius: 49,
+    },
     // ----- PLAYER DOMAIN -- the sage awakens. honestly nobody expected this. -----
     player: {
         name: 'Aberrant Throne',

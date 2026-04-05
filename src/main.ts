@@ -731,7 +731,8 @@ class CatGodWorld {
         const lower = nameOrType.toLowerCase();
         // direct type match -- already the right string
         const direct = ['normal','jesus','robot','orb','angel','pirate','wizard','vampire',
-                        'disco','shadow','barney','emo','shrek','buffcat','voidcat','hybrid','player'];
+                        'disco','shadow','barney','emo','shrek','buffcat','voidcat','hybrid','player',
+                        'obama','trump'];
         if (direct.includes(lower)) return lower;
         // fuzzy match from domain display names
         if (lower.includes('meow'))      return 'normal';
@@ -751,6 +752,8 @@ class CatGodWorld {
         if (lower.includes('void') || lower.includes('eternal') || lower.includes('darkness'))  return 'voidcat';
         if (lower.includes('chaos') || lower.includes('hybrid') || lower.includes('fusion'))    return 'hybrid';
         if (lower.includes('aberrant') || lower.includes('throne') || lower.includes('player')) return 'player';
+        if (lower.includes('hope') || lower.includes('change') || lower.includes('obama'))      return 'obama';
+        if (lower.includes('tremendous') || lower.includes('trump'))                            return 'trump';
         return 'normal'; // shrug fallback
     }
 

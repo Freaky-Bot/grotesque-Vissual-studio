@@ -75,6 +75,8 @@ export abstract class BaseNPC {
                 this.domainDamageMult = 1 + Math.random() * 5;
                 this.domainDmgReduction = Math.random() * 0.7;
                 break;
+            case 'obama':   this.domainSpeedMult = 2.0; this.domainDamageMult = 2.0; this.domainDmgReduction = 0.3; break; // hope-fueled sprint + 30% armor
+            case 'trump':   this.domainDamageMult = 2.5; this.domainDmgReduction = 0.6; this.domainSpeedMult = 0.8; break; // TREMENDOUS wall = tanky but slow
         }
     }
 

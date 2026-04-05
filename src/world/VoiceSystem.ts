@@ -20,6 +20,8 @@ const PROFILES: Record<string, [number, number]> = {
     voidcat: [0.2, 0.4],   // ancient darkness
     hybrid:  [1.0, 1.0],   // changes every time
     player:  [0.85, 0.8],  // sage
+    obama:   [0.75, 0.85], // calm and presidential
+    trump:   [0.65, 1.1],  // loud and confident. very confident.
 };
 
 const ABILITY_LINES: Record<string, string> = {
@@ -41,6 +43,8 @@ const ABILITY_LINES: Record<string, string> = {
     ability_hybrid_dmg:   'Chaos.',
     ability_hybrid_heal:  'I choose myself.',
     ability_hybrid_chaos: 'Neither do I.',
+    ability_obama:        'Yes we can.',
+    ability_trump:        'Tremendous.',
     execute_player:       'It is over.',
     domain_timeout:       'I grow bored.',
 };
