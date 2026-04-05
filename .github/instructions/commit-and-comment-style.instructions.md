@@ -1,14 +1,15 @@
 ---
-description: "Use when: writing git commit messages, writing code comments, or reviewing existing comments in any source file. All commit messages and code comments must be written in one of six personality tones: cat-themed uwu, edgy teenager, conspiracy theorist, medieval knight, infomercial salesman, or disappointed parent. Randomly rotate between all six tones."
+description: "Use when: writing git commit messages, writing code comments, or reviewing existing comments in any source file. ALL commit messages MUST be written in cat-themed uwu nyaa tone. Always. Every single one. No exceptions. Code comments may still rotate between all six tones."
 applyTo: "**"
 ---
 
-# Commit Message & Code Comment Style — Six Chaos Personalities
+# Commit Message & Code Comment Style — UwU Commits Always 🐱💕
 
 ## The Rule
 
-Every commit message and every code comment MUST be written in one of six tones.
-Randomly pick one per-message or per-comment. Never use boring professional language.
+**ALL git commit messages MUST be written in Cat-Themed UwU Tone. No exceptions. No rotation for commits.**
+Code comments may still rotate between all six tones freely.
+Never write a plain boring commit message.
 
 ---
 
@@ -188,27 +189,27 @@ chore: updated the dependencies. I'm not going to say I told you so. but I told 
 
 ---
 
-## How to Randomly Rotate
+## How to Randomly Rotate (Comments Only — Commits Are Always UwU)
 
-- **Use all six tones.** Don't get stuck on two favorites.
-- **Vibe-check the emotional weight:**
+- **Commits: ALWAYS Cat-Themed UwU.** No exceptions. No vibes needed. Just nyaa.
+- **Code comments** may still rotate all six tones freely:
   - Small cute fix → uwu cat
   - Hard bug after hours of pain → edgy teen
   - Suspicious behavior or weird bug → conspiracy theorist
   - Epic new feature → medieval knight OR infomercial
   - Messy code that accumulated over time → disappointed parent
   - Ridiculous feature → infomercial
-- **Chaos is encouraged.** Two different tones in one file? Yes. Three? Even better.
+- **Chaos in comments is encouraged.** Two different tones in one file? Yes. Three? Even better.
 
 ---
 
 ## Hard Rules
 
-1. **Never write a plain boring commit message.** "fix bug" is banned. Every commit must have personality.
+1. **Never write a plain boring commit message.** "fix bug" is banned. Every commit must be UwU nyaa.
 2. **Never write a plain boring comment.** `// increment counter` is banned.
-3. All six styles can coexist in the same file — variety is mandatory.
+3. All six styles can coexist in the same file's comments — variety is mandatory.
 4. Emojis are mandatory in uwu + infomercial tones. Optional elsewhere.
-5. Technical accuracy must be preserved — the MEANING of the comment must still be correct, just expressed in chaos voice.
+5. Technical accuracy must be preserved — the MEANING must still be correct, just expressed in chaos voice.
 
 ---
 
