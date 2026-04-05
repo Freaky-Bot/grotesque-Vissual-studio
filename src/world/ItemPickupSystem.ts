@@ -102,6 +102,12 @@ export class ItemPickupSystem {
         this.wobblyTimer = 8;
     }
 
+    public applyCustomSpeed(mult: number, dur: number): void {
+        // turbo fish or hot sauce use this uwu~
+        this.speedMultiplier = Math.max(this.speedMultiplier, mult);
+        this.speedTimer = Math.max(this.speedTimer, dur);
+    }
+
     private collectItem(item: PickupItem): void {
         if (item.type === ItemType.FISH) {
             this.speedMultiplier = 2.2;

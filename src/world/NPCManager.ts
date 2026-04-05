@@ -6,6 +6,7 @@ import { EmoNPC } from './EmoNPC';
 import { ShrekNPC } from './ShrekNPC';
 import { BuffCatNPC } from './BuffCatNPC';
 import { VoidCatNPC } from './VoidCatNPC';
+import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
 
 export class NPCManager {
     private npcs: BaseNPC[] = [];
@@ -21,6 +22,10 @@ export class NPCManager {
     public onPlayerHit: ((dmg: number) => void) | null = null;
     public onNpcKilled: ((npcType: string, pos: THREE.Vector3) => void) | null = null;
 
+    // domain expansion -- the show accurate jjk system. whoever wired this: ur insane (me. i did this.)
+    private domainSystem: DomainExpansionSystem | null = null;
+    public onDomainActivated: ((name: string, flavor: string) => void) | null = null;
+
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
     private static readonly NPC_ATTACK_STATS: Record<string, { dmg: number; range: number }> = {
         cat:     { dmg: 5,  range: 3.0 },
@@ -34,6 +39,10 @@ export class NPCManager {
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
+        // domain system needs the scene for the big glowing sphere visuals
+        this.domainSystem = new DomainExpansionSystem(scene);
+        this.domainSystem.onDomainOpen = (name, flavor) => this.onDomainActivated?.(name, flavor);
+        this.domainSystem.onDomainClose = (name) => console.log(`%c💨 Domain "${name}" collapsed`, 'color:#888;');
         // spawn barney right away, he's always here, he was always here
         this.spawnBarney();
         // spawn an emo too, every world needs one sad boi
@@ -82,7 +91,22 @@ export class NPCManager {
             if (npc instanceof BuffCatNPC && this.worldGenerator) {
                 this.worldGenerator.damageBuildingNear(npc.getPosition(), 10);
             }
+            // tick stun timer before updating -- stunned npcs cant move or attack
+            npc.tickStun(deltaTime);
             npc.update(deltaTime);
+
+            // domain expansion tick -- might return true if it just awakened right now
+            if (this.domainSystem) {
+                const justOpened = npc.tickDomain(deltaTime);
+                if (justOpened) {
+                    // open the domain using the npc's type as the key
+                    const defKey = npc.getType();
+                    this.domainSystem.openDomain(
+                        { getPosition: () => npc.getPosition(), takeDamage: (d) => npc.takeDamage(d), getType: () => npc.getType(), hp: npc.getHp(), maxHp: npc.getMaxHp() },
+                        DOMAIN_DEFS[defKey] ? defKey : 'normal',
+                    );
+                }
+            }
 
             // npc attacks player if close enough -- every npc has its own cooldown via tickAttack
             if (this.playerPos && this.onPlayerHit) {
@@ -110,7 +134,20 @@ export class NPCManager {
             }
             return true;
         });
+
+        // update domain spheres + deal domain damage to player each frame
+        if (this.domainSystem && this.playerPos && this.onPlayerHit) {
+            this.domainSystem.update(
+                deltaTime,
+                this.playerPos,
+                (dmg) => this.onPlayerHit?.(dmg),
+                () => { /* player stun -- handled in main.ts for now */ },
+            );
+        }
     }
+
+    // expose domain system so main.ts can add guaranteed-hit checks
+    public getDomainSystem(): DomainExpansionSystem | null { return this.domainSystem; }
 
     // call this every frame from main.ts with the player's position
     public setPlayerPos(pos: THREE.Vector3): void {
@@ -162,6 +199,8 @@ export class NPCManager {
 
         const npc = new CatNPC(randomType, new THREE.Vector3(x, 2, z));
         if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // dont forget this one
+        // 10% chance to spawn with domain already active -- terrifying. rude. horrible.
+        if (Math.random() < 0.10) npc.forceActivateDomain(12);
         this.addNPC(npc);
         this.scene.add(npc.getMesh());
     }
@@ -174,6 +213,7 @@ export class NPCManager {
         emo.setMaxHp(75); // edgy boi isnt THAT tanky
         if (this.bubbleCb) emo.setSpeakCallback(this.bubbleCb);
         if (this.playerPos) emo.setPlayerRef(this.playerPos);
+        if (Math.random() < 0.10) emo.forceActivateDomain(13);
         this.addNPC(emo);
         this.scene.add(emo.getMesh());
     }
@@ -197,6 +237,16 @@ export class NPCManager {
         return this.npcs.length;
     }
 
+    // force spawn random NPC(s) -- rainbow item uses this
+    public forceSpawnRandom(count: number = 1): void {
+        for (let i = 0; i < count; i++) this.spawnNewNPC();
+    }
+
+    // force barney into the world -- barney_ticket item
+    public forceSpawnBarney(): void {
+        this.spawnBarney();
+    }
+
     public getNPCs(): BaseNPC[] {
         // here's all the kitties uwu
         return this.npcs;
@@ -217,6 +267,7 @@ export class NPCManager {
         if (this.bubbleCb) shrek.setSpeakCallback(this.bubbleCb);
         if (this.playerPos) shrek.setPlayerRef(this.playerPos);
         if (this.onMudHit) shrek.setMudHitCallback(this.onMudHit);
+        if (Math.random() < 0.10) shrek.forceActivateDomain(16);
         this.addNPC(shrek);
         this.scene.add(shrek.getMesh());
         console.log('%c🧅 SHREK HAS ARRIVED. THIS IS HIS SWAMP NOW.', 'color: olive; font-weight: bold; font-size: 14px');
@@ -229,6 +280,7 @@ export class NPCManager {
         const buff = new BuffCatNPC(pos);
         buff.setMaxHp(80); // jacked but not immortal
         if (this.bubbleCb) buff.setSpeakCallback(this.bubbleCb);
+        if (Math.random() < 0.10) buff.forceActivateDomain(10);
         this.addNPC(buff);
         this.scene.add(buff.getMesh());
         console.log('%c💪 BUFF CAT SPAWNED. BICEPS ACTIVATED.', 'color: orange; font-weight: bold; font-size: 14px');
@@ -241,6 +293,7 @@ export class NPCManager {
         const voidCat = new VoidCatNPC(pos);
         voidCat.setMaxHp(70); // void is spooky but fragile
         if (this.bubbleCb) voidCat.setSpeakCallback(this.bubbleCb);
+        if (Math.random() < 0.10) voidCat.forceActivateDomain(14);
         this.addNPC(voidCat);
         this.scene.add(voidCat.getMesh());
         console.log('%c🌑 VOID CAT MATERIALIZED FROM THE DARKNESS', 'color: #330044; font-weight: bold; font-size: 14px');

@@ -16,6 +16,15 @@ export abstract class BaseNPC {
     protected maxHp: number = 40;
     private attackTimer_: number = 0;
     protected attackInterval_: number = 2.0;
+    protected stunTimer: number = 0; // lol they cant move or attack when stunned
+
+    // domain expansion fields -- the secret power within the soul. ugh this is so cool.
+    public domainActive: boolean = false;
+    protected domainTimer: number = 0;      // counts down while domain is open
+    private domainCooldown: number = 0;     // 60s lockout after each use
+    private readonly DOMAIN_CHANCE_BASE: number = 0.003;    // 0.3% per second normally
+    private readonly DOMAIN_CHANCE_LOW_HP: number = 0.025;  // 2.5% per second when below 25% HP
+    private readonly DOMAIN_COOLDOWN_SECS: number = 60;
 
     // gravity + jumping -- grounded npcs get this for free
     protected verticalVelocity: number = 0;
@@ -33,6 +42,12 @@ export abstract class BaseNPC {
     public abstract update(deltaTime: number): void;
 
     protected randomWalk(deltaTime: number, speed: number = 2): void {
+        // frozen -- cant go anywhere ugh whatever
+        if (this.isStunned()) {
+            this.applyGravity(deltaTime);
+            this.mesh.position.copy(this.position);
+            return;
+        }
         // just vibing randomly lol
         if (Math.random() < 0.03) {
             this.targetAngle = Math.random() * Math.PI * 2;
@@ -112,6 +127,16 @@ export abstract class BaseNPC {
     public getHp(): number { return this.hp; }
     public getMaxHp(): number { return this.maxHp; }
 
+    // stun -- freezes movement + blocks attacks. disco ball does this, glue trap too, etc.
+    public stun(duration: number): void {
+        this.stunTimer = Math.max(this.stunTimer, duration);
+    }
+    public tickStun(dt: number): void { this.stunTimer = Math.max(0, this.stunTimer - dt); }
+    public isStunned(): boolean { return this.stunTimer > 0; }
+
+    // force an npc to say something -- for party hat etc
+    public triggerSpeak(): void { this.speak(); }
+
     // set hp ceiling + refill -- call this right after constructing the npc
     public setMaxHp(newMax: number): void {
         this.maxHp = newMax;
@@ -121,6 +146,7 @@ export abstract class BaseNPC {
     // returns damage dealt this tick (0 if not attacking or out of range)
     public tickAttack(playerPos: THREE.Vector3, deltaTime: number, range: number, damage: number): number {
         if (damage <= 0) return 0;
+        if (this.stunTimer > 0) return 0; // stunned = cant attack, obviously
         this.attackTimer_ -= deltaTime;
         if (this.attackTimer_ <= 0) {
             const dist = this.position.distanceTo(playerPos);
@@ -132,6 +158,45 @@ export abstract class BaseNPC {
         }
         return 0;
     }
+
+    // domain expansion tick -- call from NPCManager every frame
+    // returns true if domain just activated this tick (so NPCManager can open it)
+    public tickDomain(dt: number): boolean {
+        // cool down after previous domain
+        if (this.domainCooldown > 0) {
+            this.domainCooldown -= dt;
+        }
+
+        // count down the active domain
+        if (this.domainActive) {
+            this.domainTimer -= dt;
+            if (this.domainTimer <= 0) {
+                this.domainActive = false;
+                this.domainCooldown = this.DOMAIN_COOLDOWN_SECS;
+            }
+            return false; // already open, not "just activated"
+        }
+
+        // roll for activation -- spiked chance when im on death's door ugh
+        if (this.domainCooldown <= 0 && this.isAlive_) {
+            const hpPct = this.hp / Math.max(1, this.maxHp);
+            const chance = hpPct < 0.25 ? this.DOMAIN_CHANCE_LOW_HP : this.DOMAIN_CHANCE_BASE;
+            if (Math.random() < chance * dt) {
+                return this.forceActivateDomain(12); // default 12s
+            }
+        }
+        return false;
+    }
+
+    // force-activate (used at spawn for the 10% chance spawn-with-it)
+    public forceActivateDomain(duration: number = 12): boolean {
+        if (this.domainActive) return false;
+        this.domainActive = true;
+        this.domainTimer = duration;
+        return true;
+    }
+
+    public isDomainActive(): boolean { return this.domainActive; }
 
     public abstract getType(): string;
 }

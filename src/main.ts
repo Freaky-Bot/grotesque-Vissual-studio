@@ -24,7 +24,8 @@ import { VoidPortal } from './world/VoidPortal';
 import { ItemPickupSystem } from './world/ItemPickupSystem';
 import { ComboSystem } from './world/ComboSystem';
 import { BaseNPC } from './world/BaseNPC';
-import { InventorySystem, ITEM_INFO } from './world/InventorySystem';
+import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
+import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -63,6 +64,17 @@ class CatGodWorld {
     // inventory + combat state -- about time the player can fight back
     private inventory: InventorySystem = new InventorySystem();
     private playerRespawnTimer: number = 0; // counts down to respawn after death
+
+    // active buff/debuff timers -- every wild item effect gets a timer lol
+    private invincibleTimer: number = 0;     // star_piece
+    private bandageTimer: number = 0;        // bandage heal over time
+    private bandageRate: number = 0;         // HP per second from bandage
+    private slowMoTimer: number = 0;         // time_crystal slow motion
+    private confuseTimer: number = 0;        // donut confusion
+    private hotSauceTimer: number = 0;       // hot_sauce chaos speed
+    private onionLayerActive: boolean = false; // absorb 1 hit
+    private shieldHitsRemaining: number = 0;   // shield absorb charges
+    private soulGemActive: boolean = false;    // auto-revive on death
 
     constructor() {
         this.renderEngine = new RenderEngine();
@@ -152,30 +164,51 @@ class CatGodWorld {
 
         // wire mud slowness from shrek into player
         this.npcManager.setMudHitCallback((slowDur) => {
+            if (this.inventory.isMudImmune()) { this.chat.addMessage('event', '👂 Shrek Ears blocked the mud!'); return; }
             this.mudSlowTimer = slowDur;
             this.chat.addMessage('event', '💩 Hit by Shrek\'s mud!! Moving slow for a bit...');
         });
         this.npcManager.setWorldGenerator(this.worldGenerator);
 
-        // npc hits player: deal damage, flash the hp bar red
+        // npc hits player: check shields/invincibility first, then apply passives
         this.npcManager.onPlayerHit = (dmg) => {
             if (this.sageCharacter.isDead()) return;
-            this.sageCharacter.takeDamage(dmg);
-            this.chat.addMessage('event', `💢 Ouch! -${dmg} HP`);
+            if (this.invincibleTimer > 0) { this.chat.addMessage('event', '⭐ Star Piece blocked the hit!'); return; }
+            if (this.onionLayerActive) { this.onionLayerActive = false; this.chat.addMessage('event', '🧅 Onion Layer absorbed the hit!'); return; }
+            if (this.shieldHitsRemaining > 0) {
+                this.shieldHitsRemaining--;
+                this.chat.addMessage('event', `🛡 Shield blocked! (${this.shieldHitsRemaining} charges left)`);
+                return;
+            }
+            if (this.inventory.isCatCrownActive()) return; // crown = npcs dont attack you
+            if (this.inventory.isLaserPointerActive() && Math.random() < 0.5) return; // 50% miss
+            const actual = Math.ceil(dmg * this.inventory.getDamageTakenMult());
+            this.sageCharacter.takeDamage(actual);
+            this.chat.addMessage('event', `💢 Ouch! -${actual} HP`);
             const bar = document.getElementById('hp-bar-fill');
             if (bar) { bar.style.background = '#ff2222'; setTimeout(() => { if (bar) bar.style.background = ''; }, 200); }
         };
 
-        // npc dies: roll loot, add to inventory
+        // npc dies: roll loot, double it if lucky charm equipped
         this.npcManager.onNpcKilled = (npcType, _pos) => {
-            const loot = InventorySystem.rollLoot(npcType);
-            if (loot) {
-                const added = this.inventory.addItem(loot);
-                if (added) {
-                    const info = ITEM_INFO[loot];
-                    this.chat.addMessage('event', `🎁 Dropped: ${info.icon} ${info.name}`);
+            const attempts = this.inventory.isLuckyCharmActive() ? 2 : 1;
+            for (let i = 0; i < attempts; i++) {
+                const loot = InventorySystem.rollLoot(npcType);
+                if (loot) {
+                    const added = this.inventory.addItem(loot);
+                    if (added) {
+                        const info = ITEM_INFO[loot];
+                        this.chat.addMessage('event', `🎁 Dropped: ${info.icon} ${info.name}`);
+                    }
                 }
             }
+        };
+
+        // domain expansion announcement -- splash the domain name big on screen
+        this.npcManager.onDomainActivated = (name, flavor) => {
+            this.chat.addMessage('event', `⚡ DOMAIN EXPANSION: ${name.toUpperCase()}`);
+            this.chat.addMessage('event', `💀 "${flavor}"`);
+            this.showDomainBanner(name, flavor);
         };
 
         // inventory hotbar update callback
@@ -258,7 +291,8 @@ class CatGodWorld {
         if (!this.sageCharacter.canAttack() || this.sageCharacter.isDead()) return;
         const playerPos = this.sageCharacter.getPosition();
         const range = this.sageCharacter.getAttackRange(this.inventory.getRangeBonus());
-        const dmg = this.sageCharacter.getAttackDamage(this.inventory.getAttackBonus());
+        const baseDmg = this.sageCharacter.getAttackDamage(this.inventory.getAttackBonus());
+        const dmg = Math.ceil(baseDmg * this.inventory.getDamageDealtMult());
         let closest: BaseNPC | null = null;
         let closestDist = range;
         for (const npc of this.npcManager.getNPCs()) {
@@ -280,38 +314,259 @@ class CatGodWorld {
     private useEquippedItem(): void {
         const used = this.inventory.useEquipped();
         if (!used) return;
+        const playerPos = this.sageCharacter.getPosition();
+
         if (used === 'fish') {
             this.itemPickups.applyFish();
             this.chat.addMessage('event', '🐟 Fish! Speed x2.2 for 10s');
+
         } else if (used === 'catnip') {
             this.itemPickups.applyCatnip();
             this.chat.addMessage('event', '🌿 Catnip! Vision wobbling...');
+
         } else if (used === 'potion') {
             const healed = Math.min(40, this.sageCharacter.maxHp - this.sageCharacter.hp);
             this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 40);
-            this.chat.addMessage('event', `🧪 Potion! Healed ${healed} HP`);
+            this.chat.addMessage('event', `🧪 Potion! +${healed} HP`);
+
+        } else if (used === 'mega_potion') {
+            this.sageCharacter.hp = this.sageCharacter.maxHp;
+            this.chat.addMessage('event', '🧪✨ MEGA POTION! Full heal!');
+
         } else if (used === 'void_shard') {
-            const playerPos = this.sageCharacter.getPosition();
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 10) {
-                    npc.takeDamage(30);
-                    hits++;
-                }
+                if (npc.getPosition().distanceTo(playerPos) < 10) { npc.takeDamage(30); hits++; }
             }
-            this.chat.addMessage('event', `💜 Void Shard! Blasted ${hits} mobs for 30 dmg`);
+            this.chat.addMessage('event', `💜 Void Shard! Blasted ${hits} mobs (30 dmg)`);
+
         } else if (used === 'onion') {
-            const playerPos = this.sageCharacter.getPosition();
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 12) {
-                    npc.takeDamage(20);
+                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20); hits++; }
+            }
+            this.chat.addMessage('event', `🧅 Onion! Shrek tribute! Hit ${hits} mobs (20 dmg)`);
+
+        } else if (used === 'turbo_fish') {
+            this.itemPickups.applyCustomSpeed(4, 5);
+            this.chat.addMessage('event', '🐟⚡ TURBO FISH! Speed x4 for 5s... try not to fall off the world');
+
+        } else if (used === 'bomb') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 15) { npc.takeDamage(60); hits++; }
+            }
+            this.chat.addMessage('event', `💣 BOMB! 60 dmg to ${hits} mobs in radius 15`);
+
+        } else if (used === 'lightning') {
+            // chain 25 dmg to 5 closest NPCs
+            const sorted = [...this.npcManager.getNPCs()]
+                .filter(n => n.isAlive())
+                .sort((a, b) => a.getPosition().distanceTo(playerPos) - b.getPosition().distanceTo(playerPos))
+                .slice(0, 5);
+            sorted.forEach(n => n.takeDamage(25));
+            this.chat.addMessage('event', `⚡ Lightning! Chained 25 dmg to ${sorted.length} targets`);
+
+        } else if (used === 'holy_water') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getType() === 'emo' && npc.getPosition().distanceTo(playerPos) < 12) {
+                    npc.takeDamage(9999); // instant kill emos. they cannot handle holy water. its the irony.
                     hits++;
                 }
             }
-            this.chat.addMessage('event', `🧅 Onion! Shrek tribute! Hit ${hits} mobs for 20 dmg`);
+            this.chat.addMessage('event', `💧 Holy Water! Nuked ${hits} emos. They didn't survive the positivity.`);
+
+        } else if (used === 'disco_ball') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 10) { npc.stun(8); hits++; }
+            }
+            this.chat.addMessage('event', `🪩 DISCO BALL! Stunned ${hits} mobs for 8s. EVERYBODY DANCE NOW.`);
+
+        } else if (used === 'time_crystal') {
+            this.slowMoTimer = 10;
+            this.chat.addMessage('event', '💎 TIME CRYSTAL! Reality slowing down for 10s...');
+
+        } else if (used === 'star_piece') {
+            this.invincibleTimer = 3;
+            this.chat.addMessage('event', '⭐ STAR PIECE! Invincible for 3 seconds!');
+
+        } else if (used === 'teleporter') {
+            const rx = (Math.random() - 0.5) * 200;
+            const rz = (Math.random() - 0.5) * 200;
+            this.sageCharacter.teleportTo(new THREE.Vector3(rx, 3, rz));
+            this.chat.addMessage('event', `🌀 TELEPORTER! Warped to (${rx.toFixed(0)}, ${rz.toFixed(0)})`);
+
+        } else if (used === 'warp_stone') {
+            this.sageCharacter.teleportTo(new THREE.Vector3(0, 5, 8));
+            this.chat.addMessage('event', '🪨 Warp Stone! Teleported to the Cat God.');
+
+        } else if (used === 'cheese') {
+            const healed = Math.min(8, this.sageCharacter.maxHp - this.sageCharacter.hp);
+            this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 8);
+            this.chat.addMessage('event', `🧀 Cheese! +${healed} HP. Mild healing for mild cheese.`);
+
+        } else if (used === 'bandage') {
+            this.bandageTimer = 10;
+            this.bandageRate = 2.5;
+            this.chat.addMessage('event', '🩹 Bandage! +2.5 HP/s for 10s');
+
+        } else if (used === 'boomerang') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20); hits++; }
+            }
+            this.chat.addMessage('event', `🪃 Boomerang! 20 dmg to ${hits} mobs in range 12`);
+
+        } else if (used === 'megaphone') {
+            // push all NPCs away from player -- set their target angle to face away
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                const diff = npc.getPosition().clone().sub(playerPos).normalize();
+                // we can't set targetAngle directly from here (protected) but stun + nudge in the future
+                // for now, deal small dmg and stun briefly -- close enough to "pushing" lol
+                npc.stun(1.5);
+                hits++;
+            }
+            this.chat.addMessage('event', `📣 MEGAPHONE!! Screamed at ${hits} NPCs. They're briefly stunned from the noise.`);
+
+        } else if (used === 'glue_trap') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 10) { npc.stun(6); hits++; }
+            }
+            this.chat.addMessage('event', `🪤 Glue Trap! Stuck ${hits} mobs for 6s`);
+
+        } else if (used === 'nuke') {
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 25) { npc.takeDamage(100); hits++; }
+            }
+            this.chat.addMessage('event', `☢️ NUKE!! 100 dmg to ${hits} mobs. oops.`);
+
+        } else if (used === 'plasma_cannon') {
+            let closest: BaseNPC | null = null;
+            let cDist = 20;
+            for (const npc of this.npcManager.getNPCs()) {
+                const d = npc.getPosition().distanceTo(playerPos);
+                if (d < cDist) { cDist = d; closest = npc; }
+            }
+            if (closest) { closest.takeDamage(40); this.chat.addMessage('event', `🔫 Plasma Cannon! 40 dmg to ${closest.getType()}`); }
+            else this.chat.addMessage('event', '🔫 Plasma Cannon: nobody in range 20. wasted.');
+
+        } else if (used === 'mystery_box') {
+            // add 3 random items from the full item pool
+            for (let i = 0; i < 3; i++) {
+                const r = ALL_ITEM_TYPES[Math.floor(Math.random() * ALL_ITEM_TYPES.length)];
+                const added = this.inventory.addItem(r);
+                if (added) this.chat.addMessage('event', `🎁 Mystery Box gave: ${ITEM_INFO[r].icon} ${ITEM_INFO[r].name}`);
+            }
+
+        } else if (used === 'cursed_egg') {
+            // randomly chaotic effect -- spin the wheel of fate
+            const roll = Math.floor(Math.random() * 5);
+            if (roll === 0) { this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 25); this.chat.addMessage('event', '🥚 CURSED EGG: Healed 25 somehow???'); }
+            else if (roll === 1) { this.itemPickups.applyCustomSpeed(0.3, 4); this.chat.addMessage('event', '🥚 CURSED EGG: You are EXTREMELY slow for 4s. so sorry.'); }
+            else if (roll === 2) { this.npcManager.forceSpawnRandom(8); this.chat.addMessage('event', '🥚 CURSED EGG: Spawned 8 new chaos entities. ur fault.'); }
+            else if (roll === 3) { this.invincibleTimer = 5; this.chat.addMessage('event', '🥚 CURSED EGG: Lucky! 5s invincibility'); }
+            else { this.sageCharacter.takeDamage(10); this.chat.addMessage('event', '🥚 CURSED EGG: It exploded in ur face. -10 HP'); }
+
+        } else if (used === 'party_hat') {
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 15) npc.triggerSpeak();
+            }
+            this.chat.addMessage('event', '🎉 PARTY HAT! All nearby NPCs are now MANDATORY partying.');
+
+        } else if (used === 'rainbow') {
+            this.npcManager.forceSpawnRandom(5);
+            this.chat.addMessage('event', '🌈 RAINBOW! Spawned 5 new NPCs. chaos intensifies.');
+
+        } else if (used === 'coffee') {
+            this.mudSlowTimer = 0;
+            this.slowMoTimer = 0;
+            this.confuseTimer = 0;
+            this.chat.addMessage('event', '☕ COFFEE! Cleared all debuffs. Back to normal (whatever that means).');
+
+        } else if (used === 'void_key') {
+            this.voidPortal.enterVoid();
+            this.chat.addMessage('event', '🗝️ VOID KEY! Forced yourself into the void. ur brave I guess.');
+
+        } else if (used === 'barney_ticket') {
+            this.npcManager.forceSpawnBarney();
+            this.chat.addMessage('event', '🦕 BARNEY TICKET! He will come. He always comes.');
+
+        } else if (used === 'onion_layer') {
+            this.onionLayerActive = true;
+            this.chat.addMessage('event', '🧅 Onion Layer equipped! Next hit absorbed. Like an onion. Layers.');
+
+        } else if (used === 'uwu_scroll') {
+            // just announce it -- NPCs already speak uwu. this is a "more uwu" buff cosmetically
+            this.chat.addMessage('event', '📜 UwU Scroll!! nyaa everything is extra uwu now for 20s~ meow meow 😸');
+
+        } else if (used === 'donut') {
+            this.confuseTimer = 5;
+            this.chat.addMessage('event', '🍩 DONUT! Controls inverted for 5s. enjoy the chaos.');
+
+        } else if (used === 'hot_sauce') {
+            this.hotSauceTimer = 5;
+            this.itemPickups.applyCustomSpeed(3, 5);
+            this.chat.addMessage('event', '🌶️ HOT SAUCE! SPEED x3 for 5s. SCREAMING INTERNALLY.');
+
+        } else if (used === 'cheese_wheel') {
+            let closest: BaseNPC | null = null;
+            let cDist = Infinity;
+            for (const npc of this.npcManager.getNPCs()) {
+                const d = npc.getPosition().distanceTo(playerPos);
+                if (d < cDist) { cDist = d; closest = npc; }
+            }
+            if (closest && cDist < 20) {
+                closest.takeDamage(35);
+                this.chat.addMessage('event', `🧀 CHEESE WHEEL! Rolled it into ${closest.getType()} for 35 dmg`);
+            } else {
+                this.chat.addMessage('event', '🧀 CHEESE WHEEL: nobody close enough to obliterate. wasted.');
+            }
+
+        } else if (used === 'soul_gem') {
+            this.soulGemActive = true;
+            this.chat.addMessage('event', '💎 SOUL GEM activated! Auto-revive on next death.');
+
+        } else if (used === 'shield') {
+            this.shieldHitsRemaining = 3;
+            this.chat.addMessage('event', '🛡 SHIELD! 3 hit absorption charges. better than nothing.');
+
+        } else {
+            // passive items -- equip silently, no consume. they're already providing passive benefits.
+            this.chat.addMessage('event', `✨ ${ITEM_INFO[used]?.icon ?? '?'} ${ITEM_INFO[used]?.name ?? used} equipped passively.`);
         }
+
         this.renderHotbar();
+    }
+
+    // big flashy domain expansion banner -- screams the name on screen for 3s
+    private showDomainBanner(name: string, flavor: string): void {
+        // reuse existing element or make a new one bc yolo
+        let banner = document.getElementById('domain-banner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'domain-banner';
+            banner.style.cssText = `
+                position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+                text-align:center; pointer-events:none; z-index:9999;
+                font-family: serif; color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #aa00aa;
+                transition: opacity 0.5s;
+            `;
+            document.body.appendChild(banner);
+        }
+        banner.innerHTML = `
+            <div style="font-size:18px;letter-spacing:4px;color:#fff;opacity:0.8">DOMAIN EXPANSION</div>
+            <div style="font-size:42px;font-weight:bold;letter-spacing:6px;margin:8px 0">${name.toUpperCase()}</div>
+            <div style="font-size:14px;color:#ffaaff;max-width:500px;margin:0 auto;font-style:italic">"${flavor}"</div>
+        `;
+        banner.style.opacity = '1';
+        clearTimeout((banner as HTMLElement & { _hideTimer?: ReturnType<typeof setTimeout> })._hideTimer);
+        (banner as HTMLElement & { _hideTimer?: ReturnType<typeof setTimeout> })._hideTimer =
+            setTimeout(() => { if (banner) banner.style.opacity = '0'; }, 3500);
     }
 
     private setupLighting(): void {
@@ -354,6 +609,8 @@ class CatGodWorld {
 
             // Update
             const deltaTime = 1 / 120; // ugh half speed now. whatever. someone asked for this.
+            // time_crystal slow motion -- halves the effective delta when active
+            const effectiveDt = this.slowMoTimer > 0 ? deltaTime * 0.4 : deltaTime;
 
             // feed mobile joystick + camera touch into the systems
             let joyDx = 0, joyDy = 0;
@@ -366,14 +623,31 @@ class CatGodWorld {
                 }
             }
 
-            this.physicsWorld.update(deltaTime);
-            this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx, joyDy);
+            // confuse timer -- invert joystick/WASD when donut was eaten. chaos.
+            const confuseMult = this.confuseTimer > 0 ? -1 : 1;
+
+            this.physicsWorld.update(effectiveDt);
+            this.sageCharacter.update(effectiveDt, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx * confuseMult, joyDy * confuseMult);
 
             // apply fish speed buff (or mud slow) to sage character
             const fishMult = this.itemPickups.speedMultiplier;
             const mudMult = this.mudSlowTimer > 0 ? 0.35 : 1; // shrek mud slows to 35% speed lol
             this.sageCharacter.setSpeedMultiplier(fishMult * mudMult);
             if (this.mudSlowTimer > 0) this.mudSlowTimer -= deltaTime;
+
+            // tick all active buff/debuff timers -- none of these worked before bc nobody decremented them. oops.
+            if (this.invincibleTimer > 0) this.invincibleTimer -= deltaTime;
+            if (this.hotSauceTimer > 0) this.hotSauceTimer -= deltaTime;
+            if (this.confuseTimer > 0) this.confuseTimer -= deltaTime;
+            if (this.slowMoTimer > 0) this.slowMoTimer -= deltaTime;
+            if (this.bandageTimer > 0) {
+                this.bandageTimer -= deltaTime;
+                this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + this.bandageRate * deltaTime);
+            }
+            // wire jump multiplier from inventory passives every frame
+            this.sageCharacter.setJumpMultiplier(this.inventory.getJumpMult());
+            // confuse flag needs to reach SageCharacter so WASD gets inverted
+            this.sageCharacter.setConfused(this.confuseTimer > 0);
 
             // apply catnip wobble to camera FOV
             const cam = this.renderEngine.getCamera();
@@ -394,20 +668,20 @@ class CatGodWorld {
 
             // update all remote player lerps
             for (const rp of this.remotePlayers.values()) {
-                rp.update(deltaTime);
+                rp.update(effectiveDt);
             }
-            this.catGod.update(deltaTime, this.sageCharacter.getPosition());
-            this.npcManager.update(deltaTime);
-            this.worldGenerator.update(deltaTime, this.sageCharacter.getPosition());
-            this.worldGenerator.updateDestructibles(deltaTime);
+            this.catGod.update(effectiveDt, this.sageCharacter.getPosition());
+            this.npcManager.update(effectiveDt);
+            this.worldGenerator.update(effectiveDt, this.sageCharacter.getPosition());
+            this.worldGenerator.updateDestructibles(effectiveDt);
 
             // ALL THE NEW SYSTEMS -- yeet em in the update loop
-            this.dayNight.update(deltaTime);
-            this.weatherSystem.update(deltaTime);
-            this.factionSystem.update(deltaTime, this.npcManager.getNPCs());
-            this.voidPortal.update(deltaTime, this.sageCharacter.getPosition());
-            this.itemPickups.update(deltaTime, this.sageCharacter.getPosition());
-            this.comboSystem.update(deltaTime);
+            this.dayNight.update(effectiveDt);
+            this.weatherSystem.update(effectiveDt);
+            this.factionSystem.update(effectiveDt, this.npcManager.getNPCs());
+            this.voidPortal.update(effectiveDt, this.sageCharacter.getPosition());
+            this.itemPickups.update(effectiveDt, this.sageCharacter.getPosition());
+            this.comboSystem.update(effectiveDt);
 
             // faction badge on HUD
             const factionEl = document.getElementById('faction-hud');
@@ -449,7 +723,15 @@ class CatGodWorld {
                 }
                 this.playerRespawnTimer -= deltaTime;
                 if (this.playerRespawnTimer <= 0) {
-                    this.sageCharacter.respawn();
+                    // soul gem auto-revive -- activate before normal respawn
+                    if (this.soulGemActive) {
+                        this.soulGemActive = false;
+                        this.sageCharacter.hp = Math.floor(this.sageCharacter.maxHp * 0.5);
+                        this.sageCharacter.respawn();
+                        this.chat.addMessage('event', '💎 SOUL GEM: Auto-revived at 50% HP!');
+                    } else {
+                        this.sageCharacter.respawn();
+                    }
                     const overlay = document.getElementById('death-overlay');
                     if (overlay) overlay.style.display = 'none';
                 }

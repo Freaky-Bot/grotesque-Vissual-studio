@@ -1,7 +1,20 @@
 // InventorySystem.ts
 // ugh this took me forever and nobody will even look at the inventory. fine. whatever.
 
-export type ItemType = 'fish' | 'catnip' | 'sword' | 'potion' | 'void_shard' | 'onion' | 'cat_charm';
+export type ItemType =
+    // -- consumables --
+    | 'fish' | 'catnip' | 'potion' | 'void_shard' | 'onion'
+    | 'mega_potion' | 'turbo_fish' | 'bomb' | 'lightning' | 'holy_water'
+    | 'disco_ball' | 'time_crystal' | 'star_piece' | 'teleporter' | 'warp_stone'
+    | 'cheese' | 'bandage' | 'boomerang' | 'megaphone' | 'glue_trap'
+    | 'nuke' | 'plasma_cannon' | 'mystery_box' | 'cursed_egg' | 'party_hat'
+    | 'rainbow' | 'coffee' | 'void_key' | 'barney_ticket' | 'onion_layer'
+    | 'uwu_scroll' | 'donut' | 'hot_sauce' | 'cheese_wheel' | 'soul_gem'
+    | 'shield'
+    // -- passives / equippables --
+    | 'sword' | 'cat_charm' | 'flaming_sword' | 'giant_hammer'
+    | 'void_armor' | 'cursed_ring' | 'shrek_ears' | 'cat_crown' | 'cheese_armor'
+    | 'moon_shard' | 'spring_shoes' | 'void_blade' | 'lucky_charm' | 'laser_pointer';
 
 export interface InventoryItem {
     type: ItemType;
@@ -12,26 +25,94 @@ export interface InventoryItem {
 }
 
 export const ITEM_INFO: Record<ItemType, { name: string; icon: string; description: string }> = {
-    fish:       { name: 'Fish',       icon: '🐟', description: 'speed x2.2 for 10s'         },
-    catnip:     { name: 'Catnip',     icon: '🌿', description: 'reality wobble 8s'           },
-    sword:      { name: 'Sword',      icon: '⚔',  description: '+20 atk dmg (passive)'       },
-    potion:     { name: 'Potion',     icon: '🧪', description: 'restore 40 HP'               },
-    void_shard: { name: 'Void Shard', icon: '💜', description: '30dmg blast nearby (use E)'  },
-    onion:      { name: 'Onion',      icon: '🧅', description: '20dmg + shrek tribute (use E)'},
-    cat_charm:  { name: 'Cat Charm',  icon: '🐾', description: '+1 atk range (passive)'      },
+    // consumables
+    fish:          { name: 'Fish',          icon: '🐟', description: 'speed x2.2 for 10s'                 },
+    catnip:        { name: 'Catnip',        icon: '🌿', description: 'reality wobble 8s'                  },
+    potion:        { name: 'Potion',        icon: '🧪', description: 'restore 40 HP'                      },
+    void_shard:    { name: 'Void Shard',    icon: '💜', description: '30 dmg AoE 10r (E)'                 },
+    onion:         { name: 'Onion',         icon: '🧅', description: '20 dmg AoE tribute (E)'             },
+    mega_potion:   { name: 'Mega Potion',   icon: '💊', description: 'full heal (E)'                      },
+    turbo_fish:    { name: 'Turbo Fish',    icon: '🐡', description: 'speed x4 for 5s (E)'               },
+    bomb:          { name: 'Bomb',          icon: '💣', description: '60 dmg AoE 15r (E)'                 },
+    lightning:     { name: 'Lightning',     icon: '⚡', description: 'chain 25dmg 5 targets (E)'          },
+    holy_water:    { name: 'Holy Water',    icon: '🫧', description: 'insta-kill emos nearby (E)'         },
+    disco_ball:    { name: 'Disco Ball',    icon: '🪩', description: 'stun all in 10r 8s (E)'             },
+    time_crystal:  { name: 'Time Crystal',  icon: '🔮', description: 'slow motion x0.4 for 10s (E)'       },
+    star_piece:    { name: 'Star Piece',    icon: '⭐', description: 'invincible 3s (E)'                  },
+    teleporter:    { name: 'Teleporter',    icon: '🌀', description: 'warp to random (E)'                 },
+    warp_stone:    { name: 'Warp Stone',    icon: '🪨', description: 'warp to Cat God (E)'               },
+    cheese:        { name: 'Cheese',        icon: '🧀', description: 'heal 8 HP (E)'                      },
+    bandage:       { name: 'Bandage',       icon: '🩹', description: 'heal 25 HP over 10s (E)'            },
+    boomerang:     { name: 'Boomerang',     icon: '🪃', description: '20 dmg all in 12r (E)'              },
+    megaphone:     { name: 'Megaphone',     icon: '📣', description: 'blast all NPCs 30u away (E)'        },
+    glue_trap:     { name: 'Glue Trap',     icon: '🕸',  description: 'freeze all in 10r 6s (E)'           },
+    nuke:          { name: 'Nuke',          icon: '☢',  description: '100 dmg ALL in 25r (E)'             },
+    plasma_cannon: { name: 'Plasma Cannon', icon: '🔫', description: '40 dmg rang 20u single (E)'          },
+    mystery_box:   { name: 'Mystery Box',   icon: '📦', description: 'spawn 3 random items (E)'           },
+    cursed_egg:    { name: 'Cursed Egg',    icon: '🥚', description: 'random chaotic effect (E)'           },
+    party_hat:     { name: 'Party Hat',     icon: '🎉', description: 'make nearby NPCs chat (E)'          },
+    rainbow:       { name: 'Rainbow',       icon: '🌈', description: 'spawn 5 random NPCs (E)'            },
+    coffee:        { name: 'Coffee',        icon: '☕', description: 'clear all debuffs (E)'              },
+    void_key:      { name: 'Void Key',      icon: '🗝',  description: 'instantly enter the void (E)'       },
+    barney_ticket: { name: 'Barney Ticket', icon: '🦕', description: 'summon Barney nearby (E)'           },
+    onion_layer:   { name: 'Onion Layer',   icon: '🫧', description: 'absorb 1 hit completely (E)'        },
+    uwu_scroll:    { name: 'Uwu Scroll',    icon: '📜', description: 'NPCs say uwu for 20s (E)'           },
+    donut:         { name: 'Donut',         icon: '🍩', description: '5s confusion + random move (E)'     },
+    hot_sauce:     { name: 'Hot Sauce',     icon: '🌶',  description: 'speed x3 chaotic 5s (E)'            },
+    cheese_wheel:  { name: 'Cheese Wheel',  icon: '🎡', description: '35 dmg hit nearest NPC (E)'         },
+    soul_gem:      { name: 'Soul Gem',      icon: '💎', description: 'auto-revive once on death (E)'      },
+    shield:        { name: 'Shield',        icon: '🛡',  description: 'absorb 3 hits (E)'                  },
+    // passives
+    sword:         { name: 'Sword',         icon: '⚔',  description: '+20 atk dmg (passive)'              },
+    cat_charm:     { name: 'Cat Charm',     icon: '🐾', description: '+1 range +3 dmg (passive)'          },
+    flaming_sword: { name: 'Flaming Sword', icon: '🔥', description: '+35 atk dmg (passive)'              },
+    giant_hammer:  { name: 'Giant Hammer',  icon: '🔨', description: '+50 dmg -1.5 range (passive)'       },
+    void_armor:    { name: 'Void Armor',    icon: '🌑', description: '-50% dmg taken (passive)'           },
+    cursed_ring:   { name: 'Cursed Ring',   icon: '💍', description: 'x2 dmg dealt + received (passive)'  },
+    shrek_ears:    { name: 'Shrek Ears',    icon: '👂', description: 'mud immune (passive)'               },
+    cat_crown:     { name: 'Cat Crown',     icon: '👑', description: 'NPCs ignore you (passive)'          },
+    cheese_armor:  { name: 'Cheese Armor',  icon: '🫕', description: '-30% dmg taken (passive)'           },
+    moon_shard:    { name: 'Moon Shard',    icon: '🌙', description: 'triple jump (passive)'              },
+    spring_shoes:  { name: 'Spring Shoes',  icon: '👟', description: 'double jump (passive)'              },
+    void_blade:    { name: 'Void Blade',    icon: '🗡',  description: '+40 dmg +2 range (passive)'         },
+    lucky_charm:   { name: 'Lucky Charm',   icon: '🍀', description: 'double loot chance (passive)'       },
+    laser_pointer: { name: 'Laser Pointer', icon: '🔴', description: 'NPCs attack 50% less (passive)'     },
 };
 
-// what each npc type drops on death -- null = nothing drops
+// all item types as an array -- used for mystery box random picks
+export const ALL_ITEM_TYPES: ItemType[] = Object.keys(ITEM_INFO) as ItemType[];
+
+// loot tables per npc type -- null = nothing
 export const LOOT_TABLE: Record<string, (ItemType | null)[]> = {
-    cat:     ['fish', 'fish', 'cat_charm', null, null],
-    barney:  ['potion', 'cat_charm', 'cat_charm', null],
-    emo:     ['void_shard', 'void_shard', 'catnip', null],
-    shrek:   ['onion', 'onion', 'potion', null],
-    buffcat: ['sword', 'cat_charm', 'cat_charm', null],
-    voidcat: ['void_shard', 'catnip', null, null],
-    hybrid:  ['fish', 'catnip', null, null],
-    default: ['fish', 'cat_charm', null, null, null],
+    // basic cats
+    normal:   ['fish', 'fish', 'cat_charm', 'cheese', 'bandage', null, null],
+    cat:      ['fish', 'fish', 'cat_charm', 'cheese', null, null, null],
+    // special cat subtypes
+    jesus:    ['holy_water', 'star_piece', 'mega_potion', 'cat_charm', null],
+    robot:    ['lightning', 'plasma_cannon', 'shield', 'cat_charm', null],
+    orb:      ['time_crystal', 'void_shard', 'teleporter', null, null],
+    angel:    ['mega_potion', 'star_piece', 'cat_crown', 'bandage', null],
+    pirate:   ['boomerang', 'cheese_wheel', 'lucky_charm', 'cheese', null],
+    wizard:   ['time_crystal', 'mystery_box', 'rainbow', 'cursed_egg', null],
+    vampire:  ['cursed_ring', 'onion_layer', 'soul_gem', 'bandage', null],
+    disco:    ['disco_ball', 'party_hat', 'hot_sauce', 'fish', null],
+    shadow:   ['void_shard', 'void_blade', 'laser_pointer', 'catnip', null],
+    // special npcs
+    barney:   ['mega_potion', 'cat_crown', 'party_hat', 'uwu_scroll', null],
+    emo:      ['void_shard', 'void_shard', 'catnip', 'disco_ball', 'cursed_ring', null],
+    shrek:    ['onion', 'onion', 'potion', 'shrek_ears', 'bomb', null],
+    buffcat:  ['flaming_sword', 'giant_hammer', 'spring_shoes', 'cat_charm', null],
+    voidcat:  ['void_shard', 'time_crystal', 'void_armor', 'void_blade', null],
+    hybrid:   ['fish', 'catnip', 'moon_shard', 'teleporter', null],
+    default:  ['fish', 'cat_charm', 'cheese', null, null, null],
 };
+
+// module-level set -- passives dont consume on use
+const PASSIVES: Set<ItemType> = new Set([
+    'sword', 'cat_charm', 'flaming_sword', 'giant_hammer', 'void_armor',
+    'cursed_ring', 'shrek_ears', 'cat_crown', 'cheese_armor',
+    'moon_shard', 'spring_shoes', 'void_blade', 'lucky_charm', 'laser_pointer',
+]);
 
 export class InventorySystem {
     // 6 hotbar slots -- like minecraft except worse
@@ -72,33 +153,64 @@ export class InventorySystem {
     public useEquipped(): ItemType | null {
         const item = this.slots[this.selectedSlot];
         if (!item) return null;
-        const consumables: ItemType[] = ['fish', 'catnip', 'potion', 'void_shard', 'onion'];
         const type = item.type;
-        if (consumables.includes(type)) {
+        if (!PASSIVES.has(type)) {
+            // consume it -- one less in the stack
             item.quantity--;
             if (item.quantity <= 0) this.slots[this.selectedSlot] = null;
             this.onInventoryChange?.();
-            return type;
         }
-        return type; // passive items just return their type
+        return type;
     }
 
-    // bonus attack damage from equipped item
+    // bonus attack damage from equipped passive item
     public getAttackBonus(): number {
-        const item = this.getEquipped();
-        if (!item) return 0;
-        if (item.type === 'sword') return 20;
-        if (item.type === 'cat_charm') return 3;
+        const t = this.getEquipped()?.type;
+        if (!t) return 0;
+        if (t === 'sword') return 20;
+        if (t === 'cat_charm') return 3;
+        if (t === 'flaming_sword') return 35;
+        if (t === 'giant_hammer') return 50;
+        if (t === 'void_blade') return 40;
         return 0;
     }
 
-    // bonus attack range from equipped item
+    // bonus attack range from equipped passive item
     public getRangeBonus(): number {
-        const item = this.getEquipped();
-        if (!item) return 0;
-        if (item.type === 'cat_charm') return 1.0;
-        if (item.type === 'sword') return 0.5;
+        const t = this.getEquipped()?.type;
+        if (!t) return 0;
+        if (t === 'cat_charm') return 1.0;
+        if (t === 'sword') return 0.5;
+        if (t === 'giant_hammer') return -1.5;
+        if (t === 'void_blade') return 2.0;
         return 0;
+    }
+
+    // multiplicative damage RECEIVED modifier -- void_armor, cheese_armor, cursed_ring
+    public getDamageTakenMult(): number {
+        const t = this.getEquipped()?.type;
+        if (t === 'void_armor') return 0.5;
+        if (t === 'cheese_armor') return 0.7;
+        if (t === 'cursed_ring') return 2.0;
+        return 1.0;
+    }
+
+    // multiplicative damage DEALT modifier -- cursed_ring doubles output
+    public getDamageDealtMult(): number {
+        return this.getEquipped()?.type === 'cursed_ring' ? 2.0 : 1.0;
+    }
+
+    public isMudImmune(): boolean { return this.getEquipped()?.type === 'shrek_ears'; }
+    public isCatCrownActive(): boolean { return this.getEquipped()?.type === 'cat_crown'; }
+    public isLaserPointerActive(): boolean { return this.getEquipped()?.type === 'laser_pointer'; }
+    public isLuckyCharmActive(): boolean { return this.getEquipped()?.type === 'lucky_charm'; }
+
+    // jump height multiplier from equipped item
+    public getJumpMult(): number {
+        const t = this.getEquipped()?.type;
+        if (t === 'moon_shard') return 3.0;
+        if (t === 'spring_shoes') return 2.0;
+        return 1.0;
     }
 
     // roll a random drop from an npc type

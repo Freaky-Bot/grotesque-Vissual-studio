@@ -146,7 +146,7 @@ export class VoidPortal {
         }
     }
 
-    private enterVoid(): void {
+    public enterVoid(): void {
         if (this.inVoid) return;
         this.inVoid = true;
         this.voidTimer = this.VOID_DURATION;

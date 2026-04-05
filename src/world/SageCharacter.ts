@@ -16,6 +16,8 @@ export class SageCharacter {
     private attackCooldown_: number = 0;
     private readonly BASE_ATTACK_RANGE: number = 4.0;
     private readonly BASE_ATTACK_DMG: number = 15;
+    private jumpMult: number = 1; // moon_shard / spring_shoes multiply this
+    private confused: boolean = false; // donut inverts controls. ugh.
 
     // gravity + jumping
     private verticalVelocity: number = 0;
@@ -187,7 +189,7 @@ export class SageCharacter {
 
         // jump -- space bar, only when grounded and not typing
         if (this.keys[' '] && this.isGrounded && !chatOpen) {
-            this.verticalVelocity = this.JUMP_FORCE;
+            this.verticalVelocity = this.JUMP_FORCE * this.jumpMult;
             this.isGrounded = false;
         }
 
@@ -207,17 +209,18 @@ export class SageCharacter {
 
         if (!chatOpen) {
             const spd = this.moveSpeed * this.speedMult; // apply fish speed boost here
+            const cm = this.confused ? -1 : 1; // donut confusion: invert all movement
             if (this.keys['w'] || this.keys['arrowup']) {
-                moveForward += spd;
+                moveForward += spd * cm;
             }
             if (this.keys['s'] || this.keys['arrowdown']) {
-                moveForward -= spd;
+                moveForward -= spd * cm;
             }
             if (this.keys['d'] || this.keys['arrowright']) {
-                moveRight += spd;
+                moveRight += spd * cm;
             }
             if (this.keys['a'] || this.keys['arrowleft']) {
-                moveRight -= spd;
+                moveRight -= spd * cm;
             }
             // joystick input from mobile -- -dy is forward (screen y is flipped in 3d)
             moveForward += -joystickDy * spd;
@@ -310,6 +313,16 @@ export class SageCharacter {
     // fish speed boost: pass the multiplier from ItemPickupSystem every frame
     public setSpeedMultiplier(mult: number): void {
         this.speedMult = mult;
+    }
+
+    public setJumpMultiplier(mult: number): void {
+        this.jumpMult = mult;
+    }
+
+    public teleportTo(pos: THREE.Vector3): void {
+        this.position.set(pos.x, Math.max(this.GROUND_Y, pos.y), pos.z);
+        this.verticalVelocity = 0;
+        this.mesh.position.copy(this.position);
     }
 
     // health + attack methods -- the sage can fight back meow
