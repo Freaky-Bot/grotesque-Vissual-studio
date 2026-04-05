@@ -138,9 +138,8 @@ export interface ActiveDomain {
     timeRemaining: number;
     stunPulseTimer: number;
     sphere: THREE.Mesh;
+    fogSphere: THREE.Mesh;  // inner sphere that fakes localized fog -- no more global scene.fog
     light: THREE.PointLight;
-    savedFog: THREE.Fog | THREE.FogExp2 | null;
-    savedBg: THREE.Color | THREE.Texture | null;
 }
 
 // player domain is separate -- moves with player, hurts NPCs, not the player
@@ -148,8 +147,8 @@ export interface ActivePlayerDomain {
     def: DomainDef;
     timeRemaining: number;
     sphere: THREE.Mesh;
+    fogSphere: THREE.Mesh;  // same deal -- local fog only, not scene-wide
     light: THREE.PointLight;
-    savedFog: THREE.Fog | THREE.FogExp2 | null;
 }
 
 export class DomainExpansionSystem {
@@ -195,17 +194,26 @@ export class DomainExpansionSystem {
         light.position.set(pos.x, 5, pos.z);
         this.scene.add(light);
 
+        // inner fog sphere -- FrontSide so it looks misty from outside, gives localized fog feel
+        // without poisoning the whole scene.fog which looks trash on the rest of the map
+        const fogGeo = new THREE.SphereGeometry(def.radius * 0.98, 24, 24);
+        const fogMat = new THREE.MeshBasicMaterial({
+            color: def.fogColor,
+            transparent: true,
+            opacity: 0.28,
+            side: THREE.FrontSide,
+            depthWrite: false,
+        });
+        const fogSphere = new THREE.Mesh(fogGeo, fogMat);
+        fogSphere.position.set(pos.x, 0, pos.z);
+        this.scene.add(fogSphere);
+
         const domain: ActiveDomain = {
             npc, def,
             timeRemaining: def.duration,
             stunPulseTimer: def.stunPulse,
-            sphere, light,
-            savedFog: this.scene.fog ?? null,
-            savedBg: this.scene.background as (THREE.Color | null),
+            sphere, fogSphere, light,
         };
-
-        // alter scene fog to domain fog -- immersive as heck
-        this.scene.fog = new THREE.FogExp2(def.fogColor, 0.022);
 
         this.activeDomains.push(domain);
         this.onDomainOpen?.(def.name, def.flavorText);
@@ -225,11 +233,14 @@ export class DomainExpansionSystem {
             // move sphere with the npc
             const npcPos = d.npc.getPosition();
             d.sphere.position.set(npcPos.x, 0, npcPos.z);
+            d.fogSphere.position.set(npcPos.x, 0, npcPos.z);
             d.light.position.set(npcPos.x, 5, npcPos.z);
 
             // pulsing opacity -- very dramatic
             (d.sphere.material as THREE.MeshBasicMaterial).opacity =
                 0.12 + Math.sin(Date.now() * 0.003) * 0.06;
+            (d.fogSphere.material as THREE.MeshBasicMaterial).opacity =
+                0.22 + Math.sin(Date.now() * 0.002 + 1) * 0.06;
 
             const dist = playerPos.distanceTo(new THREE.Vector3(npcPos.x, playerPos.y, npcPos.z));
             const insideDomain = dist < d.def.radius;
@@ -262,14 +273,12 @@ export class DomainExpansionSystem {
 
     private closeDomain(d: ActiveDomain, index: number): void {
         this.scene.remove(d.sphere);
+        this.scene.remove(d.fogSphere);
         this.scene.remove(d.light);
         (d.sphere.material as THREE.MeshBasicMaterial).dispose();
+        (d.fogSphere.material as THREE.MeshBasicMaterial).dispose();
         d.sphere.geometry.dispose();
-
-        // restore scene fog only if no other domains are active
-        if (this.activeDomains.length <= 1) {
-            this.scene.fog = d.savedFog;
-        }
+        d.fogSphere.geometry.dispose();
 
         this.activeDomains.splice(index, 1);
         this.onDomainClose?.(d.def.name);
@@ -301,15 +310,21 @@ export class DomainExpansionSystem {
         });
         const sphere = new THREE.Mesh(geo, mat);
         this.scene.add(sphere);
+        // fog sphere -- localized, no global scene.fog garbage anymore
+        const fogGeo = new THREE.SphereGeometry(def.radius * 0.98, 24, 24);
+        const fogMat = new THREE.MeshBasicMaterial({
+            color: def.fogColor, transparent: true, opacity: 0.28,
+            side: THREE.FrontSide, depthWrite: false
+        });
+        const fogSphere = new THREE.Mesh(fogGeo, fogMat);
+        this.scene.add(fogSphere);
         const light = new THREE.PointLight(def.domainColor, 4, def.radius * 1.8);
         this.scene.add(light);
         this.playerDomain = {
             def,
             timeRemaining: def.duration,
-            sphere, light,
-            savedFog: this.scene.fog ?? null
+            sphere, fogSphere, light,
         };
-        this.scene.fog = new THREE.FogExp2(def.fogColor, 0.018);
         this.onDomainOpen?.(def.name, def.flavorText);
     }
 
@@ -323,9 +338,11 @@ export class DomainExpansionSystem {
         const pd = this.playerDomain;
         pd.timeRemaining -= dt;
         pd.sphere.position.set(playerPos.x, 0, playerPos.z);
+        pd.fogSphere.position.set(playerPos.x, 0, playerPos.z);
         pd.light.position.set(playerPos.x, 5, playerPos.z);
         // pulsing opacity bc why not meow~
         (pd.sphere.material as THREE.MeshBasicMaterial).opacity = 0.12 + Math.sin(Date.now() * 0.003) * 0.07;
+        (pd.fogSphere.material as THREE.MeshBasicMaterial).opacity = 0.22 + Math.sin(Date.now() * 0.002 + 1) * 0.06;
         for (const npc of npcs) {
             if (!npc.isAlive()) continue;
             const np = npc.getPosition();
@@ -337,10 +354,12 @@ export class DomainExpansionSystem {
         }
         if (pd.timeRemaining <= 0) {
             this.scene.remove(pd.sphere);
+            this.scene.remove(pd.fogSphere);
             this.scene.remove(pd.light);
             (pd.sphere.material as THREE.MeshBasicMaterial).dispose();
+            (pd.fogSphere.material as THREE.MeshBasicMaterial).dispose();
             pd.sphere.geometry.dispose();
-            if (this.activeDomains.length === 0) this.scene.fog = pd.savedFog;
+            pd.fogSphere.geometry.dispose();
             this.onPlayerDomainClose?.(pd.def.name);
             this.playerDomain = null;
         }
