@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cat God NPC World</title>
     <style>
         body {
@@ -128,11 +128,89 @@
             border-right: 7px solid transparent;
             border-top: 8px solid white;
         }
+
+        /* ---- mobile controls ---- */
+        /* hidden on desktop (mouse pointer), shown on touch */
+        #mobile-ui { display: none; }
+        @media (pointer: coarse) {
+            #mobile-ui { display: block; }
+            /* shrink info panel a lil on small screens */
+            #ui { font-size: 11px; padding: 8px; max-width: calc(100vw - 20px); }
+            #chat-box { width: calc(100vw - 20px); bottom: 170px; }
+        }
+        /* left half = joystick input zone, right half = camera drag zone */
+        #joystick-zone {
+            position: fixed; bottom: 0; left: 0;
+            width: 50%; height: 200px;
+            z-index: 300; touch-action: none;
+        }
+        #cam-zone {
+            position: fixed; bottom: 0; right: 0;
+            width: 50%; height: 200px;
+            z-index: 300; touch-action: none;
+        }
+        /* joystick ring that appears where u first touch */
+        #joystick-base {
+            position: fixed; display: none;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.08);
+            pointer-events: none;
+            z-index: 310;
+            /* center it on the touch point via JS */
+            transform: translate(-50%, -50%);
+        }
+        /* the lil nub inside the joystick */
+        #joystick-knob {
+            position: fixed; display: none;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: rgba(200,180,255,0.7);
+            pointer-events: none;
+            z-index: 311;
+            transform: translate(-50%, -50%);
+        }
+        /* action buttons stacked bottom-right above cam zone */
+        #mobile-buttons {
+            position: fixed;
+            right: 14px;
+            bottom: 210px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 320;
+        }
+        .mob-btn {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.55);
+            color: white;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            text-align: center;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            touch-action: manipulation;
+            user-select: none;
+            cursor: pointer;
+            line-height: 1.2;
+        }
+        .mob-btn:active { background: rgba(255,255,255,0.25); }
+        #cam-hint {
+            position: fixed;
+            right: 10px; bottom: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 305;
+        }
     </style>
 </head>
 <body>
     <div id="ui">
-        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera, M to mute music</div>
+        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera, M to mute music · Mobile: joystick left / drag right to rotate cam</div>
         <div id="playerKills">Player Kills: 0</div>
         <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
         <div id="procreation">💔 Get closer to Cat God</div>
@@ -149,5 +227,23 @@
     </div>
 
     <script type="module" src="./src/main.ts"></script>
+
+    <!-- mobile overlay -- CSS hides this on non-touch via @media (pointer: coarse) -->
+    <div id="mobile-ui">
+        <!-- left half: joystick touch zone -->
+        <div id="joystick-zone"></div>
+        <!-- right half: camera drag zone -->
+        <div id="cam-zone"></div>
+        <!-- joystick visual ring + knob, positioned by JS -->
+        <div id="joystick-base"></div>
+        <div id="joystick-knob"></div>
+        <!-- action buttons stacked above cam zone -->
+        <div id="mobile-buttons">
+            <div class="mob-btn" id="btn-procreate">❤️<span>P</span></div>
+            <div class="mob-btn" id="btn-mute">🔇<span>M</span></div>
+            <div class="mob-btn" id="btn-chat">💬<span>Chat</span></div>
+        </div>
+        <div id="cam-hint">drag right side = rotate cam</div>
+    </div>
 </body>
 </html>

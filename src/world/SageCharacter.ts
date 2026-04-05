@@ -89,6 +89,70 @@ export class SageCharacter {
         rightEye.position.set(0.3, 0.3, 0.5);
         group.add(rightEye);
 
+        // ARMS -- finally the orb has arms, very normal
+        const armMat = new THREE.MeshBasicMaterial({ color: 0x9955ff, transparent: true, opacity: 0.85 });
+        const upperArmGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.9, 8);
+        const foreArmGeo = new THREE.CylinderGeometry(0.11, 0.09, 0.75, 8);
+        const handGeo = new THREE.SphereGeometry(0.14, 8, 8);
+
+        // left arm
+        const leftUpperArm = new THREE.Mesh(upperArmGeo, armMat);
+        leftUpperArm.position.set(-0.78, 0.05, 0);
+        leftUpperArm.rotation.z = Math.PI / 5; // angled out a lil
+        group.add(leftUpperArm);
+        const leftForeArm = new THREE.Mesh(foreArmGeo, armMat);
+        leftForeArm.position.set(-1.18, -0.45, 0);
+        leftForeArm.rotation.z = Math.PI / 3.5;
+        group.add(leftForeArm);
+        const leftHand = new THREE.Mesh(handGeo, armMat);
+        leftHand.position.set(-1.46, -0.85, 0);
+        group.add(leftHand);
+
+        // right arm
+        const rightUpperArm = new THREE.Mesh(upperArmGeo, armMat);
+        rightUpperArm.position.set(0.78, 0.05, 0);
+        rightUpperArm.rotation.z = -Math.PI / 5;
+        group.add(rightUpperArm);
+        const rightForeArm = new THREE.Mesh(foreArmGeo, armMat);
+        rightForeArm.position.set(1.18, -0.45, 0);
+        rightForeArm.rotation.z = -Math.PI / 3.5;
+        group.add(rightForeArm);
+        const rightHand = new THREE.Mesh(handGeo, armMat);
+        rightHand.position.set(1.46, -0.85, 0);
+        group.add(rightHand);
+
+        // LEGS -- two floaty ghost legs hanging below, spooky
+        const legMat = new THREE.MeshBasicMaterial({ color: 0x7733dd, transparent: true, opacity: 0.75 });
+        const thighGeo = new THREE.CylinderGeometry(0.17, 0.14, 1.0, 8);
+        const shinGeo = new THREE.CylinderGeometry(0.13, 0.1, 0.85, 8);
+        const footGeo = new THREE.SphereGeometry(0.16, 8, 8);
+
+        // left leg
+        const leftThigh = new THREE.Mesh(thighGeo, legMat);
+        leftThigh.position.set(-0.28, -1.3, 0);
+        leftThigh.rotation.z = 0.12;
+        group.add(leftThigh);
+        const leftShin = new THREE.Mesh(shinGeo, legMat);
+        leftShin.position.set(-0.35, -2.2, 0);
+        leftShin.rotation.z = 0.08;
+        group.add(leftShin);
+        const leftFoot = new THREE.Mesh(footGeo, legMat);
+        leftFoot.position.set(-0.4, -2.8, 0.1);
+        group.add(leftFoot);
+
+        // right leg
+        const rightThigh = new THREE.Mesh(thighGeo, legMat);
+        rightThigh.position.set(0.28, -1.3, 0);
+        rightThigh.rotation.z = -0.12;
+        group.add(rightThigh);
+        const rightShin = new THREE.Mesh(shinGeo, legMat);
+        rightShin.position.set(0.35, -2.2, 0);
+        rightShin.rotation.z = -0.08;
+        group.add(rightShin);
+        const rightFoot = new THREE.Mesh(footGeo, legMat);
+        rightFoot.position.set(0.4, -2.8, 0.1);
+        group.add(rightFoot);
+
         return group;
     }
 
@@ -102,7 +166,7 @@ export class SageCharacter {
         });
     }
 
-    public update(deltaTime: number, cameraAngleY: number = 0, chatOpen: boolean = false): void {
+    public update(deltaTime: number, cameraAngleY: number = 0, chatOpen: boolean = false, joystickDx: number = 0, joystickDy: number = 0): void {
         // Reset velocity
         this.velocity.set(0, 0, 0);
 
@@ -124,6 +188,9 @@ export class SageCharacter {
             if (this.keys['a'] || this.keys['arrowleft']) {
                 moveRight -= this.moveSpeed;
             }
+            // joystick input from mobile -- -dy is forward (screen y is flipped in 3d)
+            moveForward += -joystickDy * this.moveSpeed;
+            moveRight += joystickDx * this.moveSpeed;
         }
 
         // Apply camera-relative directional movement

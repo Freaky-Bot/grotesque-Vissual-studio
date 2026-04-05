@@ -13,6 +13,7 @@ import { AudioManager } from './world/AudioManager';
 import { UgandanKnucklesEvent } from './world/UgandanKnucklesEvent';
 import { ChatSystem } from './world/ChatSystem';
 import { ChatBubbleManager } from './world/ChatBubbleManager';
+import { MobileControls } from './world/MobileControls';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -28,6 +29,8 @@ class CatGodWorld {
     private ugandanKnucklesEvent: UgandanKnucklesEvent;
     private chat: ChatSystem;
     private bubbles: ChatBubbleManager;
+    private mobileControls: MobileControls | null = null; // null on desktop, its fine
+    private audioManager: AudioManager;
     private scene: THREE.Scene;
     private keyPressed: Record<string, boolean> = {};
     private jojoMessageCounter: number = 0;
@@ -60,8 +63,8 @@ class CatGodWorld {
         // Initialize JOJO SYSTEM!!! ゴゴゴゴゴ (MENACING)
         this.jojoSystem = new JojoSystem();
 
-        // nyan cat goes nyanyanyanya, press M to mute -- doesnt need a ref it runs itself
-        new AudioManager('./nyan-cat.mp3', 0.4);
+        // nyan cat goes nyanyanyanya, press M to mute
+        this.audioManager = new AudioManager('./nyan-cat.mp3', 0.4);
 
         // DO U KNO DA WEY - the most important system in this entire game
         this.ugandanKnucklesEvent = new UgandanKnucklesEvent(this.scene);
@@ -77,6 +80,19 @@ class CatGodWorld {
         this.catGod.setSpeakCallback(bubbleFn);
         this.sageCharacter.setBubbleCallback(bubbleFn);
         this.chat.setOnPlayerSend((text) => this.sageCharacter.showBubble(text));
+
+        // mobile joystick -- only init on touch devices, no point on desktop
+        if (MobileControls.isMobile()) {
+            this.mobileControls = new MobileControls();
+            this.mobileControls.onProcreate = () => {
+                const offspring = this.procreationSystem.procreate(
+                    this.sageCharacter.getPosition(), this.catGod.position, this.scene
+                );
+                if (offspring) this.npcManager.addNPC(offspring);
+            };
+            this.mobileControls.onMute = () => { this.audioManager.toggleMute(); };
+            this.mobileControls.onChat = () => { this.chat.open(); };
+        }
 
         // Setup keyboard controls
         this.setupKeyboardControls();
@@ -143,9 +159,20 @@ class CatGodWorld {
 
             // Update
             const deltaTime = 1 / 60; // Assuming 60 FPS
-            
+
+            // feed mobile joystick + camera touch into the systems
+            let joyDx = 0, joyDy = 0;
+            if (this.mobileControls) {
+                const joy = this.mobileControls.getJoystick();
+                joyDx = joy.dx; joyDy = joy.dy;
+                const camDelta = this.mobileControls.consumeCamDelta();
+                if (camDelta.dx !== 0 || camDelta.dy !== 0) {
+                    this.cameraController.applyTouchDelta(camDelta.dx, camDelta.dy);
+                }
+            }
+
             this.physicsWorld.update(deltaTime);
-            this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen());
+            this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx, joyDy);
             this.catGod.update(deltaTime, this.sageCharacter.getPosition());
             this.npcManager.update(deltaTime);
             this.worldGenerator.update(deltaTime, this.sageCharacter.getPosition());

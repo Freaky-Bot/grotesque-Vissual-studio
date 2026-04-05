@@ -76,6 +76,13 @@ export class CameraController {
         this.orbitDistance = distance;
     }
 
+    public applyTouchDelta(dx: number, dy: number): void {
+        // same logic as mouse drag but called from mobile controls each frame
+        this.orbitAngleY -= dx * this.mouseSensitivity;
+        this.orbitAngleX -= dy * this.mouseSensitivity;
+        this.orbitAngleX = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, this.orbitAngleX));
+    }
+
     public update(): void {
         // Calculate camera position based on orbit angles and distance
         const cameraX = this.orbitDistance * Math.sin(this.orbitAngleY) * Math.cos(this.orbitAngleX);
@@ -87,6 +94,9 @@ export class CameraController {
             this.targetPosition.y + cameraY,
             this.targetPosition.z + cameraZ
         );
+
+        // clamp Y so camera never clips through the ground -- nobody wants to see the void
+        desiredPosition.y = Math.max(1.2, desiredPosition.y);
 
         // Smooth camera movement
         this.camera.position.lerp(desiredPosition, this.followSmoothness);

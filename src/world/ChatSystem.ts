@@ -63,7 +63,7 @@ export class ChatSystem {
         }
     }
 
-    private open(): void {
+    public open(): void {
         this.isOpen = true;
         this.chatInputWrapper.style.display = 'flex';
         this.chatBox.style.opacity = '1';
