@@ -302,6 +302,12 @@ export class SageCharacter {
         return this.mesh.rotation.y;
     }
 
+    // returns true if any movement key is pressed -- used by camera for auto-rotate
+    public isMoving(): boolean {
+        return (this.keys['w'] || this.keys['a'] || this.keys['s'] || this.keys['d'] ||
+                this.keys['arrowup'] || this.keys['arrowdown'] || this.keys['arrowleft'] || this.keys['arrowright']) ?? false;
+    }
+
     public getMesh(): THREE.Group {
         return this.mesh;
     }

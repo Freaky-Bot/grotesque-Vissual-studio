@@ -699,6 +699,7 @@ class CatGodWorld {
             // Update camera controller
             const sagePos = this.sageCharacter.getPosition();
             this.cameraController.setFollowTarget(sagePos, sagePos);
+            this.cameraController.setPlayerMoving(this.sageCharacter.isMoving());
             this.cameraController.update();
 
             // Handle player interactions
