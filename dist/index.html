@@ -207,11 +207,11 @@
             z-index: 305;
         }
     </style>
-  <script type="module" crossorigin src="./assets/index-Br4QL3je.js"></script>
+  <script type="module" crossorigin src="./assets/index-BVKHksUX.js"></script>
 </head>
 <body>
     <div id="ui">
-        <div>Cat God World - Use WASD/Arrows to move, P to procreate, Right-Click to rotate camera, M to mute music · Mobile: joystick left / drag right to rotate cam</div>
+        <div>Cat God World - WASD to move, SPACE to jump, P to procreate, Right-Click to rotate camera, M to mute · Mobile: joystick left / drag right to rotate cam</div>
         <div id="playerKills">Player Kills: 0</div>
         <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
         <div id="procreation">💔 Get closer to Cat God</div>
@@ -228,7 +228,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- mobile overlay -- CSS hides this on non-touch via @media (pointer: coarse) -->
     <div id="mobile-ui">
@@ -241,6 +241,7 @@
         <div id="joystick-knob"></div>
         <!-- action buttons stacked above cam zone -->
         <div id="mobile-buttons">
+            <div class="mob-btn" id="btn-jump">⬆️<span>Jump</span></div>
             <div class="mob-btn" id="btn-procreate">❤️<span>P</span></div>
             <div class="mob-btn" id="btn-mute">🔇<span>M</span></div>
             <div class="mob-btn" id="btn-chat">💬<span>Chat</span></div>

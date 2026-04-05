@@ -9,6 +9,13 @@ export class SageCharacter {
     private glowIntensity: number = 1;
     private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
+    // gravity + jumping
+    private verticalVelocity: number = 0;
+    private isGrounded: boolean = true;
+    private readonly GROUND_Y: number = 2;
+    private readonly GRAVITY: number = -28;
+    private readonly JUMP_FORCE: number = 13;
+
     constructor(scene: THREE.Scene) {
         this.position = new THREE.Vector3(10, 2, -10);
         this.velocity = new THREE.Vector3(0, 0, 0);
@@ -167,8 +174,23 @@ export class SageCharacter {
     }
 
     public update(deltaTime: number, cameraAngleY: number = 0, chatOpen: boolean = false, joystickDx: number = 0, joystickDy: number = 0): void {
-        // Reset velocity
+        // Reset horizontal velocity
         this.velocity.set(0, 0, 0);
+
+        // jump -- space bar, only when grounded and not typing
+        if (this.keys[' '] && this.isGrounded && !chatOpen) {
+            this.verticalVelocity = this.JUMP_FORCE;
+            this.isGrounded = false;
+        }
+
+        // gravity tick
+        this.verticalVelocity += this.GRAVITY * deltaTime;
+        this.position.y += this.verticalVelocity * deltaTime;
+        if (this.position.y <= this.GROUND_Y) {
+            this.position.y = this.GROUND_Y;
+            this.verticalVelocity = 0;
+            this.isGrounded = true;
+        }
 
         // CAMERA-RELATIVE MOVEMENT!! (finally lol)
         // dont move while typing in chat, that would be annoying as heck
@@ -205,8 +227,8 @@ export class SageCharacter {
         this.position.x = Math.max(-200, Math.min(200, this.position.x));
         this.position.z = Math.max(-200, Math.min(200, this.position.z));
 
-        // Update mesh, with floating bobbing
-        const floatY = Math.sin(Date.now() * 0.002) * 0.2;
+        // Update mesh, with floating bobbing (float bob adds flavor even during jump)
+        const floatY = this.isGrounded ? Math.sin(Date.now() * 0.002) * 0.2 : 0;
         this.mesh.position.set(this.position.x, this.position.y + floatY, this.position.z);
 
         // Rotate to face direction
@@ -239,6 +261,14 @@ export class SageCharacter {
         const coreMat = (this.mesh.children[0] as THREE.Mesh).material;
         if (coreMat instanceof THREE.MeshBasicMaterial) {
             coreMat.opacity = 0.7 + Math.sin(Date.now() * 0.005) * 0.1;
+        }
+    }
+
+    // public jump trigger -- used by mobile button
+    public tryJump(): void {
+        if (this.isGrounded) {
+            this.verticalVelocity = this.JUMP_FORCE;
+            this.isGrounded = false;
         }
     }
 

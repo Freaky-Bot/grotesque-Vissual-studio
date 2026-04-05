@@ -27,6 +27,7 @@ export class MobileControls {
     public onProcreate: (() => void) | null = null;
     public onMute: (() => void) | null = null;
     public onChat: (() => void) | null = null;
+    public onJump: (() => void) | null = null;
 
     // dom elements
     private joystickZone: HTMLElement;
@@ -154,6 +155,13 @@ export class MobileControls {
             btnChat.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 this.onChat?.();
+            }, { passive: false });
+        }
+        const btnJump = document.getElementById('btn-jump');
+        if (btnJump) {
+            btnJump.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.onJump?.();
             }, { passive: false });
         }
     }

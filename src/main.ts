@@ -99,6 +99,7 @@ class CatGodWorld {
             };
             this.mobileControls.onMute = () => { this.audioManager.toggleMute(); };
             this.mobileControls.onChat = () => { this.chat.open(); };
+            this.mobileControls.onJump = () => { this.sageCharacter.tryJump(); };
         }
 
         // Setup keyboard controls
