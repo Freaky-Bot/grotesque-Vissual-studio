@@ -23,6 +23,7 @@ import { DungeonGenerator } from './world/DungeonGenerator';
 import { VoidPortal } from './world/VoidPortal';
 import { ItemPickupSystem } from './world/ItemPickupSystem';
 import { ComboSystem } from './world/ComboSystem';
+import { VoiceSystem } from './world/VoiceSystem';
 import { BaseNPC } from './world/BaseNPC';
 import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
 import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
@@ -57,6 +58,7 @@ class CatGodWorld {
     private voidPortal!: VoidPortal;
     private itemPickups!: ItemPickupSystem;
     private comboSystem!: ComboSystem;
+    private voice: VoiceSystem = new VoiceSystem();
     private sunLight!: THREE.DirectionalLight; // ref kept for day/night
     private ambientLightRef!: THREE.AmbientLight; // ref kept for day/night + weather
     private mudSlowTimer: number = 0; // seconds of slowness remaining from shrek mud
@@ -212,6 +214,9 @@ class CatGodWorld {
             this.chat.addMessage('event', `⚡ DOMAIN EXPANSION: ${name.toUpperCase()}`);
             this.chat.addMessage('event', `💀 "${flavor}"`);
             this.showDomainBanner(name, flavor);
+            // npc speaks its flavor text out loud -- find the npc type from domain name
+            const npcType = this._domainNameToNpcType(name);
+            this.voice.speakDomainOpen(npcType, flavor);
         };
 
         // wire domain unique effects -- each npc type does something different
@@ -347,6 +352,14 @@ class CatGodWorld {
                 } else if (effect === 'domain_timeout') {
                     // ugh. domain ran out of time. nobody died. whatever. it collapses anyway.
                     this.chat.addMessage('event', '⏳ domain faded — 10s. no kill. it dissolved.');
+                    this.voice.speakAbility('domain_timeout', this._domainNameToNpcType(''));
+                }
+                // npc speaks its ability line -- ability_ prefix = sure-hit fires
+                if (effect.startsWith('ability_')) {
+                    const npcType = this._domainNameToNpcType(effect.replace('ability_', '').replace(/_dmg|_heal|_chaos/, ''));
+                    this.voice.speakAbility(effect, npcType);
+                } else if (effect === 'execute_player') {
+                    this.voice.speakAbility('execute_player', 'shadow');
                 }
             };
         }
@@ -710,6 +723,35 @@ class CatGodWorld {
         }
 
         this.renderHotbar();
+    }
+
+    // maps domain names or npc type strings back to a canonical npc type for the voice system
+    // domain names are like "Infinite Meow", type strings are like "normal" -- handle both
+    private _domainNameToNpcType(nameOrType: string): string {
+        const lower = nameOrType.toLowerCase();
+        // direct type match -- already the right string
+        const direct = ['normal','jesus','robot','orb','angel','pirate','wizard','vampire',
+                        'disco','shadow','barney','emo','shrek','buffcat','voidcat','hybrid','player'];
+        if (direct.includes(lower)) return lower;
+        // fuzzy match from domain display names
+        if (lower.includes('meow'))      return 'normal';
+        if (lower.includes('purif') || lower.includes('divine') || lower.includes('jesus')) return 'jesus';
+        if (lower.includes('process') || lower.includes('robot') || lower.includes('loop')) return 'robot';
+        if (lower.includes('orb') || lower.includes('spheri'))  return 'orb';
+        if (lower.includes('feather') || lower.includes('angel') || lower.includes('paradise')) return 'angel';
+        if (lower.includes('davy') || lower.includes('pirate') || lower.includes('locker'))     return 'pirate';
+        if (lower.includes('magic') || lower.includes('wizard'))  return 'wizard';
+        if (lower.includes('blood') || lower.includes('vampire')) return 'vampire';
+        if (lower.includes('groove') || lower.includes('disco'))  return 'disco';
+        if (lower.includes('coffin') || lower.includes('shadow') || lower.includes('iron mountain')) return 'shadow';
+        if (lower.includes('love') || lower.includes('barney'))   return 'barney';
+        if (lower.includes('despair') || lower.includes('hollow') || lower.includes('emo'))     return 'emo';
+        if (lower.includes('swamp') || lower.includes('shrek'))   return 'shrek';
+        if (lower.includes('buff') || lower.includes('circuit'))  return 'buffcat';
+        if (lower.includes('void') || lower.includes('eternal') || lower.includes('darkness'))  return 'voidcat';
+        if (lower.includes('chaos') || lower.includes('hybrid') || lower.includes('fusion'))    return 'hybrid';
+        if (lower.includes('aberrant') || lower.includes('throne') || lower.includes('player')) return 'player';
+        return 'normal'; // shrug fallback
     }
 
     // big flashy domain expansion banner -- screams the name on screen for 3s
