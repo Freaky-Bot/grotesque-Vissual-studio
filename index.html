@@ -210,12 +210,15 @@
 </head>
 <body>
     <div id="ui">
-        <div>Cat God World - WASD to move, SPACE to jump, P to procreate, Right-Click to rotate camera, M to mute · Mobile: joystick left / drag right to rotate cam</div>
+        <div>Cat God World - WASD to move, SPACE jump, P procreate, F faction, Right-Click rotate cam, M mute · Mobile: joystick left / drag right</div>
         <div id="playerKills">Player Kills: 0</div>
         <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
         <div id="procreation">💔 Get closer to Cat God</div>
         <div id="mp-status" style="margin-top:8px;color:#00ccff;font-size:12px;">Multiplayer: offline (no server)</div>
         <div id="mp-players" style="color:#00eeff;font-size:12px;">Online: 1</div>
+        <div id="weather-hud" style="margin-top:6px;color:#87ceeb;font-size:12px;">Weather: clear</div>
+        <div id="time-hud" style="color:#ffdd88;font-size:12px;">12:00 PM</div>
+        <div id="faction-hud" style="margin-top:6px;color:#888;font-size:12px;cursor:pointer;" title="Click or press F to cycle faction">Faction: NEUTRAL (click to change)</div>
     </div>
 
     <!-- chat system, press enter to open -->
@@ -229,6 +232,25 @@
     </div>
 
     <script type="module" src="./src/main.ts"></script>
+
+    <!-- COMBO OVERLAY -- the purrfect combo screen flash -->
+    <div id="combo-overlay" style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+        font-family: Arial Black, Arial, sans-serif;
+        font-weight: 900;
+        font-size: 36px;
+        color: white;
+        text-shadow: 0 0 20px white;
+        pointer-events: none;
+        z-index: 500;
+        transition: opacity 0.4s ease, transform 0.12s ease;
+        opacity: 0;
+        white-space: nowrap;
+    "></div>
 
     <!-- mobile overlay -- CSS hides this on non-touch via @media (pointer: coarse) -->
     <div id="mobile-ui">

@@ -18,7 +18,7 @@ export class VoidPortal {
     private voidTimer: number = 0;
     private readonly VOID_DURATION: number = 15;
     private savedBackground: THREE.Color | THREE.Texture | null = null;
-    private savedFog: THREE.FogBase | null = null;
+    private savedFog: THREE.Fog | THREE.FogExp2 | null = null;
     private spinTime: number = 0;
 
     // inner spinning rings -- stored for animation

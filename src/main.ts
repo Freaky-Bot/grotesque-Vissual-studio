@@ -102,7 +102,11 @@ class CatGodWorld {
         this.npcManager.setBubbleCallback(bubbleFn);
         this.catGod.setSpeakCallback(bubbleFn);
         this.sageCharacter.setBubbleCallback(bubbleFn);
-        this.chat.setOnPlayerSend((text) => this.sageCharacter.showBubble(text));
+        // chat send also registers a combo interaction -- yap fast = combo
+        this.chat.setOnPlayerSend((text) => {
+            this.sageCharacter.showBubble(text);
+            this.comboSystem?.registerInteraction();
+        });
 
         // setup multiplayer -- auto-connect to local server, silently no-ops if server not running
         this.multiplayer = this.initMultiplayer();
@@ -130,6 +134,43 @@ class CatGodWorld {
         // Setup lighting
         this.setupLighting();
 
+        // the new chaos systems -- all at once because were chaotic
+        this.factionSystem = new FactionSystem();
+        this.factionSystem.onFactionChange = (f) => {
+            const el = document.getElementById('faction-hud');
+            if (el) {
+                el.textContent = `Faction: ${f.toUpperCase()}`;
+                el.style.color = this.factionSystem.getFactionColor(f);
+            }
+        };
+
+        // wire mud slowness from shrek into player
+        this.npcManager.setMudHitCallback((slowDur) => {
+            this.mudSlowTimer = slowDur;
+            this.chat.addMessage('event', '💩 Hit by Shrek\'s mud!! Moving slow for a bit...');
+        });
+        this.npcManager.setWorldGenerator(this.worldGenerator);
+
+        // assign factions to all npcs as they spawn (wire via bubbleCb timing hack)
+        // just assign on each NPC after it gets added -- would be cleaner but this is sloppy code land
+        const origBubbleFn = (pos: THREE.Vector3, text: string, h: number) => this.bubbles.showBubbleLive(pos, text, h);
+        this.npcManager.setBubbleCallback((pos, text, h) => {
+            origBubbleFn(pos, text, h);
+        });
+
+        this.dungeon = new DungeonGenerator(this.scene);
+        this.voidPortal = new VoidPortal(this.scene);
+        this.voidPortal.onEnterVoid = () => this.chat.addMessage('event', '🌀 YOU ENTERED THE VOID. 15 seconds...');
+        this.voidPortal.onExitVoid = () => this.chat.addMessage('event', '🌀 You escaped the void. Barely.');
+
+        this.itemPickups = new ItemPickupSystem(this.scene);
+        this.itemPickups.onPickup = (type, _pos) => {
+            this.chat.addMessage('event', type === 'fish' ? '🐟 Fish! Speed boost x2.2 for 10s!' : '🌿 Catnip!! Reality destabilizing...');
+            this.comboSystem.registerInteraction();
+        };
+
+        this.comboSystem = new ComboSystem();
+
         // Start the world
         this.start();
     }
@@ -148,7 +189,13 @@ class CatGodWorld {
 
                 if (offspring) {
                     this.npcManager.addNPC(offspring);
+                    this.comboSystem.registerInteraction(); // procreation counts as interaction
                 }
+            }
+
+            // F key cycles factions -- FIGHT FOR YOUR SIDE
+            if (e.key.toLowerCase() === 'f') {
+                this.factionSystem.cyclePlayerFaction();
             }
         });
 
@@ -212,6 +259,22 @@ class CatGodWorld {
             this.physicsWorld.update(deltaTime);
             this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx, joyDy);
 
+            // apply fish speed buff (or mud slow) to sage character
+            const fishMult = this.itemPickups.speedMultiplier;
+            const mudMult = this.mudSlowTimer > 0 ? 0.35 : 1; // shrek mud slows to 35% speed lol
+            this.sageCharacter.setSpeedMultiplier(fishMult * mudMult);
+            if (this.mudSlowTimer > 0) this.mudSlowTimer -= deltaTime;
+
+            // apply catnip wobble to camera FOV
+            const cam = this.renderEngine.getCamera();
+            if (this.itemPickups.isWobbly) {
+                cam.fov = 75 + this.itemPickups.wobbleAmount;
+                cam.updateProjectionMatrix();
+            } else if (cam.fov !== 75) {
+                cam.fov = 75;
+                cam.updateProjectionMatrix();
+            }
+
             // give npc manager the player pos each frame (needed for emo stand targeting)
             this.npcManager.setPlayerPos(this.sageCharacter.getPosition());
 
@@ -226,6 +289,22 @@ class CatGodWorld {
             this.catGod.update(deltaTime, this.sageCharacter.getPosition());
             this.npcManager.update(deltaTime);
             this.worldGenerator.update(deltaTime, this.sageCharacter.getPosition());
+            this.worldGenerator.updateDestructibles(deltaTime);
+
+            // ALL THE NEW SYSTEMS -- yeet em in the update loop
+            this.dayNight.update(deltaTime);
+            this.weatherSystem.update(deltaTime);
+            this.factionSystem.update(deltaTime, this.npcManager.getNPCs());
+            this.voidPortal.update(deltaTime, this.sageCharacter.getPosition());
+            this.itemPickups.update(deltaTime, this.sageCharacter.getPosition());
+            this.comboSystem.update(deltaTime);
+
+            // faction badge on HUD
+            const factionEl = document.getElementById('faction-hud');
+            if (factionEl && !factionEl.dataset['init']) {
+                factionEl.dataset['init'] = '1';
+                factionEl.addEventListener('click', () => this.factionSystem.cyclePlayerFaction());
+            }
 
             // spit on him brudda (ugandan knuckles rain event)
             this.ugandanKnucklesEvent.update(deltaTime, this.sageCharacter.getPosition());
@@ -345,6 +424,8 @@ class CatGodWorld {
         const playerKillsEl = document.getElementById('playerKills');
         const npcStatsEl = document.getElementById('npcStats');
         const procreationEl = document.getElementById('procreation');
+        const weatherEl = document.getElementById('weather-hud');
+        const timeEl = document.getElementById('time-hud');
 
         if (playerKillsEl) {
             playerKillsEl.textContent = `Player Kills: ${this.playerTracker.getKillCount()}`;
@@ -363,6 +444,17 @@ class CatGodWorld {
                 this.catGod.position
             );
             procreationEl.textContent = this.procreationSystem.getCanProcreateMessage(distance);
+        }
+
+        if (weatherEl) {
+            weatherEl.textContent = `Weather: ${this.weatherSystem.getCurrentWeather()}`;
+        }
+
+        if (timeEl) {
+            const inVoid = this.voidPortal.isInVoid();
+            const inDungeon = this.dungeon.isPlayerInDungeon(this.sageCharacter.getPosition());
+            const loc = inVoid ? ' 🌀VOID' : (inDungeon ? ' 🔮DUNGEON' : '');
+            timeEl.textContent = `${this.dayNight.getTimeString()}${loc}`;
         }
     }
 }

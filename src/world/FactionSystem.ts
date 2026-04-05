@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { BaseNPC } from './BaseNPC';
 
 export enum Faction {
