@@ -915,6 +915,8 @@ class CatGodWorld {
             this.cameraController.setFollowTarget(sagePos, sagePos);
             this.cameraController.setPlayerMoving(this.sageCharacter.isMoving());
             this.cameraController.update();
+            // sync shift lock state to character every frame
+            this.sageCharacter._shiftLocked = this.cameraController.isShiftLocked();
 
             // Handle player interactions
             this.playerTracker.update();

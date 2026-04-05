@@ -18,6 +18,7 @@ export class SageCharacter {
     private readonly BASE_ATTACK_DMG: number = 15;
     private jumpMult: number = 1; // moon_shard / spring_shoes multiply this
     private confused: boolean = false; // donut inverts controls. ugh.
+    public _shiftLocked: boolean = false; // left ctrl shift lock -- always face camera
 
     // domain expansion -- innate ability, not an item. awakens at 20% hp or on Z key
     private domainActive_: boolean = false;
@@ -253,8 +254,11 @@ export class SageCharacter {
         const floatY = this.isGrounded ? Math.sin(Date.now() * 0.002) * 0.2 : 0;
         this.mesh.position.set(this.position.x, this.position.y + floatY, this.position.z);
 
-        // Rotate to face direction
-        if (this.velocity.length() > 0) {
+        // Rotate to face direction -- in shift lock always face camera direction
+        if (this._shiftLocked) {
+            // face exactly where the camera is pointing -- feels like roblox shift lock
+            this.mesh.rotation.y = cameraAngleY + Math.PI;
+        } else if (this.velocity.length() > 0) {
             const angle = Math.atan2(this.velocity.x, this.velocity.z);
             this.mesh.rotation.y = angle;
         }

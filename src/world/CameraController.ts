@@ -39,19 +39,47 @@ export class CameraController {
     private readonly SPRING_STIFFNESS: number = 12; // higher = snappier
     private needsInit: boolean = true;
 
+    // shift lock -- left ctrl toggles it. locks pointer + forces character to face camera.
+    private shiftLocked: boolean = false;
+    private crosshairEl: HTMLElement | null = null;
+
     constructor(camera: THREE.PerspectiveCamera) {
         this.camera = camera;
         this.setupControls();
+        this._createCrosshair();
+    }
+
+    private _createCrosshair(): void {
+        // simple dot crosshair -- only visible in shift lock mode
+        const el = document.createElement('div');
+        el.id = 'shiftlock-crosshair';
+        el.style.cssText = [
+            'position:fixed', 'top:50%', 'left:50%',
+            'width:10px', 'height:10px',
+            'transform:translate(-50%,-50%)',
+            'border-radius:50%',
+            'background:rgba(255,255,255,0.85)',
+            'box-shadow:0 0 4px rgba(0,0,0,0.8)',
+            'pointer-events:none',
+            'z-index:99999',
+            'display:none',
+        ].join(';');
+        document.body.appendChild(el);
+        this.crosshairEl = el;
     }
 
     private setupControls(): void {
-        // both left (0) AND right (2) mouse buttons drag the camera -- exactly like roblox
+        // left OR right drag orbits camera. right click on canvas also requests pointer lock.
+        // left click NEVER touches pointer lock -- that was causing the cursor to vanish on attack.
         document.addEventListener('mousedown', (e) => {
-            // left click only drags if not on UI element, right click always drabs
             if (e.button === 0 || e.button === 2) {
                 this.isDragging = true;
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
+            }
+            // right click on canvas + not already locked = grab pointer
+            if (e.button === 2 && (e.target as HTMLElement).tagName === 'CANVAS' && !this.pointerLocked) {
+                document.body.requestPointerLock?.();
             }
         });
 
@@ -90,17 +118,21 @@ export class CameraController {
             this.orbitDistance = Math.max(this.MIN_DIST, Math.min(this.MAX_DIST, this.orbitDistance));
         }, { passive: false });
 
-        // click to request pointer lock -- feels way better for first-person-ish distances
-        document.addEventListener('click', (e) => {
-            // only lock on canvas clicks, not UI buttons
-            if ((e.target as HTMLElement).tagName === 'CANVAS') {
-                document.body.requestPointerLock?.();
-            }
-        });
-
         document.addEventListener('pointerlockchange', () => {
             this.pointerLocked = document.pointerLockElement === document.body ||
                                    document.pointerLockElement !== null;
+            // if pointer lock was released externally (Esc) and shift lock was on, turn it off
+            if (!this.pointerLocked && this.shiftLocked) {
+                this.shiftLocked = false;
+                if (this.crosshairEl) this.crosshairEl.style.display = 'none';
+            }
+        });
+
+        // left ctrl = toggle shift lock -- pointer gets locked + crosshair appears
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ControlLeft' && !e.repeat) {
+                this._toggleShiftLock();
+            }
         });
 
         // no context menu bc right click is for orbiting now, not menus
@@ -183,6 +215,19 @@ export class CameraController {
 
     public getOrbitAngleY(): number { return this.orbitAngleY; }
     public getOrbitDistance(): number { return this.orbitDistance; }
+    public isShiftLocked(): boolean { return this.shiftLocked; }
+
+    private _toggleShiftLock(): void {
+        this.shiftLocked = !this.shiftLocked;
+        if (this.shiftLocked) {
+            // lock pointer so mouse moves camera without the cursor flying off screen
+            document.body.requestPointerLock?.();
+            if (this.crosshairEl) this.crosshairEl.style.display = 'block';
+        } else {
+            document.exitPointerLock?.();
+            if (this.crosshairEl) this.crosshairEl.style.display = 'none';
+        }
+    }
 
     public setOrbitDistance(distance: number): void {
         this.orbitDistance = Math.max(this.MIN_DIST, Math.min(this.MAX_DIST, distance));
