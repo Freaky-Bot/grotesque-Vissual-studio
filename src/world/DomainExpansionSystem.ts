@@ -330,6 +330,17 @@ export interface ActivePlayerDomain {
     light: THREE.PointLight;
     pillars: THREE.Mesh[];        // corebound-style throne pillars at cardinal points
     pillarLights: THREE.PointLight[];  // each pillar glows
+    // MALEVOLENT SHRINE SYSTEM -- radial slash waves. kept the purple. same cursed energy.
+    slashes: Array<{
+        mesh: THREE.Mesh;
+        dir: THREE.Vector3;
+        speed: number;
+        distTraveled: number;
+        maxDist: number;
+        type: 'dismantle' | 'cleave';
+    }>;
+    slashTimer: number;
+    shrineMarks: THREE.Mesh[];    // static floor cross sigil at domain center
 }
 
 export class DomainExpansionSystem {
@@ -782,6 +793,18 @@ export class DomainExpansionSystem {
             (pd.pillars[i].material as THREE.MeshBasicMaterial).dispose();
             pd.pillars[i].geometry.dispose();
         }
+        // clean up all flying slash meshes -- every single one
+        for (const slash of pd.slashes) {
+            this.scene.remove(slash.mesh);
+            (slash.mesh.material as THREE.MeshBasicMaterial).dispose();
+            slash.mesh.geometry.dispose();
+        }
+        // clean up the shrine sigil floor marks
+        for (const sm of pd.shrineMarks) {
+            this.scene.remove(sm);
+            (sm.material as THREE.MeshBasicMaterial).dispose();
+            sm.geometry.dispose();
+        }
         this.onPlayerDomainClose?.(pd.def.name);
         this.playerDomain = null;
     }
@@ -851,11 +874,96 @@ export class DomainExpansionSystem {
             pillarLights.push(pl);
         }
 
+        // SHRINE SIGIL -- floor cross marks at domain center. reads as the aberrant throne's seal.
+        // 4 lines crossing at center (+ and x combined = 8-pointed death star pattern)
+        // these are STATIC -- they don't move, they just exist and pulse.
+        // this is not a coincidence. the sigil is always there. you just never noticed. -- conspiracy
+        const shrineMarks: THREE.Mesh[] = [];
+        const sigilAngles = [0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4];
+        const sigilColors   = [0x6600cc, 0x440099, 0x7700ee, 0x550088];
+        for (let i = 0; i < 4; i++) {
+            const sgGeo = new THREE.BoxGeometry(def.radius * 1.85, 0.04, i < 2 ? 0.22 : 0.14);
+            const sgMat = new THREE.MeshBasicMaterial({ color: sigilColors[i], transparent: true, opacity: 0.55 });
+            const sg = new THREE.Mesh(sgGeo, sgMat);
+            sg.position.set(fixedPos.x, 0.06, fixedPos.z);
+            sg.rotation.y = sigilAngles[i];
+            this.scene.add(sg);
+            shrineMarks.push(sg);
+        }
+        // center glyph disc -- small bright disc at origin, like the eye of the shrine
+        const discGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.06, 12);
+        const discMat = new THREE.MeshBasicMaterial({ color: 0x9922ff, transparent: true, opacity: 0.7 });
+        const disc = new THREE.Mesh(discGeo, discMat);
+        disc.position.set(fixedPos.x, 0.07, fixedPos.z);
+        this.scene.add(disc);
+        shrineMarks.push(disc);
+
         this.playerDomain = {
             def, castPos: fixedPos, playerLockedInside: true,
             sphere, light, pillars, pillarLights,
+            slashes: [], slashTimer: 0.15, shrineMarks,
         };
         this.onDomainOpen?.(def.name, def.flavorText);
+    }
+
+    // MALEVOLENT SHRINE: fires radial slash waves -- dismantle (wide horizontal) + cleave (tall vertical)
+    // keeps the throne purple theme but the mechanic is exactly sukuna's guaranteed hit slash pattern
+    // nobody asked if we could do this. we just did it. u r welcome. -- infomercial energy
+    private spawnPlayerSlashWave(
+        pd: ActivePlayerDomain,
+        npcs: Array<{ getPosition(): THREE.Vector3; takeDamage(d: number): void; isAlive(): boolean }>
+    ): void {
+        const count = 5 + Math.floor(Math.random() * 4); // 5-8 per wave
+        const baseAngle = Math.random() * Math.PI * 2;
+
+        for (let i = 0; i < count; i++) {
+            const isDismantle = Math.random() < 0.55; // slightly more horizontal cuts
+            const angle = baseAngle + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+            const dir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)).normalize();
+
+            // dismantle: wide, flat, horizontal sweep across the field
+            // cleave: narrow, tall, vertical slice - single track - the one that really hurts
+            const geo = isDismantle
+                ? new THREE.BoxGeometry(3.2 + Math.random() * 2.2, 0.09, 0.45)
+                : new THREE.BoxGeometry(0.1, 2.8 + Math.random() * 2.2, 0.45);
+            const color = isDismantle
+                ? (Math.random() < 0.5 ? 0xcc88ff : 0xaa44ee)
+                : (Math.random() < 0.5 ? 0xffffff : 0xee99ff);
+            const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.82 + Math.random() * 0.15 });
+            const mesh = new THREE.Mesh(geo, mat);
+
+            const startDist = 1.5 + Math.random() * 2.0;
+            mesh.position.set(
+                pd.castPos.x + dir.x * startDist,
+                isDismantle ? 0.2 + Math.random() * 0.4 : 0.6 + Math.random() * 2.0,
+                pd.castPos.z + dir.z * startDist,
+            );
+            // +Z becomes the travel direction (lookAt target = position + dir)
+            mesh.lookAt(mesh.position.clone().add(dir));
+            // random roll for natural slash angle variation -- sukuna's cuts arent perfectly straight either
+            mesh.rotateZ((Math.random() - 0.5) * (isDismantle ? 0.55 : 0.9));
+            this.scene.add(mesh);
+
+            pd.slashes.push({
+                mesh, dir,
+                speed: 18 + Math.random() * 20, // FAST -- guaranteed hit = you dont have time to process it
+                distTraveled: startDist,
+                maxDist: pd.def.radius * 0.96,
+                type: isDismantle ? 'dismantle' : 'cleave',
+            });
+        }
+
+        // GUARANTEED HIT: the whole point of a domain expansion -- the slashes connect with everything
+        // deal wave burst damage to all npcs inside
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            const np = npc.getPosition();
+            const dx = np.x - pd.castPos.x;
+            const dz = np.z - pd.castPos.z;
+            if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
+                npc.takeDamage(10); // slash burst -- the domain doesnt miss. ever.
+            }
+        }
     }
 
     // tick the player domain -- sphere is FIXED, damages npcs inside, enforces NPC boundary too
@@ -920,6 +1028,48 @@ export class DomainExpansionSystem {
                 }
             }
         }
+        // SLASH WAVE TIMER -- fire new malevolent shrine wave on interval
+        pd.slashTimer -= dt;
+        if (pd.slashTimer <= 0) {
+            this.spawnPlayerSlashWave(pd, npcs);
+            pd.slashTimer = 0.38 + Math.random() * 0.28; // 0.38-0.66s between waves
+        }
+
+        // ANIMATE SLASHES: fly outward, scale grows, opacity fades at boundary, die at edge
+        for (let si = pd.slashes.length - 1; si >= 0; si--) {
+            const sl = pd.slashes[si];
+            const delta = sl.speed * dt;
+            sl.mesh.position.x += sl.dir.x * delta;
+            sl.mesh.position.z += sl.dir.z * delta;
+            sl.distTraveled += delta;
+
+            const lifePct = sl.distTraveled / sl.maxDist;
+            const smat = sl.mesh.material as THREE.MeshBasicMaterial;
+            smat.opacity = Math.max(0, (1 - lifePct) * 0.95);
+
+            // the cut expands slightly as it travels -- the energy spreads
+            if (sl.type === 'dismantle') {
+                sl.mesh.scale.set(1 + lifePct * 0.5, 1, 1 + lifePct * 1.4);
+            } else {
+                sl.mesh.scale.set(1, 1 + lifePct * 0.5, 1 + lifePct * 1.4);
+            }
+
+            if (sl.distTraveled >= sl.maxDist || smat.opacity <= 0.02) {
+                this.scene.remove(sl.mesh);
+                smat.dispose();
+                sl.mesh.geometry.dispose();
+                pd.slashes.splice(si, 1);
+            }
+        }
+
+        // pulse shrine sigil marks -- subtle breathing, the throne is alive
+        const now = Date.now();
+        for (let mi = 0; mi < pd.shrineMarks.length; mi++) {
+            const sm = pd.shrineMarks[mi];
+            (sm.material as THREE.MeshBasicMaterial).opacity =
+                0.3 + Math.sin(now * 0.003 + mi * 0.8) * 0.2;
+        }
+
         // domain stays until forceClosePlayerDomain() -- but fire kill burst callback if it ends naturally
         // (handled by forceClosePlayerDomain in main)
     }
