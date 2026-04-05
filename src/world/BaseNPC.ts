@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ItemType, InventorySystem, ITEM_INFO } from './InventorySystem';
 
 export abstract class BaseNPC {
     protected position: THREE.Vector3;
@@ -17,6 +18,14 @@ export abstract class BaseNPC {
     private attackTimer_: number = 0;
     protected attackInterval_: number = 2.0;
     protected stunTimer: number = 0; // lol they cant move or attack when stunned
+
+    // npc item system -- they loot stuff off corpses and actually USE it. terrifying.
+    public equippedItem: ItemType | null = null;
+    private itemUseCooldown: number = 0;        // seconds until they can use the item again
+    private readonly ITEM_USE_INTERVAL: number = 8; // use item every ~8s if they have one
+    public npcShieldHits: number = 0;           // from shield item
+    public npcInvincible: boolean = false;       // from star_piece
+    private npcInvincibleTimer: number = 0;
 
     // domain expansion fields -- the secret power within the soul. ugh this is so cool.
     public domainActive: boolean = false;
@@ -118,12 +127,6 @@ export abstract class BaseNPC {
         this.isAlive_ = false;
     }
 
-    // hp stuff -- now mobs can get bonked uwu
-    public takeDamage(dmg: number): void {
-        this.hp = Math.max(0, this.hp - dmg);
-        if (this.hp <= 0) this.die();
-    }
-
     public getHp(): number { return this.hp; }
     public getMaxHp(): number { return this.maxHp; }
 
@@ -197,6 +200,81 @@ export abstract class BaseNPC {
     }
 
     public isDomainActive(): boolean { return this.domainActive; }
+
+    // override takeDamage to check npc shield/invincible before reducing hp
+    public takeDamage(dmg: number): void {
+        if (this.npcInvincible) return;
+        if (this.npcShieldHits > 0) { this.npcShieldHits--; return; }
+        this.hp = Math.max(0, this.hp - dmg);
+        if (this.hp <= 0) this.die();
+    }
+
+    // equip a looted item -- passives kept forever, consumables stored for periodical use
+    public equipItem(item: ItemType): void {
+        this.equippedItem = item;
+        this.itemUseCooldown = 1.5; // small delay before first use so they dont instantly nuke you
+        this.speak(); // announce it like a little gremlin
+    }
+
+    // tick item -- returns a descriptor of what effect happened this frame (if any), for NPCManager to act on
+    // 'heal' | 'bomb' | 'speed' | 'shield' | 'invincible' | null
+    public tickNpcItem(dt: number, nearbyNpcs: BaseNPC[], playerPos: THREE.Vector3 | null): 'heal' | 'bomb' | 'speed' | 'shield' | 'invincible' | 'stun_all' | null {
+        if (this.npcInvincibleTimer > 0) {
+            this.npcInvincibleTimer -= dt;
+            if (this.npcInvincibleTimer <= 0) this.npcInvincible = false;
+        }
+
+        if (!this.equippedItem) return null;
+        this.itemUseCooldown -= dt;
+        if (this.itemUseCooldown > 0) return null;
+
+        const item = this.equippedItem;
+        const info = ITEM_INFO[item];
+
+        // passives: apply continuously, never consume
+        if (['sword', 'cat_charm', 'flaming_sword', 'giant_hammer', 'void_armor',
+             'cursed_ring', 'shrek_ears', 'cat_crown', 'cheese_armor', 'moon_shard',
+             'spring_shoes', 'void_blade', 'lucky_charm', 'laser_pointer'].includes(item)) {
+            this.itemUseCooldown = 99999; // passive -- never "use" again, stat bonus is implicit
+            return null;
+        }
+
+        // consumables -- use it and set cooldown (some are one-time, reroll after use)
+        this.itemUseCooldown = this.ITEM_USE_INTERVAL + Math.random() * 4;
+        this.equippedItem = null; // item consumed -- will loot next kill
+
+        if (['potion', 'mega_potion', 'cheese', 'bandage', 'holy_water'].includes(item)) {
+            // healing: restore hp
+            this.hp = Math.min(this.maxHp, this.hp + (item === 'mega_potion' ? this.maxHp : 40));
+            this.triggerSpeak();
+            return 'heal';
+        }
+        if (['bomb', 'nuke', 'void_shard', 'plasma_cannon', 'boomerang', 'lightning',
+             'cheese_wheel', 'onion', 'turbo_fish'].includes(item)) {
+            // offensive: signal NPCManager to deal AoE damage near this npc
+            return 'bomb';
+        }
+        if (['fish', 'turbo_fish', 'coffee', 'hot_sauce'].includes(item)) {
+            return 'speed';
+        }
+        if (item === 'shield') {
+            this.npcShieldHits = 3;
+            return 'shield';
+        }
+        if (item === 'star_piece') {
+            this.npcInvincible = true;
+            this.npcInvincibleTimer = 3;
+            return 'invincible';
+        }
+        if (['disco_ball', 'glue_trap', 'megaphone', 'party_hat'].includes(item)) {
+            return 'stun_all'; // stun nearby NPCs (and maybe player)
+        }
+        // everything else -- chaos. just heal a lil as fallback.
+        this.hp = Math.min(this.maxHp, this.hp + 15);
+        return 'heal';
+
+        void info; // suppress unused warning. whatever.
+    }
 
     public abstract getType(): string;
 }

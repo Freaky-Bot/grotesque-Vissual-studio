@@ -7,6 +7,7 @@ import { ShrekNPC } from './ShrekNPC';
 import { BuffCatNPC } from './BuffCatNPC';
 import { VoidCatNPC } from './VoidCatNPC';
 import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
+import { InventorySystem, ITEM_INFO } from './InventorySystem';
 
 export class NPCManager {
     private npcs: BaseNPC[] = [];
@@ -21,6 +22,14 @@ export class NPCManager {
     // combat callbacks -- main.ts wires these upp
     public onPlayerHit: ((dmg: number) => void) | null = null;
     public onNpcKilled: ((npcType: string, pos: THREE.Vector3) => void) | null = null;
+    // called when a mob equips a looted item -- main.ts can show a chat msg
+    public onNpcEquipItem: ((npcType: string, itemName: string) => void) | null = null;
+
+    // npc-vs-npc combat timer -- they fight each other every few seconds
+    private npcFightTimer: number = 0;
+    private readonly NPC_FIGHT_INTERVAL: number = 1.2; // seconds between inter-npc attacks
+    private readonly NPC_FIGHT_RANGE: number = 5.0;
+    private readonly NPC_FIGHT_DMG: number = 8;
 
     // domain expansion -- the show accurate jjk system. whoever wired this: ur insane (me. i did this.)
     private domainSystem: DomainExpansionSystem | null = null;
@@ -118,6 +127,37 @@ export class NPCManager {
 
         // spawn new cats cuz chaos
         this.spawnTimer += deltaTime;
+
+        // npc vs npc combat + item use -- the true chaos. mobs fight each other AND loot the corpses.
+        this.npcFightTimer += deltaTime;
+        if (this.npcFightTimer >= this.NPC_FIGHT_INTERVAL) {
+            this.npcFightTimer = 0;
+            this.tickNpcVsNpc();
+        }
+        // tick item usage for every npc that has something equipped
+        for (const npc of this.npcs) {
+            const effect = npc.tickNpcItem(deltaTime, this.npcs, this.playerPos ?? null);
+            if (effect === 'bomb') {
+                // deal aoe damage to nearby other npcs (friendly fire! chaos!)
+                for (const other of this.npcs) {
+                    if (other === npc) continue;
+                    if (other.getPosition().distanceTo(npc.getPosition()) < 10) {
+                        other.takeDamage(30);
+                    }
+                }
+                // also hit player if close
+                if (this.playerPos && this.onPlayerHit &&
+                    npc.getPosition().distanceTo(this.playerPos) < 10) {
+                    this.onPlayerHit(25);
+                }
+            } else if (effect === 'stun_all') {
+                for (const other of this.npcs) {
+                    if (other !== npc && other.getPosition().distanceTo(npc.getPosition()) < 10) {
+                        other.stun(4);
+                    }
+                }
+            }
+        }
         if (this.spawnTimer >= this.spawnInterval) {
             this.spawnNewNPC();
             this.spawnTimer = 0;
@@ -148,6 +188,42 @@ export class NPCManager {
 
     // expose domain system so main.ts can add guaranteed-hit checks
     public getDomainSystem(): DomainExpansionSystem | null { return this.domainSystem; }
+
+    // npc vs npc brawl -- every NPC_FIGHT_INTERVAL seconds, every npc swings at its nearest neighbour
+    // winner loots the loser. this is where the real economy lives.
+    private tickNpcVsNpc(): void {
+        for (let i = 0; i < this.npcs.length; i++) {
+            const attacker = this.npcs[i];
+            if (!attacker.isAlive() || attacker.isStunned()) continue;
+
+            // find nearest living neighbour (not itself)
+            let nearest: BaseNPC | null = null;
+            let nearestDist = this.NPC_FIGHT_RANGE;
+            for (let j = 0; j < this.npcs.length; j++) {
+                if (i === j || !this.npcs[j].isAlive()) continue;
+                const d = attacker.getPosition().distanceTo(this.npcs[j].getPosition());
+                if (d < nearestDist) { nearestDist = d; nearest = this.npcs[j]; }
+            }
+            if (!nearest) continue;
+
+            // HIT IT. small random variance so fights aren't totally deterministic
+            const dmg = this.NPC_FIGHT_DMG + Math.floor(Math.random() * 5);
+            const wasAlive = nearest.isAlive();
+            nearest.takeDamage(dmg);
+
+            // if the target just died, attacker loots it -- roll from its loot table
+            if (wasAlive && !nearest.isAlive()) {
+                const loot = InventorySystem.rollLoot(nearest.getType());
+                if (loot && !attacker.equippedItem) {
+                    attacker.equipItem(loot);
+                    const name = ITEM_INFO[loot]?.name ?? loot;
+                    console.log(`%c🗡️ ${attacker.getType()} killed ${nearest.getType()} and looted: ${name}`,
+                        'color: #ff8800; font-weight: bold');
+                    this.onNpcEquipItem?.(attacker.getType(), name);
+                }
+            }
+        }
+    }
 
     // call this every frame from main.ts with the player's position
     public setPlayerPos(pos: THREE.Vector3): void {

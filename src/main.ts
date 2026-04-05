@@ -211,6 +211,11 @@ class CatGodWorld {
             this.showDomainBanner(name, flavor);
         };
 
+        // mob looted a mob -- show it in chat so the carnage is visible
+        this.npcManager.onNpcEquipItem = (npcType, itemName) => {
+            this.chat.addMessage('event', `🗡️ A ${npcType} looted: ${itemName}!`);
+        };
+
         // inventory hotbar update callback
         this.inventory.onInventoryChange = () => this.renderHotbar();
 
