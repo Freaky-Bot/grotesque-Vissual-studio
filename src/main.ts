@@ -16,6 +16,13 @@ import { ChatBubbleManager } from './world/ChatBubbleManager';
 import { MobileControls } from './world/MobileControls';
 import { MultiplayerClient } from './world/MultiplayerClient';
 import { RemotePlayer } from './world/RemotePlayer';
+import { WeatherSystem } from './world/WeatherSystem';
+import { DayNightCycle } from './world/DayNightCycle';
+import { FactionSystem } from './world/FactionSystem';
+import { DungeonGenerator } from './world/DungeonGenerator';
+import { VoidPortal } from './world/VoidPortal';
+import { ItemPickupSystem } from './world/ItemPickupSystem';
+import { ComboSystem } from './world/ComboSystem';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -38,6 +45,18 @@ class CatGodWorld {
     private scene: THREE.Scene;
     private keyPressed: Record<string, boolean> = {};
     private jojoMessageCounter: number = 0;
+
+    // the new chaos systems -- added all at once because yolo
+    private weatherSystem!: WeatherSystem;
+    private dayNight!: DayNightCycle;
+    private factionSystem!: FactionSystem;
+    private dungeon!: DungeonGenerator;
+    private voidPortal!: VoidPortal;
+    private itemPickups!: ItemPickupSystem;
+    private comboSystem!: ComboSystem;
+    private sunLight!: THREE.DirectionalLight; // ref kept for day/night
+    private ambientLightRef!: THREE.AmbientLight; // ref kept for day/night + weather
+    private mudSlowTimer: number = 0; // seconds of slowness remaining from shrek mud
 
     constructor() {
         this.renderEngine = new RenderEngine();
@@ -142,6 +161,7 @@ class CatGodWorld {
         // Ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
+        this.ambientLightRef = ambientLight; // store ref for day/night + weather
 
         // Directional light (sun)
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -154,11 +174,21 @@ class CatGodWorld {
         directionalLight.shadow.camera.top = 100;
         directionalLight.shadow.camera.bottom = -100;
         this.scene.add(directionalLight);
+        this.sunLight = directionalLight; // store ref for day/night cycle
 
         // Point light for ambiance
         const pointLight = new THREE.PointLight(0x87ceeb, 0.3);
         pointLight.position.set(-50, 50, 50);
         this.scene.add(pointLight);
+
+        // now that we have lights, init day/night cycle + weather
+        this.dayNight = new DayNightCycle(this.scene, this.sunLight, this.ambientLightRef);
+        this.weatherSystem = new WeatherSystem(this.scene, this.ambientLightRef);
+        this.weatherSystem.onWeatherChange = (w) => {
+            this.chat.addMessage('event', `⛅ Weather: ${w.toUpperCase()}`);
+        };
+        this.dayNight.onNightFall = () => this.chat.addMessage('event', '🌙 Night has fallen. The emos grow stronger.');
+        this.dayNight.onDayBreak = () => this.chat.addMessage('event', '☀️ A new day begins!');
     }
 
     private start(): void {

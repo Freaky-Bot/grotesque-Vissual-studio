@@ -1,8 +1,17 @@
 import * as THREE from 'three';
 
+interface BuildingState {
+    obj: THREE.Object3D;
+    health: number;
+    maxHealth: number;
+    rebuildTimer: number; // countdown til rebuild, 0 = alive
+    originalColor: THREE.Color;
+}
+
 export class WorldGenerator {
     private scene: THREE.Scene;
     private buildings: THREE.Object3D[] = [];
+    private buildingStates: BuildingState[] = []; // destructible building tracking
     private trees: THREE.Object3D[] = [];
     private cars: THREE.Object3D[] = [];
     private streetLights: THREE.Object3D[] = [];
@@ -229,6 +238,14 @@ export class WorldGenerator {
 
         this.scene.add(building);
         this.buildings.push(building);
+        // register this bld as destructible -- it has 3 hits before it crumbles
+        this.buildingStates.push({
+            obj: building,
+            health: 3,
+            maxHealth: 3,
+            rebuildTimer: 0,
+            originalColor: color.clone(),
+        });
     }
 
     private createTree(x: number, z: number): void {
@@ -454,5 +471,77 @@ export class WorldGenerator {
     public getBuildingCount(): number {
         // who even counts anymore lmao
         return this.buildings.length + this.trees.length + this.cars.length;
+    }
+
+    // called by NPCManager when a zoomie buff cat etc slams near a building
+    // nearest building within radius takes a hit -- flashes red, loses health, collapses at 0
+    public damageBuildingNear(pos: THREE.Vector3, radius: number = 12): void {
+        let closest: BuildingState | null = null;
+        let closestDist = radius;
+
+        for (const bs of this.buildingStates) {
+            if (bs.rebuildTimer > 0) continue; // already collapsed, skip
+            const dist = bs.obj.position.distanceTo(pos);
+            if (dist < closestDist) {
+                closestDist = dist;
+                closest = bs;
+            }
+        }
+
+        if (!closest) return;
+
+        closest.health--;
+        console.log(`%c🏚️ BUILDING HIT! health: ${closest.health}/${closest.maxHealth}`, 'color: orange');
+
+        // flash red to show damage
+        const flashColor = new THREE.Color(0xff2200);
+        if (closest.obj instanceof THREE.Mesh && closest.obj.material instanceof THREE.MeshStandardMaterial) {
+            closest.obj.material.color.set(flashColor);
+        } else {
+            (closest.obj as THREE.Group).traverse((child) => {
+                if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+                    child.material.color.set(flashColor);
+                }
+            });
+        }
+
+        if (closest.health <= 0) {
+            // COLLAPSE -- hide the building, start rebuild timer
+            closest.obj.visible = false;
+            closest.rebuildTimer = 60; // 60 seconds to rebuild
+            console.log('%c🏚️💥 BUILDING DESTROYED!! rebuilding in 60 seconds', 'color: red; font-weight: bold');
+        } else {
+            // damaged color -- orange-ish as it takes hits
+            const damagedColor = new THREE.Color().lerpColors(
+                closest.originalColor,
+                new THREE.Color(0xff4400),
+                1 - (closest.health / closest.maxHealth),
+            );
+            setTimeout(() => {
+                if (!closest) return;
+                if (closest.obj instanceof THREE.Mesh && closest.obj.material instanceof THREE.MeshStandardMaterial) {
+                    closest.obj.material.color.copy(damagedColor);
+                }
+            }, 200);
+        }
+    }
+
+    // tick building rebuild timers -- call from update loop via updateDestructibles
+    public updateDestructibles(deltaTime: number): void {
+        for (const bs of this.buildingStates) {
+            if (bs.rebuildTimer <= 0) continue;
+            bs.rebuildTimer -= deltaTime;
+            if (bs.rebuildTimer <= 0) {
+                // REBUILT!! show it again and restore health
+                bs.obj.visible = true;
+                bs.health = bs.maxHealth;
+                bs.rebuildTimer = 0;
+                // restore original color
+                if (bs.obj instanceof THREE.Mesh && bs.obj.material instanceof THREE.MeshStandardMaterial) {
+                    bs.obj.material.color.copy(bs.originalColor);
+                }
+                console.log('%c🏗️ BUILDING REBUILT!!', 'color: cyan');
+            }
+        }
     }
 }

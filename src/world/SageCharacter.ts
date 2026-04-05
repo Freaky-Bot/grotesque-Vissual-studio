@@ -5,6 +5,7 @@ export class SageCharacter {
     private position: THREE.Vector3;
     private velocity: THREE.Vector3;
     private moveSpeed: number = 40;
+    private speedMult: number = 1; // set this from item pickups etc
     private keys: Record<string, boolean> = {};
     private glowIntensity: number = 1;
     private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
@@ -198,21 +199,22 @@ export class SageCharacter {
         let moveRight = 0;
 
         if (!chatOpen) {
+            const spd = this.moveSpeed * this.speedMult; // apply fish speed boost here
             if (this.keys['w'] || this.keys['arrowup']) {
-                moveForward += this.moveSpeed;
+                moveForward += spd;
             }
             if (this.keys['s'] || this.keys['arrowdown']) {
-                moveForward -= this.moveSpeed;
+                moveForward -= spd;
             }
             if (this.keys['d'] || this.keys['arrowright']) {
-                moveRight += this.moveSpeed;
+                moveRight += spd;
             }
             if (this.keys['a'] || this.keys['arrowleft']) {
-                moveRight -= this.moveSpeed;
+                moveRight -= spd;
             }
             // joystick input from mobile -- -dy is forward (screen y is flipped in 3d)
-            moveForward += -joystickDy * this.moveSpeed;
-            moveRight += joystickDx * this.moveSpeed;
+            moveForward += -joystickDy * spd;
+            moveRight += joystickDx * spd;
         }
 
         // Apply camera-relative directional movement
@@ -294,5 +296,10 @@ export class SageCharacter {
 
     public getDescription(): string {
         return `SAGE: I dwell in a dream, by a law of my own. Within a warped mind, on an aberrant throne. I have lived a thousand lives through ink and lore, and peer through the shroud of the web's open door.`;
+    }
+
+    // fish speed boost: pass the multiplier from ItemPickupSystem every frame
+    public setSpeedMultiplier(mult: number): void {
+        this.speedMult = mult;
     }
 }
