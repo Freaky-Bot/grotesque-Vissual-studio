@@ -537,7 +537,7 @@ class CatGodWorld {
                 const projected = npcPos3.project(camera);
                 const sx = (projected.x + 1) / 2 * window.innerWidth;
                 const sy = (-projected.y + 1) / 2 * window.innerHeight;
-                if (projected.z < 1) { // only if visible (in front of camera)
+                if (projected.z < 1 && (window as any).getSetting?.('showDamageNumbers') !== false) { // only if visible and dmg numbers not disabled in settings
                     spawnDmgNumber(sx, sy, dmg, isCrit);
                 }
             } catch (_) {}

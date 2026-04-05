@@ -588,8 +588,235 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
+
+        /* ---- SETTINGS MODAL -- the big one. tabs, sliders, toggles, da works!! ---- */
+        #settings-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            z-index: 700;
+            align-items: center;
+            justify-content: center;
+        }
+        #settings-overlay.open {
+            display: flex;
+        }
+        #settings-panel {
+            background: rgba(14,14,22,0.97);
+            border: 1px solid rgba(120,80,255,0.35);
+            border-radius: 12px;
+            width: min(700px, 96vw);
+            max-height: 82vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(80,0,200,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+            font-family: Arial, sans-serif;
+        }
+        #settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.09);
+            flex-shrink: 0;
+        }
+        #settings-header h2 {
+            margin: 0;
+            color: #c8a8ff;
+            font-size: 17px;
+            letter-spacing: 0.5px;
+        }
+        #settings-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.55);
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+            transition: color 0.1s;
+        }
+        #settings-close:hover { color: #fff; }
+        #settings-tabs {
+            display: flex;
+            padding: 0 20px;
+            gap: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.09);
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+        .stab {
+            padding: 10px 14px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+            font-family: Arial, sans-serif;
+        }
+        .stab:hover { color: rgba(255,255,255,0.8); }
+        .stab.active {
+            color: #c8a8ff;
+            border-bottom-color: #8855ee;
+        }
+        #settings-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(120,80,255,0.4) transparent;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 12px;
+        }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .settings-label {
+            color: rgba(255,255,255,0.88);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .settings-desc {
+            color: rgba(255,255,255,0.38);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .settings-badge-future {
+            background: rgba(255,180,0,0.18);
+            color: rgba(255,180,0,0.8);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,180,0,0.25);
+        }
+        .settings-badge-restart {
+            background: rgba(255,80,80,0.18);
+            color: rgba(255,120,120,0.8);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,80,80,0.25);
+        }
+        /* ---- toggle switch ---- */
+        .s-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+        .s-toggle input { opacity: 0; width: 0; height: 0; }
+        .s-slider-knob {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.12);
+            border-radius: 11px;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+        .s-slider-knob:before {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 3px; bottom: 3px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            transition: transform 0.18s, background 0.18s;
+        }
+        .s-toggle input:checked + .s-slider-knob { background: rgba(120,80,255,0.75); }
+        .s-toggle input:checked + .s-slider-knob:before {
+            transform: translateX(18px);
+            background: #fff;
+        }
+        .settings-row.future-feature { opacity: 0.45; pointer-events: none; }
+        /* ---- range slider ---- */
+        .s-range {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 130px;
+            height: 4px;
+            background: rgba(255,255,255,0.13);
+            border-radius: 2px;
+            outline: none;
+            flex-shrink: 0;
+        }
+        .s-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #9966ff;
+            cursor: pointer;
+        }
+        .s-range::-moz-range-thumb {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #9966ff;
+            cursor: pointer;
+            border: none;
+        }
+        .s-range-val {
+            color: rgba(255,255,255,0.55);
+            font-size: 11px;
+            min-width: 28px;
+            text-align: right;
+        }
+        .s-range-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+        /* ---- select ---- */
+        .s-select {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.85);
+            border-radius: 5px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .s-select:focus { outline: none; border-color: #8855ee; }
+        /* ---- footer ---- */
+        #settings-footer {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            border-top: 1px solid rgba(255,255,255,0.09);
+            flex-shrink: 0;
+            justify-content: flex-end;
+        }
+        .sfooter-btn {
+            padding: 7px 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            transition: background 0.12s;
+        }
+        #settings-reset { background: rgba(255,80,80,0.2); color: rgba(255,150,150,0.9); }
+        #settings-reset:hover { background: rgba(255,80,80,0.35); }
+        #settings-apply { background: rgba(120,80,255,0.35); color: #c8a8ff; }
+        #settings-apply:hover { background: rgba(120,80,255,0.55); }
+        /* large text mode -- applied when accessibility.largeText is on */
+        body.large-text #chat-log, body.large-text #ui, body.large-text #hp-panel {
+            font-size: 14px !important;
+        }
     </style>
-  <script type="module" crossorigin src="./assets/index-Dh50M8ve.js"></script>
+  <script type="module" crossorigin src="./assets/index-Cjh2dk_q.js"></script>
 </head>
 <body>
     <div id="ui">
@@ -614,7 +841,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -677,7 +904,9 @@
         window.flashVignette = function(intensity) {
             const v = document.getElementById('damage-vignette');
             if (!v) return;
-            v.style.opacity = String(intensity || 1);
+            // reduce flashing accessibility -- dim vignette to 30% if enabled
+            const eff = window._reduceFlashing ? (intensity || 1) * 0.3 : (intensity || 1);
+            v.style.opacity = String(eff);
             clearTimeout(v._fadeTimer);
             v._fadeTimer = setTimeout(() => { v.style.opacity = '0'; }, 140);
         };
@@ -686,13 +915,17 @@
         // SCREEN SHAKE -- verily the realm doth tremble on heavy blows
         // =====================================================
         window.screenShake = function(heavy) {
+            // screen shake disabled or reduced accessibility check
+            if (window._screenShakeEnabled === false) return;
             document.body.classList.remove('shaking', 'shaking-heavy');
             void document.body.offsetWidth; // force reflow to restart animation
-            document.body.classList.add(heavy ? 'shaking-heavy' : 'shaking');
+            // reduce screen shake: only allow light shake even on heavy hits
+            const cls = (window._reduceScreenShake && heavy) ? 'shaking' : (heavy ? 'shaking-heavy' : 'shaking');
+            document.body.classList.add(cls);
             clearTimeout(document.body._shakeTimer);
             document.body._shakeTimer = setTimeout(() => {
                 document.body.classList.remove('shaking', 'shaking-heavy');
-            }, heavy ? 520 : 380);
+            }, heavy && !window._reduceScreenShake ? 520 : 380);
         };
 
         // =====================================================
@@ -842,7 +1075,7 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v1.1.0</div>
+    <div id="version-hud">v1.2.0</div>
 
     <!-- damage vignette -- red pulse on player hit. they don't want you to feel safe. -->
     <div id="damage-vignette"></div>
@@ -905,5 +1138,307 @@
         </div>
         <div id="cam-hint">drag right side = rotate cam</div>
     </div>
+
+    <!-- =====================================================
+         SETTINGS MODAL -- tabs for Graphics / Sound / Accessibility / Gameplay / Debug
+         ===================================================== -->
+    <div id="settings-overlay">
+        <div id="settings-panel">
+            <div id="settings-header">
+                <h2>⚙️ Settings</h2>
+                <button id="settings-close" title="Close settings">✕</button>
+            </div>
+            <div id="settings-tabs">
+                <button class="stab active" data-tab="graphics">🖥️ Graphics</button>
+                <button class="stab" data-tab="sound">🔊 Sound</button>
+                <button class="stab" data-tab="accessibility">♿ Accessibility</button>
+                <button class="stab" data-tab="gameplay">🎮 Gameplay</button>
+                <button class="stab" data-tab="debug">🐛 Debug</button>
+            </div>
+            <div id="settings-body">
+                <!-- rows injected by JS below -->
+            </div>
+            <div id="settings-footer">
+                <button class="sfooter-btn" id="settings-reset">↩ Reset to Defaults</button>
+                <button class="sfooter-btn" id="settings-apply">✓ Apply & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // henceforth this script shall govern all settings. verily.
+    // data is stored in localStorage under 'cat_god_settings_v1'
+    (function() {
+        const STORAGE_KEY = 'cat_god_settings_v1';
+
+        // schema -- mirrors SettingsSystem.ts. single source of truth so HTML can stand alone.
+        // future keys: just add them here. that's it. two lines. done.
+        const DEFS = {
+            // ------- GRAPHICS -------
+            shadowQuality:   { cat:'graphics', type:'select',  label:'Shadow Quality',   def:'medium',  opts:['off','low','medium','high'], optLabels:['Off','Low','Medium','High'], desc:'Lower = more FPS.' },
+            particleEffects: { cat:'graphics', type:'toggle',  label:'Particle Effects', def:true,  desc:'Death bursts, sparks etc. Off = big perf gain.' },
+            screenShakeEnabled:{ cat:'graphics', type:'toggle', label:'Screen Shake',    def:true,  desc:'Screen shakes on crits and heavy hits.' },
+            maxNPCs:         { cat:'graphics', type:'slider',  label:'Max NPCs',         def:40,    min:5,   max:120, step:5,  desc:'Hard cap on active NPCs.' },
+            domainFogDensity:{ cat:'graphics', type:'slider',  label:'Domain Fog Opacity',def:88,  min:0,   max:100, step:1,  desc:'How dark domain interiors look. 0 = transparent walls.' },
+            showFPS:         { cat:'graphics', type:'toggle',  label:'Show FPS Counter', def:false, desc:'Frame rate in bottom-left corner.' },
+            antialiasing:    { cat:'graphics', type:'toggle',  label:'Antialiasing',     def:true,  desc:'Smoothes jagged edges.', restart:true, future:true },
+            bloomEffect:     { cat:'graphics', type:'toggle',  label:'Bloom / Glow',     def:true,  desc:'Glowing NPCs and domain effects.', future:true },
+            weatherEffects:  { cat:'graphics', type:'toggle',  label:'Weather Effects',  def:true,  desc:'Rain, snow, fog events.', future:true },
+            drawDistance:    { cat:'graphics', type:'select',  label:'Draw Distance',    def:'medium', opts:['low','medium','high','ultra'], optLabels:['Low','Medium','High','Ultra'], desc:'How far you can see.', future:true },
+            // ------- SOUND -------
+            masterVolume:    { cat:'sound', type:'slider', label:'Master Volume',      def:70, min:0, max:100, step:1, desc:'Controls everything at once.' },
+            sfxVolume:       { cat:'sound', type:'slider', label:'SFX Volume',         def:80, min:0, max:100, step:1, desc:'Hit sounds, death sounds, combat audio.' },
+            npcVoiceVolume:  { cat:'sound', type:'slider', label:'NPC Voice Volume',   def:40, min:0, max:100, step:1, desc:'Knuckles clicks, NPC speech etc.' },
+            muteAll:         { cat:'sound', type:'toggle', label:'Mute All',           def:false, desc:'Emergency mute. Overrides all volume sliders.' },
+            domainAnnounceSound:{ cat:'sound', type:'toggle', label:'Domain Announce Sound', def:true, desc:'Dramatic sting when a domain opens.' },
+            musicVolume:     { cat:'sound', type:'slider', label:'Music Volume',       def:60, min:0, max:100, step:1, desc:'Background music and domain themes.', future:true },
+            ambientVolume:   { cat:'sound', type:'slider', label:'Ambient Sound',      def:50, min:0, max:100, step:1, desc:'Wind, environment, atmosphere.', future:true },
+            // ------- ACCESSIBILITY -------
+            reduceScreenShake: { cat:'accessibility', type:'toggle', label:'Reduce Screen Shake', def:false, desc:'Cuts shake intensity 80%. Good for motion sensitivity.' },
+            reduceFlashing:  { cat:'accessibility', type:'toggle', label:'Reduce Flashing Effects', def:false, desc:'Dims strobe/flash from domains and crits.' },
+            largeText:       { cat:'accessibility', type:'toggle', label:'Large Text',  def:false, desc:'Increases HUD + chat text size 40%.' },
+            colorblindMode:  { cat:'accessibility', type:'select', label:'Colorblind Mode', def:'none', opts:['none','deuteranopia','protanopia','tritanopia'], optLabels:['None','Deuteranopia (R/G)','Protanopia (R/G alt)','Tritanopia (B/Y)'], desc:'Shifts colour palette for accessibility.', future:true },
+            highContrast:    { cat:'accessibility', type:'toggle', label:'High Contrast HUD', def:false, desc:'Makes HP bars and UI more distinct.', future:true },
+            subtitles:       { cat:'accessibility', type:'toggle', label:'Subtitles / Captions', def:false, desc:'Shows NPC dialogue as on-screen captions.', future:true },
+            hudScale:        { cat:'accessibility', type:'slider', label:'HUD Scale',   def:100, min:60, max:150, step:5, desc:'Resize the whole HUD. 100 = default.', future:true },
+            // ------- GAMEPLAY -------
+            showDamageNumbers:{ cat:'gameplay', type:'toggle', label:'Floating Damage Numbers', def:true, desc:'Numbers that pop above NPCs when hit.' },
+            showKillFeed:    { cat:'gameplay', type:'toggle', label:'Kill Feed',        def:true, desc:'Kill notifications top-right.' },
+            showStatusIcons: { cat:'gameplay', type:'toggle', label:'Status Effect Icons', def:true, desc:'Active buff/debuff icons.' },
+            showMinimap:     { cat:'gameplay', type:'toggle', label:'Minimap',          def:true, desc:'Circular minimap bottom-right.' },
+            minimapAlpha:    { cat:'gameplay', type:'slider', label:'Minimap Opacity',  def:85,  min:20, max:100, step:5, desc:'How visible the minimap is.' },
+            chatOpacity:     { cat:'gameplay', type:'slider', label:'Chat Opacity',     def:90,  min:30, max:100, step:5, desc:'Transparency of the event chat sidebar.' },
+            campfireRegen:   { cat:'gameplay', type:'toggle', label:'Campfire HP Regen', def:true, desc:'Campfires heal you when nearby.' },
+            showComboCounter:{ cat:'gameplay', type:'toggle', label:'Combo Counter',    def:true, desc:'Shows kill streak counter.', future:true },
+            autoRespawn:     { cat:'gameplay', type:'toggle', label:'Auto Respawn',     def:true, desc:'Respawn automatically after death.', future:true },
+            npcAggressionRadius:{ cat:'gameplay', type:'slider', label:'NPC Aggro Radius', def:100, min:20, max:200, step:10, desc:'How far NPCs detect and chase you.', future:true },
+            // ------- DEBUG -------
+            showHitboxes:    { cat:'debug', type:'toggle', label:'Show Hitboxes',       def:false, desc:'Renders combat hitboxes.', future:true },
+            showNPCPaths:    { cat:'debug', type:'toggle', label:'Show NPC Paths',      def:false, desc:'Renders NPC navmesh paths.', future:true },
+            logDomainEvents: { cat:'debug', type:'toggle', label:'Log Domain Events',   def:false, desc:'Spams console with domain lifecycle events.' },
+            fpsUnlock:       { cat:'debug', type:'toggle', label:'Unlock Frame Rate',   def:false, desc:'Removes FPS cap. May melt GPU. U were warned.', future:true },
+        };
+
+        // --- load/save ---
+        function loadValues() {
+            const vals = {};
+            for (const [k, d] of Object.entries(DEFS)) vals[k] = d.def;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    for (const k of Object.keys(DEFS)) {
+                        if (k in parsed) vals[k] = parsed[k];
+                    }
+                }
+            } catch {}
+            return vals;
+        }
+        function saveValues(vals) {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vals)); } catch {}
+        }
+
+        let values = loadValues();
+
+        // expose getter for main.ts TypeScript side (reads same key from localStorage)
+        window.getSetting = (key) => values[key] ?? DEFS[key]?.def;
+        window.setSetting = (key, val) => { values[key] = val; saveValues(values); applyLiveSettings(); };
+
+        // --- live application of settings that dont need TS-side hooks ---
+        function applyLiveSettings() {
+            // large text mode
+            document.body.classList.toggle('large-text', !!values['largeText']);
+            // kill feed visibility
+            const kf = document.getElementById('kill-feed');
+            if (kf) kf.style.display = values['showKillFeed'] === false ? 'none' : '';
+            // minimap visibility
+            const mm = document.getElementById('minimap-canvas');
+            if (mm) mm.style.display = values['showMinimap'] === false ? 'none' : '';
+            // minimap opacity
+            if (mm && values['minimapAlpha'] !== undefined) mm.style.opacity = String(parseInt(values['minimapAlpha']) / 100);
+            // chat opacity
+            const chat = document.getElementById('chat-box');
+            if (chat) chat.style.opacity = String(parseInt(values['chatOpacity'] ?? 90) / 100);
+            // status icons visibility
+            const si = document.getElementById('status-effects');
+            if (si) si.style.display = values['showStatusIcons'] === false ? 'none' : '';
+            // screen shake
+            window._screenShakeEnabled = values['screenShakeEnabled'] !== false;
+            // reduce flashing -- dims vignette max
+            window._reduceFlashing = !!values['reduceFlashing'];
+            // reduce screen shake
+            window._reduceScreenShake = !!values['reduceScreenShake'];
+        }
+        applyLiveSettings();
+
+        // --- build UI ---
+        const CATEGORIES = [
+            { id:'graphics',     icon:'🖥️',  label:'Graphics' },
+            { id:'sound',        icon:'🔊',  label:'Sound' },
+            { id:'accessibility',icon:'♿',  label:'Accessibility' },
+            { id:'gameplay',     icon:'🎮',  label:'Gameplay' },
+            { id:'debug',        icon:'🐛',  label:'Debug' },
+        ];
+
+        let activeTab = 'graphics';
+
+        function renderTab(cat) {
+            const body = document.getElementById('settings-body');
+            body.innerHTML = '';
+            const entries = Object.entries(DEFS).filter(([,d]) => d.cat === cat);
+            for (const [key, def] of entries) {
+                const row = document.createElement('div');
+                row.className = 'settings-row' + (def.future ? ' future-feature' : '');
+                const left = document.createElement('div');
+                left.className = 'settings-row-left';
+                const labelEl = document.createElement('div');
+                labelEl.className = 'settings-label';
+                labelEl.textContent = def.label;
+                if (def.future) {
+                    const badge = document.createElement('span');
+                    badge.className = 'settings-badge-future';
+                    badge.textContent = 'COMING SOON';
+                    labelEl.appendChild(badge);
+                }
+                if (def.restart) {
+                    const badge = document.createElement('span');
+                    badge.className = 'settings-badge-restart';
+                    badge.textContent = 'RESTART';
+                    labelEl.appendChild(badge);
+                }
+                left.appendChild(labelEl);
+                if (def.desc) {
+                    const descEl = document.createElement('div');
+                    descEl.className = 'settings-desc';
+                    descEl.textContent = def.desc;
+                    left.appendChild(descEl);
+                }
+                row.appendChild(left);
+
+                // control
+                const val = values[key];
+                if (def.type === 'toggle') {
+                    const label = document.createElement('label');
+                    label.className = 's-toggle';
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.checked = !!val;
+                    input.addEventListener('change', () => {
+                        values[key] = input.checked;
+                        applyLiveSettings();
+                    });
+                    const knob = document.createElement('span');
+                    knob.className = 's-slider-knob';
+                    label.appendChild(input);
+                    label.appendChild(knob);
+                    row.appendChild(label);
+                } else if (def.type === 'slider') {
+                    const wrap = document.createElement('div');
+                    wrap.className = 's-range-wrap';
+                    const range = document.createElement('input');
+                    range.type = 'range';
+                    range.className = 's-range';
+                    range.min = String(def.min ?? 0);
+                    range.max = String(def.max ?? 100);
+                    range.step = String(def.step ?? 1);
+                    range.value = String(val ?? def.def);
+                    const valLabel = document.createElement('span');
+                    valLabel.className = 's-range-val';
+                    valLabel.textContent = range.value;
+                    range.addEventListener('input', () => {
+                        values[key] = Number(range.value);
+                        valLabel.textContent = range.value;
+                        applyLiveSettings();
+                    });
+                    wrap.appendChild(range);
+                    wrap.appendChild(valLabel);
+                    row.appendChild(wrap);
+                } else if (def.type === 'select') {
+                    const sel = document.createElement('select');
+                    sel.className = 's-select';
+                    for (let i = 0; i < def.opts.length; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = def.opts[i];
+                        opt.textContent = def.optLabels ? def.optLabels[i] : def.opts[i];
+                        if (val === def.opts[i]) opt.selected = true;
+                        sel.appendChild(opt);
+                    }
+                    sel.addEventListener('change', () => {
+                        values[key] = sel.value;
+                        applyLiveSettings();
+                    });
+                    row.appendChild(sel);
+                }
+                body.appendChild(row);
+            }
+        }
+
+        // tab switching
+        document.querySelectorAll('.stab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTab = btn.dataset.tab;
+                renderTab(activeTab);
+            });
+        });
+
+        // open settings from menu button
+        const settingsMenuBtn = document.getElementById('menu-settings');
+        const overlay = document.getElementById('settings-overlay');
+        if (settingsMenuBtn && overlay) {
+            settingsMenuBtn.addEventListener('click', () => {
+                overlay.classList.add('open');
+                renderTab(activeTab);
+                // close menu panel when settings opens
+                document.getElementById('menu-panel').style.display = 'none';
+                document.getElementById('menu-btn').classList.remove('open');
+            });
+        }
+
+        // close button
+        document.getElementById('settings-close').addEventListener('click', () => {
+            overlay.classList.remove('open');
+            saveValues(values);
+            applyLiveSettings();
+        });
+
+        // apply button
+        document.getElementById('settings-apply').addEventListener('click', () => {
+            overlay.classList.remove('open');
+            saveValues(values);
+            applyLiveSettings();
+        });
+
+        // reset button
+        document.getElementById('settings-reset').addEventListener('click', () => {
+            if (!confirm('Reset ALL settings to defaults? This cannot be undone.')) return;
+            for (const [k, d] of Object.entries(DEFS)) values[k] = d.def;
+            saveValues(values);
+            applyLiveSettings();
+            renderTab(activeTab);
+        });
+
+        // close on overlay click outside panel
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('open');
+                saveValues(values);
+                applyLiveSettings();
+            }
+        });
+
+        // ESC key closes settings
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                overlay.classList.remove('open');
+                saveValues(values);
+            }
+        });
+
+        // render initial tab on page load (in case it gets opened early)
+        renderTab('graphics');
+    })();
+    </script>
 </body>
 </html>

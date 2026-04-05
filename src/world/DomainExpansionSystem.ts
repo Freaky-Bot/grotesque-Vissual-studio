@@ -327,6 +327,7 @@ export interface ActivePlayerDomain {
     castPos: THREE.Vector3;         // fixed to where Z was pressed
     playerLockedInside: boolean;    // always true -- you cast it on yourself
     sphere: THREE.Mesh;
+    innerShell: THREE.Mesh;       // inner dark shell visible from inside -- the bit that was lingering like a ghost lol
     light: THREE.PointLight;
     pillars: THREE.Mesh[];        // corebound-style throne pillars at cardinal points
     pillarLights: THREE.PointLight[];  // each pillar glows
@@ -790,6 +791,10 @@ export class DomainExpansionSystem {
         this.scene.remove(pd.light);
         (pd.sphere.material as THREE.MeshBasicMaterial).dispose();
         pd.sphere.geometry.dispose();
+        // clean up the inner shell -- this was the ghost outline bug. it was just sitting there. in the scene. forever.
+        this.scene.remove(pd.innerShell);
+        (pd.innerShell.material as THREE.MeshBasicMaterial).dispose();
+        pd.innerShell.geometry.dispose();
         for (let i = 0; i < pd.pillars.length; i++) {
             this.scene.remove(pd.pillars[i]);
             this.scene.remove(pd.pillarLights[i]);
@@ -851,7 +856,6 @@ export class DomainExpansionSystem {
         const innerShell = new THREE.Mesh(innerGeo, innerMat);
         innerShell.position.copy(fixedPos);
         this.scene.add(innerShell);
-        (sphere as THREE.Mesh & { innerShell?: THREE.Mesh }).innerShell = innerShell;
 
         const light = new THREE.PointLight(def.domainColor, 6, def.radius * 2.2);
         light.position.set(fixedPos.x, 6, fixedPos.z);
@@ -903,7 +907,7 @@ export class DomainExpansionSystem {
 
         this.playerDomain = {
             def, castPos: fixedPos, playerLockedInside: true,
-            sphere, light, pillars, pillarLights,
+            sphere, innerShell, light, pillars, pillarLights,
             slashes: [], slashTimer: 0.15, shrineMarks, lifeTimer: 15, hasHadNPCsInside: false,
         };
         this.onDomainOpen?.(def.name, def.flavorText);

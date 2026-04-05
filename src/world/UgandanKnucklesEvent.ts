@@ -37,7 +37,17 @@ export class UgandanKnucklesEvent {
         this.eventTimer += deltaTime;
 
         if (!this.isEventActive && this.eventTimer >= this.eventCooldown) {
-            this.startRainEvent(playerPos);
+            // king singleton check -- da sovereign still lives? NO NEW RAIN. da herd is already assembled.
+            // this is not a coincidence. only one king. ALWAYS.
+            if (this.currentLeader && this.currentLeader.isAlive()) {
+                // king lives. reset timer and try again later. da wey never ends.
+                this.eventTimer = 0;
+                this.eventCooldown = 20 + Math.random() * 20;
+                this.onAnnounce?.('DA KING STILL RULES!! NO NEW RAIN WHILE DA SOVEREIGN LIVES!! DO U KNO DA WEY??');
+                console.log('%c👑 KING STILL LIVES. NEW RAIN DENIED. DA HERD REMAINS.', 'color:gold;font-size:13px;font-weight:bold;');
+            } else {
+                this.startRainEvent(playerPos);
+            }
         }
 
         // drip em in one by one
