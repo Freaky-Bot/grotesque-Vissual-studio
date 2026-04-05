@@ -279,6 +279,20 @@ class CatGodWorld {
             if (e.key.toLowerCase() === 'f') {
                 this.factionSystem.cyclePlayerFaction();
             }
+
+            // Z key = domain expansion. just like the anime. except the player is the cat
+            if (e.key.toLowerCase() === 'z' && !this.chat.isInputOpen()) {
+                if (this.sageCharacter.tryActivateDomain()) {
+                    const ds = this.npcManager.getDomainSystem();
+                    if (ds) ds.openPlayerDomain();
+                    this.showDomainBanner('Boundless Ink Realm', 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.');
+                    this.chat.addMessage('event', '⚡ DOMAIN EXPANSION: BOUNDLESS INK REALM');
+                } else {
+                    const cd = Math.ceil(this.sageCharacter.getDomainCooldown());
+                    this.chat.addMessage('event', cd > 0 ? `⏳ Domain cooldown: ${cd}s remaining` : '⚡ Domain already active!');
+                }
+                return;
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -720,6 +734,24 @@ class CatGodWorld {
             // tick attack cooldown for the player
             this.sageCharacter.tickAttackCooldown(deltaTime);
 
+            // tick the player's domain expansion (auto-awaken at 20% HP, Z key manual, 15s duration 90s cd)
+            const domainTick = this.sageCharacter.tickPlayerDomain(effectiveDt);
+            if (domainTick === 'opened') {
+                // low hp auto-awakened -- dramatic moment ngl
+                const ds = this.npcManager.getDomainSystem();
+                if (ds && !ds.isPlayerDomainActive()) ds.openPlayerDomain();
+                this.showDomainBanner('Boundless Ink Realm', 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.');
+                this.chat.addMessage('event', '⚡ Domain Expansion AWAKENED at low HP!!');
+            } else if (domainTick === 'closed') {
+                this.chat.addMessage('event', '💨 Boundless Ink Realm collapsed. 90s cooldown.');
+            }
+            // update the player domain sphere + deal npc damage each frame
+            this.npcManager.getDomainSystem()?.updatePlayerDomain(
+                effectiveDt,
+                this.sageCharacter.getPosition(),
+                this.npcManager.getNPCs()
+            );
+
             // player death + respawn logic
             if (this.sageCharacter.isDead()) {
                 if (this.playerRespawnTimer <= 0) {
@@ -899,6 +931,19 @@ class CatGodWorld {
             const inDungeon = this.dungeon.isPlayerInDungeon(this.sageCharacter.getPosition());
             const loc = inVoid ? ' 🌀VOID' : (inDungeon ? ' 🔮DUNGEON' : '');
             timeEl.textContent = `${this.dayNight.getTimeString()}${loc}`;
+        }
+
+        // domain hud indicator -- tells the player the Z key exists
+        const domainEl = document.getElementById('domain-hud');
+        if (domainEl) {
+            if (this.sageCharacter.isDomainActive()) {
+                domainEl.textContent = `⚡ DOMAIN: ${Math.ceil(this.sageCharacter.getDomainTimeRemaining())}s`;
+                domainEl.style.color = '#8844ff';
+            } else {
+                const cd = Math.ceil(this.sageCharacter.getDomainCooldown());
+                domainEl.textContent = cd > 0 ? `⏳ Domain: ${cd}s` : '⚡ Domain (Z)';
+                domainEl.style.color = cd > 0 ? '#888888' : '#8844ff';
+            }
         }
     }
 }

@@ -19,6 +19,14 @@ export class SageCharacter {
     private jumpMult: number = 1; // moon_shard / spring_shoes multiply this
     private confused: boolean = false; // donut inverts controls. ugh.
 
+    // domain expansion -- innate ability, not an item. awakens at 20% hp or on Z key
+    private domainActive_: boolean = false;
+    private domainTimer_: number = 0;
+    private domainCooldown_: number = 0;
+    private readonly DOMAIN_DURATION: number = 15;
+    private readonly DOMAIN_COOLDOWN: number = 90;
+    private domainHasAwakened: boolean = false; // only auto-awaken once per life so it doesnt spam
+
     // gravity + jumping
     private verticalVelocity: number = 0;
     private isGrounded: boolean = true;
@@ -330,6 +338,43 @@ export class SageCharacter {
         this.confused = c;
     }
 
+    // Z key domain activation. returns false if on cooldown or already active
+    public tryActivateDomain(): boolean {
+        if (this.domainActive_ || this.domainCooldown_ > 0) return false;
+        this.domainActive_ = true;
+        this.domainTimer_ = this.DOMAIN_DURATION;
+        this.domainHasAwakened = true;
+        return true;
+    }
+
+    // call every frame -- handles auto-awaken + cooldown tick + expiry
+    // returns 'opened' if just auto-awakened, 'closed' if just expired, null otherwise
+    public tickPlayerDomain(dt: number): 'opened' | 'closed' | null {
+        if (this.domainCooldown_ > 0) this.domainCooldown_ -= dt;
+        // auto-awaken at 20% HP -- only once per life bc constant reactivation would be cringe
+        if (!this.domainActive_ && this.domainCooldown_ <= 0 && !this.domainHasAwakened) {
+            if (this.hp > 0 && this.hp / this.maxHp <= 0.20) {
+                this.domainHasAwakened = true;
+                this.domainActive_ = true;
+                this.domainTimer_ = this.DOMAIN_DURATION;
+                return 'opened';
+            }
+        }
+        if (this.domainActive_) {
+            this.domainTimer_ -= dt;
+            if (this.domainTimer_ <= 0) {
+                this.domainActive_ = false;
+                this.domainCooldown_ = this.DOMAIN_COOLDOWN;
+                return 'closed';
+            }
+        }
+        return null;
+    }
+
+    public isDomainActive(): boolean { return this.domainActive_; }
+    public getDomainTimeRemaining(): number { return this.domainTimer_; }
+    public getDomainCooldown(): number { return this.domainCooldown_; }
+
     public teleportTo(pos: THREE.Vector3): void {
         this.position.set(pos.x, Math.max(this.GROUND_Y, pos.y), pos.z);
         this.verticalVelocity = 0;
@@ -350,6 +395,9 @@ export class SageCharacter {
         this.position.set(10, 2, -10);
         this.verticalVelocity = 0;
         this.mesh.position.copy(this.position);
+        this.domainHasAwakened = false; // reset so auto-awaken can trigger next life
+        this.domainActive_ = false;
+        this.domainCooldown_ = 0;
     }
 
     public tickAttackCooldown(deltaTime: number): void {

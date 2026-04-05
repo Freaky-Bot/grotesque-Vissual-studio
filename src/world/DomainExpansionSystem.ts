@@ -12,11 +12,13 @@ export interface DomainDef {
     radius: number;         // how big the domain sphere is
     domainColor: number;    // hex color of the sphere backdrop
     fogColor: number;       // fog inside the domain
-    damage: number;         // DPS inside the domain to the player
+    damage: number;         // DPS inside the domain to the player (0 for player's own domain)
+    npcDamage: number;      // DPS dealt to NPCs inside (player domain only, 0 for NPC domains)
     stunPulse: number;      // stun duration applied every 2s to player
     healPerSec: number;     // NPC heals this much HP/s while domain is active
     duration: number;       // seconds the domain lasts
     guaranteedHit: boolean; // if true, NPC attacks inside domain never miss (double damage)
+    isPlayerDomain: boolean;// player domains damage NPCs, NPC domains damage player
 }
 
 export const DOMAIN_DEFS: Record<string, DomainDef> = {
@@ -25,98 +27,108 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         name: 'Infinite Meow',
         npcType: 'normal', flavorText: 'meow... MEOW!! THE MEOWING NEVER ENDS!!',
         radius: 30, domainColor: 0xff8800, fogColor: 0xff6600,
-        damage: 5, stunPulse: 1.5, healPerSec: 3, duration: 12, guaranteedHit: true,
+        damage: 5, npcDamage: 0, stunPulse: 1.5, healPerSec: 3, duration: 12, guaranteedHit: true, isPlayerDomain: false,
     },
     jesus:    {
         name: 'Divine Purification',
         npcType: 'jesus', flavorText: 'FORGIVE THEM FOR THEY KNOW NOT WHAT THEY DO',
         radius: 28, domainColor: 0xffeeaa, fogColor: 0xffffcc,
-        damage: 8, stunPulse: 0, healPerSec: 15, duration: 14, guaranteedHit: true,
+        damage: 8, npcDamage: 0, stunPulse: 0, healPerSec: 15, duration: 14, guaranteedHit: true, isPlayerDomain: false,
     },
     robot:    {
         name: 'Infinite Processing Loop',
         npcType: 'robot', flavorText: 'CALCULATING... CALCULATING... CALCULATING...',
         radius: 25, domainColor: 0x00ffcc, fogColor: 0x003322,
-        damage: 12, stunPulse: 0, healPerSec: 5, duration: 10, guaranteedHit: true,
+        damage: 12, npcDamage: 0, stunPulse: 0, healPerSec: 5, duration: 10, guaranteedHit: true, isPlayerDomain: false,
     },
     orb:      {
         name: 'Omniscient Spherical Truth',
         npcType: 'orb', flavorText: 'THE ORB KNOWS ALL. THE ORB SEES ALL.',
         radius: 35, domainColor: 0xcc00ff, fogColor: 0x220044,
-        damage: 7, stunPulse: 2, healPerSec: 2, duration: 15, guaranteedHit: true,
+        damage: 7, npcDamage: 0, stunPulse: 2, healPerSec: 2, duration: 15, guaranteedHit: true, isPlayerDomain: false,
     },
     angel:    {
         name: 'Paradise of Feathers',
         npcType: 'angel', flavorText: 'THIS WORLD IS MINE. YOU CANNOT ESCAPE DIVINITY.',
         radius: 32, domainColor: 0xeeeeff, fogColor: 0xccddff,
-        damage: 6, stunPulse: 1, healPerSec: 20, duration: 13, guaranteedHit: true,
+        damage: 6, npcDamage: 0, stunPulse: 1, healPerSec: 20, duration: 13, guaranteedHit: true, isPlayerDomain: false,
     },
     pirate:   {
         name: 'Davy Jones\' Locker',
         npcType: 'pirate', flavorText: 'YARR!! WELCOME TO THE BOTTOM OF THE SEA!!',
         radius: 28, domainColor: 0x004488, fogColor: 0x002244,
-        damage: 14, stunPulse: 2, healPerSec: 4, duration: 11, guaranteedHit: true,
+        damage: 14, npcDamage: 0, stunPulse: 2, healPerSec: 4, duration: 11, guaranteedHit: true, isPlayerDomain: false,
     },
     wizard:   {
         name: 'Infinite Magic Loop',
         npcType: 'wizard', flavorText: 'REALITY IS JUST A SPELL THAT HASN\'T EXPIRED YET',
         radius: 30, domainColor: 0x8800ff, fogColor: 0x220033,
-        damage: 10, stunPulse: 1.5, healPerSec: 6, duration: 12, guaranteedHit: true,
+        damage: 10, npcDamage: 0, stunPulse: 1.5, healPerSec: 6, duration: 12, guaranteedHit: true, isPlayerDomain: false,
     },
     vampire:  {
         name: 'Blood Moon Palace',
         npcType: 'vampire', flavorText: 'YOUR BLOOD IS THE PRICE OF ENTRY.',
         radius: 26, domainColor: 0xcc0022, fogColor: 0x440011,
-        damage: 18, stunPulse: 0, healPerSec: 18, duration: 10, guaranteedHit: true,
+        damage: 18, npcDamage: 0, stunPulse: 0, healPerSec: 18, duration: 10, guaranteedHit: true, isPlayerDomain: false,
     },
     disco:    {
         name: 'Infinite Groove',
         npcType: 'disco', flavorText: 'YOU CANNOT LEAVE THE DANCE FLOOR. NOBODY LEAVES.',
         radius: 30, domainColor: 0xff00ff, fogColor: 0x440044,
-        damage: 5, stunPulse: 3, healPerSec: 3, duration: 14, guaranteedHit: true,
+        damage: 5, npcDamage: 0, stunPulse: 3, healPerSec: 3, duration: 14, guaranteedHit: true, isPlayerDomain: false,
     },
     shadow:   {
         name: 'Coffin of the Iron Mountain',
         npcType: 'shadow', flavorText: 'ALL PATHS LEAD TO DARKNESS. ALL FUTURES ERASED.',
         radius: 28, domainColor: 0x111111, fogColor: 0x000000,
-        damage: 22, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true,
+        damage: 22, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
     },
     // ----- special npcs -----
     barney:   {
         name: 'Boundless Love Experience',
         npcType: 'barney', flavorText: 'I LOVE YOU, YOU LOVE ME, YOU CANNOT LEAVE THIS PLACE',
         radius: 40, domainColor: 0x6B2FA0, fogColor: 0x3d1a60,
-        damage: 3, stunPulse: 4, healPerSec: 25, duration: 20, guaranteedHit: false,
+        damage: 3, npcDamage: 0, stunPulse: 4, healPerSec: 25, duration: 20, guaranteedHit: false, isPlayerDomain: false,
     },
     emo:      {
         name: 'Hollow Purple Despair',
         npcType: 'emo', flavorText: 'nobody understands me. especially not you. especially not here.',
         radius: 30, domainColor: 0x110022, fogColor: 0x060010,
-        damage: 20, stunPulse: 2, healPerSec: 8, duration: 13, guaranteedHit: true,
+        damage: 20, npcDamage: 0, stunPulse: 2, healPerSec: 8, duration: 13, guaranteedHit: true, isPlayerDomain: false,
     },
     shrek:    {
         name: 'Swamp of Eternal Despair',
         npcType: 'shrek', flavorText: 'THIS IS MY SWAMP. THIS HAS ALWAYS BEEN MY SWAMP.',
         radius: 38, domainColor: 0x336600, fogColor: 0x1a3300,
-        damage: 15, stunPulse: 0, healPerSec: 10, duration: 16, guaranteedHit: true,
+        damage: 15, npcDamage: 0, stunPulse: 0, healPerSec: 10, duration: 16, guaranteedHit: true, isPlayerDomain: false,
     },
     buffcat:  {
         name: 'Iron Body Infinite Circuit',
         npcType: 'buffcat', flavorText: 'DO YOU EVEN LIFT? INSIDE MY DOMAIN, YOU CANNOT.',
         radius: 25, domainColor: 0xff6600, fogColor: 0x330d00,
-        damage: 25, stunPulse: 0, healPerSec: 12, duration: 10, guaranteedHit: true,
+        damage: 25, npcDamage: 0, stunPulse: 0, healPerSec: 12, duration: 10, guaranteedHit: true, isPlayerDomain: false,
     },
     voidcat:  {
         name: 'Infinite Darkness Eternal',
         npcType: 'voidcat', flavorText: 'you were always in the dark. you just never noticed.',
         radius: 35, domainColor: 0x110011, fogColor: 0x000000,
-        damage: 16, stunPulse: 2.5, healPerSec: 6, duration: 14, guaranteedHit: true,
+        damage: 16, npcDamage: 0, stunPulse: 2.5, healPerSec: 6, duration: 14, guaranteedHit: true, isPlayerDomain: false,
     },
     hybrid:   {
         name: 'Chaotic Soul Fusion',
         npcType: 'hybrid', flavorText: 'WHAT AM I? WHAT ARE YOU? WHAT IS ANY OF THIS??',
         radius: 28, domainColor: 0xff44ff, fogColor: 0x220022,
-        damage: 12, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true,
+        damage: 12, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+    },
+    // ----- PLAYER DOMAIN -- the sage awakens. honestly nobody expected this. -----
+    player: {
+        name: 'Boundless Ink Realm',
+        npcType: 'player',
+        flavorText: 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.',
+        radius: 32, domainColor: 0x8844ff, fogColor: 0x220044,
+        damage: 0,        // player domain doesn't hurt the player
+        npcDamage: 12,    // but it SHREDS every npc inside it (12 dps)
+        stunPulse: 0, healPerSec: 0, duration: 15, guaranteedHit: true, isPlayerDomain: true,
     },
 };
 
@@ -131,11 +143,24 @@ export interface ActiveDomain {
     savedBg: THREE.Color | THREE.Texture | null;
 }
 
+// player domain is separate -- moves with player, hurts NPCs, not the player
+export interface ActivePlayerDomain {
+    def: DomainDef;
+    timeRemaining: number;
+    sphere: THREE.Mesh;
+    light: THREE.PointLight;
+    savedFog: THREE.Fog | THREE.FogExp2 | null;
+}
+
 export class DomainExpansionSystem {
     private scene: THREE.Scene;
     public activeDomains: ActiveDomain[] = [];
     public onDomainOpen: ((name: string, flavor: string) => void) | null = null;
     public onDomainClose: ((name: string) => void) | null = null;
+
+    // player's own domain -- lives separately from the npc domain list
+    private playerDomain: ActivePlayerDomain | null = null;
+    public onPlayerDomainClose: ((name: string) => void) | null = null;
 
     // idk if more than one domain active at once is legal in jjk but this is a cat game so. yolo.
     private readonly MAX_CONCURRENT = 2;
@@ -264,4 +289,63 @@ export class DomainExpansionSystem {
     }
 
     public hasActiveDomain(): boolean { return this.activeDomains.length > 0; }
+
+    // opens the PLAYER's domain -- centered on player, damages npcs inside, not the player themselves
+    public openPlayerDomain(): void {
+        if (this.playerDomain) return; // already going
+        const def = DOMAIN_DEFS['player'];
+        const geo = new THREE.SphereGeometry(def.radius, 32, 32);
+        const mat = new THREE.MeshBasicMaterial({
+            color: def.domainColor, transparent: true, opacity: 0.18,
+            side: THREE.BackSide, depthWrite: false
+        });
+        const sphere = new THREE.Mesh(geo, mat);
+        this.scene.add(sphere);
+        const light = new THREE.PointLight(def.domainColor, 4, def.radius * 1.8);
+        this.scene.add(light);
+        this.playerDomain = {
+            def,
+            timeRemaining: def.duration,
+            sphere, light,
+            savedFog: this.scene.fog ?? null
+        };
+        this.scene.fog = new THREE.FogExp2(def.fogColor, 0.018);
+        this.onDomainOpen?.(def.name, def.flavorText);
+    }
+
+    // tick the player domain -- call every frame. damages nearby npcs via npcDamage * dt per second
+    public updatePlayerDomain(
+        dt: number,
+        playerPos: THREE.Vector3,
+        npcs: Array<{ getPosition(): THREE.Vector3; takeDamage(d: number): void; isAlive(): boolean }>
+    ): void {
+        if (!this.playerDomain) return;
+        const pd = this.playerDomain;
+        pd.timeRemaining -= dt;
+        pd.sphere.position.set(playerPos.x, 0, playerPos.z);
+        pd.light.position.set(playerPos.x, 5, playerPos.z);
+        // pulsing opacity bc why not meow~
+        (pd.sphere.material as THREE.MeshBasicMaterial).opacity = 0.12 + Math.sin(Date.now() * 0.003) * 0.07;
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            const np = npc.getPosition();
+            const dx = np.x - playerPos.x;
+            const dz = np.z - playerPos.z;
+            if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
+                npc.takeDamage(pd.def.npcDamage * dt);
+            }
+        }
+        if (pd.timeRemaining <= 0) {
+            this.scene.remove(pd.sphere);
+            this.scene.remove(pd.light);
+            (pd.sphere.material as THREE.MeshBasicMaterial).dispose();
+            pd.sphere.geometry.dispose();
+            if (this.activeDomains.length === 0) this.scene.fog = pd.savedFog;
+            this.onPlayerDomainClose?.(pd.def.name);
+            this.playerDomain = null;
+        }
+    }
+
+    public isPlayerDomainActive(): boolean { return this.playerDomain !== null; }
+    public getPlayerDomainTimeRemaining(): number { return this.playerDomain?.timeRemaining ?? 0; }
 }
