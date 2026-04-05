@@ -24,6 +24,8 @@ export class NPCManager {
     public onNpcKilled: ((npcType: string, pos: THREE.Vector3) => void) | null = null;
     // called when a mob equips a looted item -- main.ts can show a chat msg
     public onNpcEquipItem: ((npcType: string, itemName: string) => void) | null = null;
+    // called when a domain opens and npc gets its special ability -- so main.ts can scream about it
+    public onDomainBuff: ((npcType: string, buffDesc: string) => void) | null = null;
 
     // npc-vs-npc combat timer -- they fight each other every few seconds
     private npcFightTimer: number = 0;
@@ -34,6 +36,26 @@ export class NPCManager {
     // domain expansion -- the show accurate jjk system. whoever wired this: ur insane (me. i did this.)
     private domainSystem: DomainExpansionSystem | null = null;
     public onDomainActivated: ((name: string, flavor: string) => void) | null = null;
+
+    // what each npc type gets when its domain opens -- shown in the chat so the player knows what hit them
+    private static readonly DOMAIN_BUFF_DESCS: Record<string, string> = {
+        normal:  '4x SPEED + double damage -- ITS GOING FERAL',
+        jesus:   'INVULNERABLE -- you literally cannot kill jesus in his own domain',
+        robot:   '4x ATTACK SPEED + 2x damage -- RAPID FIRE CALCULATOR',
+        orb:     '3.5x damage + 40% damage resist -- THE ORB IS ANGRY',
+        angel:   '2.5x speed + 2x damage -- ANGELIC RAMPAGE',
+        pirate:  '2.5x damage + 30% armor -- DAVY JONES MODE',
+        wizard:  '3x speed + 2.5x damage -- TELEPORTING MAGE',
+        vampire: '2x damage + 50% damage resist -- UNTOUCHABLE BLOODSUCKER',
+        disco:   '5x SPEED -- TURBO DISCO CANNOT STOP WILL NOT STOP',
+        shadow:  '4x damage + 60% damage resist -- ONE SHOT SHADOW',
+        barney:  'INVULNERABLE (but slow) -- BARNEY CANNOT BE DEFEATED BY MORTALS',
+        emo:     '5x damage BUT takes 150% dmg -- GLASS CANNON EMO RAGE',
+        shrek:   '70% damage resist -- SWAMP TANK CANNOT BE MOVED',
+        buffcat: '6x damage + 50% armor -- THE MOST JACKED THING ON THIS MAP',
+        voidcat: 'INVULNERABLE + 3x damage -- VOID CAT PHASES OUT OF REALITY',
+        hybrid:  'RANDOM BUFFS -- nobody knows. not even the hybrid. chaos.',
+    };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
     private static readonly NPC_ATTACK_STATS: Record<string, { dmg: number; range: number }> = {
@@ -115,6 +137,9 @@ export class NPCManager {
                         DOMAIN_DEFS[defKey] ? defKey : 'normal',
                         this.playerPos ?? undefined,  // pass playerPos so domain knows if player is trapped inside
                     );
+                    // announce the domain buff so main.ts can show it in chat
+                    const buffDesc = NPCManager.DOMAIN_BUFF_DESCS[defKey] ?? 'power unknown';
+                    this.onDomainBuff?.(defKey, buffDesc);
                 }
             }
 

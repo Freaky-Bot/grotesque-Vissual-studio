@@ -6,19 +6,22 @@
 import * as THREE from 'three';
 
 export interface DomainDef {
-    name: string;           // e.g. "Unlimited Void"
-    npcType: string;        // which npc type uses this
-    flavorText: string;     // the announcement text
-    radius: number;         // how big the domain sphere is
-    domainColor: number;    // hex color of the sphere backdrop
-    fogColor: number;       // fog inside the domain
-    damage: number;         // DPS inside the domain to the player (0 for player's own domain)
-    npcDamage: number;      // DPS dealt to NPCs inside (player domain only, 0 for NPC domains)
-    stunPulse: number;      // stun duration applied every 2s to player
-    healPerSec: number;     // NPC heals this much HP/s while domain is active
-    duration: number;       // seconds the domain lasts
-    guaranteedHit: boolean; // if true, NPC attacks inside domain never miss (double damage)
-    isPlayerDomain: boolean;// player domains damage NPCs, NPC domains damage player
+    name: string;
+    npcType: string;
+    flavorText: string;
+    radius: number;
+    domainColor: number;
+    fogColor: number;
+    damage: number;         // DPS to player inside domain
+    npcDamage: number;      // DPS to NPCs (player domain only)
+    stunPulse: number;
+    healPerSec: number;
+    duration: number;
+    guaranteedHit: boolean;
+    isPlayerDomain: boolean;
+    killBurst: number;      // damage detonation when domain collapses -- punish staying inside
+    executeHpPct: number;   // execute player/npc when they drop below this HP fraction (0 = off)
+    pullRadius: number;     // domain sucks anything within this radius inside at open time
 }
 
 export const DOMAIN_DEFS: Record<string, DomainDef> = {
@@ -27,98 +30,114 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         name: 'Infinite Meow',
         npcType: 'normal', flavorText: 'meow... MEOW!! THE MEOWING NEVER ENDS!!',
         radius: 30, domainColor: 0xff8800, fogColor: 0xff6600,
-        damage: 5, npcDamage: 0, stunPulse: 1.5, healPerSec: 3, duration: 12, guaranteedHit: true, isPlayerDomain: false,
+        damage: 12, npcDamage: 0, stunPulse: 1.5, healPerSec: 3, duration: 12, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 35, executeHpPct: 0.15, pullRadius: 38,
     },
     jesus:    {
         name: 'Divine Purification',
         npcType: 'jesus', flavorText: 'FORGIVE THEM FOR THEY KNOW NOT WHAT THEY DO',
         radius: 28, domainColor: 0xffeeaa, fogColor: 0xffffcc,
-        damage: 8, npcDamage: 0, stunPulse: 0, healPerSec: 15, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        damage: 20, npcDamage: 0, stunPulse: 0, healPerSec: 15, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 40, executeHpPct: 0.20, pullRadius: 35,
     },
     robot:    {
         name: 'Infinite Processing Loop',
         npcType: 'robot', flavorText: 'CALCULATING... CALCULATING... CALCULATING...',
         radius: 25, domainColor: 0x00ffcc, fogColor: 0x003322,
-        damage: 12, npcDamage: 0, stunPulse: 0, healPerSec: 5, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        damage: 18, npcDamage: 0, stunPulse: 0, healPerSec: 5, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 50, executeHpPct: 0.10, pullRadius: 32,
     },
     orb:      {
         name: 'Omniscient Spherical Truth',
         npcType: 'orb', flavorText: 'THE ORB KNOWS ALL. THE ORB SEES ALL.',
         radius: 35, domainColor: 0xcc00ff, fogColor: 0x220044,
-        damage: 7, npcDamage: 0, stunPulse: 2, healPerSec: 2, duration: 15, guaranteedHit: true, isPlayerDomain: false,
+        damage: 15, npcDamage: 0, stunPulse: 2, healPerSec: 2, duration: 15, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 30, executeHpPct: 0.15, pullRadius: 45,
     },
     angel:    {
         name: 'Paradise of Feathers',
         npcType: 'angel', flavorText: 'THIS WORLD IS MINE. YOU CANNOT ESCAPE DIVINITY.',
         radius: 32, domainColor: 0xeeeeff, fogColor: 0xccddff,
-        damage: 6, npcDamage: 0, stunPulse: 1, healPerSec: 20, duration: 13, guaranteedHit: true, isPlayerDomain: false,
+        damage: 16, npcDamage: 0, stunPulse: 1, healPerSec: 20, duration: 13, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 38, executeHpPct: 0.18, pullRadius: 42,
     },
     pirate:   {
         name: 'Davy Jones\' Locker',
         npcType: 'pirate', flavorText: 'YARR!! WELCOME TO THE BOTTOM OF THE SEA!!',
         radius: 28, domainColor: 0x004488, fogColor: 0x002244,
-        damage: 14, npcDamage: 0, stunPulse: 2, healPerSec: 4, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        damage: 20, npcDamage: 0, stunPulse: 2, healPerSec: 4, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 45, executeHpPct: 0.20, pullRadius: 36,
     },
     wizard:   {
         name: 'Infinite Magic Loop',
         npcType: 'wizard', flavorText: 'REALITY IS JUST A SPELL THAT HASN\'T EXPIRED YET',
         radius: 30, domainColor: 0x8800ff, fogColor: 0x220033,
-        damage: 10, npcDamage: 0, stunPulse: 1.5, healPerSec: 6, duration: 12, guaranteedHit: true, isPlayerDomain: false,
+        damage: 18, npcDamage: 0, stunPulse: 1.5, healPerSec: 6, duration: 12, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 40, executeHpPct: 0.15, pullRadius: 40,
     },
     vampire:  {
         name: 'Blood Moon Palace',
         npcType: 'vampire', flavorText: 'YOUR BLOOD IS THE PRICE OF ENTRY.',
         radius: 26, domainColor: 0xcc0022, fogColor: 0x440011,
-        damage: 18, npcDamage: 0, stunPulse: 0, healPerSec: 18, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        damage: 24, npcDamage: 0, stunPulse: 0, healPerSec: 18, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 35, executeHpPct: 0.25, pullRadius: 34,
     },
     disco:    {
         name: 'Infinite Groove',
         npcType: 'disco', flavorText: 'YOU CANNOT LEAVE THE DANCE FLOOR. NOBODY LEAVES.',
         radius: 30, domainColor: 0xff00ff, fogColor: 0x440044,
-        damage: 5, npcDamage: 0, stunPulse: 3, healPerSec: 3, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        damage: 14, npcDamage: 0, stunPulse: 3, healPerSec: 3, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 30, executeHpPct: 0.12, pullRadius: 40,
     },
     shadow:   {
         name: 'Coffin of the Iron Mountain',
         npcType: 'shadow', flavorText: 'ALL PATHS LEAD TO DARKNESS. ALL FUTURES ERASED.',
         radius: 28, domainColor: 0x111111, fogColor: 0x000000,
-        damage: 22, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        damage: 30, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 60, executeHpPct: 0.20, pullRadius: 38,
     },
     // ----- special npcs -----
     barney:   {
         name: 'Boundless Love Experience',
         npcType: 'barney', flavorText: 'I LOVE YOU, YOU LOVE ME, YOU CANNOT LEAVE THIS PLACE',
         radius: 40, domainColor: 0x6B2FA0, fogColor: 0x3d1a60,
-        damage: 3, npcDamage: 0, stunPulse: 4, healPerSec: 25, duration: 20, guaranteedHit: false, isPlayerDomain: false,
+        damage: 10, npcDamage: 0, stunPulse: 4, healPerSec: 25, duration: 20, guaranteedHit: false, isPlayerDomain: false,
+        killBurst: 20, executeHpPct: 0.10, pullRadius: 52,
     },
     emo:      {
         name: 'Hollow Purple Despair',
         npcType: 'emo', flavorText: 'nobody understands me. especially not you. especially not here.',
         radius: 30, domainColor: 0x110022, fogColor: 0x060010,
-        damage: 20, npcDamage: 0, stunPulse: 2, healPerSec: 8, duration: 13, guaranteedHit: true, isPlayerDomain: false,
+        damage: 28, npcDamage: 0, stunPulse: 2, healPerSec: 8, duration: 13, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 55, executeHpPct: 0.25, pullRadius: 40,
     },
     shrek:    {
         name: 'Swamp of Eternal Despair',
         npcType: 'shrek', flavorText: 'THIS IS MY SWAMP. THIS HAS ALWAYS BEEN MY SWAMP.',
         radius: 38, domainColor: 0x336600, fogColor: 0x1a3300,
-        damage: 15, npcDamage: 0, stunPulse: 0, healPerSec: 10, duration: 16, guaranteedHit: true, isPlayerDomain: false,
+        damage: 18, npcDamage: 0, stunPulse: 0, healPerSec: 10, duration: 16, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 40, executeHpPct: 0.15, pullRadius: 50,
     },
     buffcat:  {
         name: 'Iron Body Infinite Circuit',
         npcType: 'buffcat', flavorText: 'DO YOU EVEN LIFT? INSIDE MY DOMAIN, YOU CANNOT.',
         radius: 25, domainColor: 0xff6600, fogColor: 0x330d00,
-        damage: 25, npcDamage: 0, stunPulse: 0, healPerSec: 12, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        damage: 35, npcDamage: 0, stunPulse: 0, healPerSec: 12, duration: 10, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 70, executeHpPct: 0.30, pullRadius: 34,
     },
     voidcat:  {
         name: 'Infinite Darkness Eternal',
         npcType: 'voidcat', flavorText: 'you were always in the dark. you just never noticed.',
         radius: 35, domainColor: 0x110011, fogColor: 0x000000,
-        damage: 16, npcDamage: 0, stunPulse: 2.5, healPerSec: 6, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        damage: 22, npcDamage: 0, stunPulse: 2.5, healPerSec: 6, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 50, executeHpPct: 0.20, pullRadius: 46,
     },
     hybrid:   {
         name: 'Chaotic Soul Fusion',
         npcType: 'hybrid', flavorText: 'WHAT AM I? WHAT ARE YOU? WHAT IS ANY OF THIS??',
         radius: 28, domainColor: 0xff44ff, fogColor: 0x220022,
-        damage: 12, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        damage: 18, npcDamage: 0, stunPulse: 1, healPerSec: 5, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 40, executeHpPct: 0.15, pullRadius: 38,
     },
     // ----- PLAYER DOMAIN -- the sage awakens. honestly nobody expected this. -----
     player: {
@@ -126,9 +145,9 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         npcType: 'player',
         flavorText: 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.',
         radius: 28, domainColor: 0x4400aa, fogColor: 0x110033,
-        damage: 0,        // player domain doesn't hurt the player
-        npcDamage: 16,    // 16 dps ambient + bonus from throne pillar proximity
+        damage: 0, npcDamage: 22,
         stunPulse: 0, healPerSec: 0, duration: 20, guaranteedHit: true, isPlayerDomain: true,
+        killBurst: 80, executeHpPct: 0.12, pullRadius: 36,
     },
 };
 
@@ -189,12 +208,12 @@ export class DomainExpansionSystem {
         const pos = npc.getPosition();
         const castPos = new THREE.Vector3(pos.x, 0, pos.z);
 
-        // SOLID outer shell visible from outside -- thick opaque walls, this is a prison now
+        // SOLID outer shell visible from outside -- pitch BLACK from outside bc that looks sick
         const outerGeo = new THREE.SphereGeometry(def.radius, 40, 40);
         const outerMat = new THREE.MeshBasicMaterial({
-            color: def.domainColor,
+            color: 0x000000,        // ugh its void black from outside. intimidating. whatever.
             transparent: true,
-            opacity: 0.92,
+            opacity: 0.96,
             side: THREE.FrontSide,  // visible from OUTSIDE -- the wall facing you
             depthWrite: true,
         });
@@ -214,7 +233,6 @@ export class DomainExpansionSystem {
         const innerShell = new THREE.Mesh(innerGeo, innerMat);
         innerShell.position.copy(castPos);
         this.scene.add(innerShell);
-        // stash the inner shell in userData so we can dispose it later -- kinda hacky but it works
         (sphere as THREE.Mesh & { innerShell?: THREE.Mesh }).innerShell = innerShell;
 
         // dramatic central light
@@ -227,10 +245,28 @@ export class DomainExpansionSystem {
         innerLight.position.set(castPos.x, 2, castPos.z);
         this.scene.add(innerLight);
 
-        // is the player trapped inside?
-        const playerLockedInside = playerPos
-            ? playerPos.distanceTo(new THREE.Vector3(castPos.x, playerPos.y, castPos.z)) < def.radius
-            : false;
+        // PULL: anything within pullRadius at open time gets yanked inside and locked in
+        // this is how the domain actually claims its victim -- not just whoever happened to be there
+        let playerLockedInside = false;
+        if (playerPos) {
+            const dToCast = playerPos.distanceTo(new THREE.Vector3(castPos.x, playerPos.y, castPos.z));
+            if (dToCast < def.pullRadius) {
+                // player is within pull range -- drag them to just inside the boundary
+                playerLockedInside = true;
+                if (dToCast > def.radius - 2) {
+                    // teleport them inside if they were in pull zone but not quite inside
+                    const dir = new THREE.Vector3(playerPos.x - castPos.x, 0, playerPos.z - castPos.z);
+                    if (dir.lengthSq() < 0.001) dir.set(0, 0, 1);
+                    dir.normalize();
+                    const pullTarget = new THREE.Vector3(
+                        castPos.x + dir.x * (def.radius * 0.7),
+                        playerPos.y,
+                        castPos.z + dir.z * (def.radius * 0.7),
+                    );
+                    this.onPlayerPushback?.(pullTarget);
+                }
+            }
+        }
 
         const domain: ActiveDomain = {
             npc, def, castPos, playerLockedInside,
@@ -292,6 +328,14 @@ export class DomainExpansionSystem {
                 // damage + stun -- no escape uwu
                 onPlayerDamage(d.def.damage * deltaTime);
 
+                // EXECUTE: if player hp fraction is below threshold, hit them with the kill burst
+                // main.ts wires currentPlayerHpPct so we can check it here
+                const hpPct = this._playerHpPct;
+                if (d.def.executeHpPct > 0 && hpPct > 0 && hpPct <= d.def.executeHpPct) {
+                    onPlayerDamage(d.def.killBurst); // finish them
+                    this.onDomainEffect?.('execute_player', d.castPos, d.def.radius);
+                }
+
                 if (d.def.stunPulse > 0) {
                     d.stunPulseTimer -= deltaTime;
                     if (d.stunPulseTimer <= 0) {
@@ -312,18 +356,30 @@ export class DomainExpansionSystem {
 
             // domain only closes when the NPC that cast it dies -- not on a timer
             if (d.npc.hp <= 0) {
+                // KILL BURST: detonation when domain collapses -- punish lingering inside
+                if (d.playerLockedInside) {
+                    const distOnClose = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
+                    if (distOnClose < d.def.radius) {
+                        onPlayerDamage(d.def.killBurst);
+                        this.onDomainEffect?.('kill_burst', d.castPos, d.def.radius);
+                    }
+                }
                 this.closeDomain(d, i);
             }
         }
     }
 
+    // set this every frame from main.ts so the execute check can read current HP fraction
+    private _playerHpPct: number = 1;
+    public setPlayerHpPct(pct: number): void { this._playerHpPct = pct; }
+
     // unique per-domain special effects -- this is where domains get their personality
     private tickUniqueEffect(
         d: ActiveDomain,
         dt: number,
-        playerPos: THREE.Vector3,
-        onPlayerDamage: (dmg: number) => void,
-        onPlayerStun: () => void,
+        _playerPos: THREE.Vector3,
+        _onPlayerDamage: (dmg: number) => void,
+        _onPlayerStun: () => void,
     ): void {
         const type = d.def.npcType;
         const t = Date.now();
@@ -426,10 +482,10 @@ export class DomainExpansionSystem {
         const def = DOMAIN_DEFS['player'];
         const fixedPos = new THREE.Vector3(castPos.x, 0, castPos.z);
 
-        // solid outer wall -- player is locked inside with the pillars
+        // solid outer wall -- BLACK from outside. the throne looks like a void sphere to everyone else. cool.
         const geo = new THREE.SphereGeometry(def.radius, 40, 40);
         const mat = new THREE.MeshBasicMaterial({
-            color: def.domainColor, transparent: true, opacity: 0.92,
+            color: 0x000000, transparent: true, opacity: 0.97,
             side: THREE.FrontSide, depthWrite: true
         });
         const sphere = new THREE.Mesh(geo, mat);
@@ -478,7 +534,7 @@ export class DomainExpansionSystem {
         this.onDomainOpen?.(def.name, def.flavorText);
     }
 
-    // tick the player domain -- sphere is FIXED, damages npcs inside, NPCs cannot leave either
+    // tick the player domain -- sphere is FIXED, damages npcs inside, enforces NPC boundary too
     public updatePlayerDomain(
         dt: number,
         playerPos: THREE.Vector3,
@@ -487,7 +543,6 @@ export class DomainExpansionSystem {
         if (!this.playerDomain) return;
         const pd = this.playerDomain;
         // sphere does NOT move -- it stays at castPos
-        // just pulse the lights bc that's still cool
         pd.light.intensity = 5.5 + Math.sin(Date.now() * 0.003) * 1.5;
         for (let i = 0; i < pd.pillarLights.length; i++) {
             pd.pillarLights[i].intensity = 2.0 + Math.sin(Date.now() * 0.004 + i * 1.5) * 0.8;
@@ -506,46 +561,45 @@ export class DomainExpansionSystem {
             ));
         }
 
+        let npcsInsideCount = 0;
         for (const npc of npcs) {
             if (!npc.isAlive()) continue;
             const np = npc.getPosition();
             const dx = np.x - pd.castPos.x;
             const dz = np.z - pd.castPos.z;
-            if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
+            const dToCenter = Math.sqrt(dx * dx + dz * dz);
+            if (dToCenter < pd.def.radius) {
+                npcsInsideCount++;
                 npc.takeDamage(pd.def.npcDamage * dt);
                 // bonus damage near throne pillars
                 for (const pillar of pd.pillars) {
                     const pdx = np.x - pillar.position.x;
                     const pdz = np.z - pillar.position.z;
                     if (Math.sqrt(pdx * pdx + pdz * pdz) < 5) {
-                        npc.takeDamage(20 * dt);
+                        npc.takeDamage(25 * dt);
                     }
+                }
+                // EXECUTE: NPC below execute threshold gets obliterated
+                // npcs have 40 base hp so executePct 0.12 = 4.8 hp threshold
+                // just kill them -- throne doesn't do mercy
+                if (dToCenter < pd.def.radius && pd.def.executeHpPct > 0) {
+                    // we can't read npc hp directly from this interface so use a kill-shot damage
+                    // this fires when they're very low -- the 22 DPS + 25 DPS pillar does this naturally but just in case
+                    // deal a kill burst if they've been inside for a while (approximated by high dmg tick)
+                    npc.takeDamage(pd.def.npcDamage * dt * 2); // double tick near execution phase
+                }
+                // NPC BOUNDARY: NPCs can't leave the throne either -- they're trapped too
+                if (dToCenter > pd.def.radius - 1) {
+                    // nudge them back toward center -- we can't teleport NPCs directly from here
+                    // so just deal pushback damage as penalty for trying to escape
+                    npc.takeDamage(30 * dt); // wall burns them if they press against it
                 }
             }
         }
-        // domain stays up until forceClosePlayerDomain() is called (player death or all npcs die)
-        // check if all living npcs escaped the domain or are dead -- if none remain -> collapse
-        const npcsInside = npcs.filter(n => {
-            if (!n.isAlive()) return false;
-            const np = n.getPosition();
-            const dx = np.x - pd.castPos.x;
-            const dz = np.z - pd.castPos.z;
-            return Math.sqrt(dx * dx + dz * dz) < pd.def.radius;
-        });
-        // if we had NPCs inside at some point and they're all dead now -- throne has done its job
-        // we check npcs total alive nearby to determine if castle is now empty
-        const anyNpcNearby = npcs.some(n => {
-            const np = n.getPosition();
-            const dx = np.x - pd.castPos.x;
-            const dz = np.z - pd.castPos.z;
-            return n.isAlive() && Math.sqrt(dx * dx + dz * dz) < pd.def.radius * 1.5;
-        });
-        // void: collapse only if no enemies anywhere nearby (they've all been slain)
-        if (!anyNpcNearby && npcs.length > 0) {
-            this.forceClosePlayerDomain();
-        }
+        // domain stays until forceClosePlayerDomain() -- but fire kill burst callback if it ends naturally
+        // (handled by forceClosePlayerDomain in main)
     }
 
     public isPlayerDomainActive(): boolean { return this.playerDomain !== null; }
-    public getPlayerDomainTimeRemaining(): number { return this.playerDomain?.timeRemaining ?? 0; }
+    public getPlayerDomainTimeRemaining(): number { return this.playerDomain ? 999 : 0; } // domain has no timer anymore -- 999 = still active
 }

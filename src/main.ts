@@ -268,6 +268,11 @@ class CatGodWorld {
             this.chat.addMessage('event', `🗡️ A ${npcType} looted: ${itemName}!`);
         };
 
+        // domain opened -- npc got its special ability. announce it so the player panics appropriately.
+        this.npcManager.onDomainBuff = (npcType, buffDesc) => {
+            this.chat.addMessage('event', `💀 ${npcType.toUpperCase()} DOMAIN BUFF: ${buffDesc}`);
+        };
+
         // inventory hotbar update callback
         this.inventory.onInventoryChange = () => this.renderHotbar();
 

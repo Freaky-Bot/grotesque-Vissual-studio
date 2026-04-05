@@ -35,6 +35,58 @@ export abstract class BaseNPC {
     private readonly DOMAIN_CHANCE_LOW_HP: number = 0.025;  // 2.5% per second when below 25% HP
     private readonly DOMAIN_COOLDOWN_SECS: number = 60;
 
+    // domain buff -- special abilities that activate while domain is open. each npc type gets its own
+    // these are NOT permanent -- they get wiped with clearDomainBuff() when domain collapses
+    public domainSpeedMult: number = 1;         // speed multiplier, >1 = faster
+    public domainDamageMult: number = 1;        // attack damage multiplier
+    public domainDmgReduction: number = 0;      // % damage reduction (0 to 1, 0.5 = half damage)
+    public domainAttackIntervalMult: number = 1;// <1 = attack faster, >1 = attack slower
+    public domainInvulnerable: boolean = false; // yep. some npcs just have it.
+
+    // per-type domain buff map -- called in forceActivateDomain and cleared in tickDomain
+    // each npc type has its THING while domain is open. its flavor. its soul.
+    private applyDomainBuff(): void {
+        const type = this.getType();
+        // reset first so stacking doesnt happen if somehow called twice ugh
+        this.domainSpeedMult = 1;
+        this.domainDamageMult = 1;
+        this.domainDmgReduction = 0;
+        this.domainAttackIntervalMult = 1;
+        this.domainInvulnerable = false;
+
+        switch (type) {
+            case 'normal':   this.domainSpeedMult = 4.0; this.domainDamageMult = 1.5; break;   // just goes absolutely feral lol
+            case 'jesus':    this.domainInvulnerable = true; this.domainDamageMult = 0.5; break; // jesus literally cannot die in his own domain
+            case 'robot':    this.domainAttackIntervalMult = 0.25; this.domainDamageMult = 2.0; break; // RAPID FIRE calculator mode
+            case 'orb':      this.domainDamageMult = 3.5; this.domainDmgReduction = 0.4; break; // the orb sees all and HURTS
+            case 'angel':    this.domainSpeedMult = 2.5; this.domainDamageMult = 2.0; break;   // angelic speed + holy smackdown
+            case 'pirate':   this.domainDamageMult = 2.5; this.domainDmgReduction = 0.3; break; // davy jones dont get hit easily
+            case 'wizard':   this.domainSpeedMult = 3.0; this.domainDamageMult = 2.5; break;   // teleporting mage mode
+            case 'vampire':  this.domainDamageMult = 2.0; this.domainDmgReduction = 0.5; break; // half damage in + he drains you
+            case 'disco':    this.domainSpeedMult = 5.0; this.domainDamageMult = 1.2; break;   // TURBO DISCO. 5x speed. suffers.
+            case 'shadow':   this.domainDamageMult = 4.0; this.domainDmgReduction = 0.6; break; // shadow mode kills in 2 hits. terrifying.
+            case 'barney':   this.domainInvulnerable = true; this.domainSpeedMult = 0.5; break; // barney is just UNKILLABLE (slow tho)
+            case 'emo':      this.domainDamageMult = 5.0; this.domainDmgReduction = -0.5; break;// emo is a glass cannon. takes 150% dmg. deals 5x.
+            case 'shrek':    this.domainDmgReduction = 0.7; this.domainSpeedMult = 0.4; break;  // SWAMP TANK. barely moves. cant be hurt.
+            case 'buffcat':  this.domainDamageMult = 6.0; this.domainDmgReduction = 0.5; break; // the most jacked thing in this codebase
+            case 'voidcat':  this.domainInvulnerable = true; this.domainDamageMult = 3.0; break; // voidcat just phases out. untouchable.
+            case 'hybrid':   // chaotic random buff. nobody knows.
+                this.domainSpeedMult = 1 + Math.random() * 4;
+                this.domainDamageMult = 1 + Math.random() * 5;
+                this.domainDmgReduction = Math.random() * 0.7;
+                break;
+        }
+    }
+
+    // wipe all buff fields back to neutral -- call this when the domain collapses
+    public clearDomainBuff(): void {
+        this.domainSpeedMult = 1;
+        this.domainDamageMult = 1;
+        this.domainDmgReduction = 0;
+        this.domainAttackIntervalMult = 1;
+        this.domainInvulnerable = false;
+    }
+
     // gravity + jumping -- grounded npcs get this for free
     protected verticalVelocity: number = 0;
     protected isGrounded: boolean = true;
@@ -71,9 +123,10 @@ export abstract class BaseNPC {
         // apply gravity
         this.applyGravity(deltaTime);
 
-        // zoooom
-        this.velocity.x = Math.cos(this.targetAngle) * speed;
-        this.velocity.z = Math.sin(this.targetAngle) * speed;
+        // zoooom -- domain buff can make this VERY fast or extremely slow
+        const effectiveSpeed = speed * this.domainSpeedMult;
+        this.velocity.x = Math.cos(this.targetAngle) * effectiveSpeed;
+        this.velocity.z = Math.sin(this.targetAngle) * effectiveSpeed;
 
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
@@ -151,13 +204,15 @@ export abstract class BaseNPC {
         if (damage <= 0) return 0;
         if (this.stunTimer > 0) return 0; // stunned = cant attack, obviously
         this.attackTimer_ -= deltaTime;
+        // domain buff: attack interval mult (<1 = faster -- robot mode, robot goes brrrr)
+        const cooldown = this.attackInterval_ * this.domainAttackIntervalMult;
         if (this.attackTimer_ <= 0) {
             const dist = this.position.distanceTo(playerPos);
             if (dist <= range) {
-                this.attackTimer_ = this.attackInterval_;
-                return damage;
+                this.attackTimer_ = Math.max(0.1, cooldown); // never go below 0.1s so it doesnt nuke instantly
+                return damage * this.domainDamageMult; // domain buff multiplies damage. scary.
             }
-            this.attackTimer_ = 0.3; // re-check soon if player out of range
+            this.attackTimer_ = 0.2;
         }
         return 0;
     }
@@ -176,6 +231,7 @@ export abstract class BaseNPC {
             if (this.domainTimer <= 0) {
                 this.domainActive = false;
                 this.domainCooldown = this.DOMAIN_COOLDOWN_SECS;
+                this.clearDomainBuff(); // power goes away when domain collapses. back to cringe normal mode.
             }
             return false; // already open, not "just activated"
         }
@@ -196,6 +252,7 @@ export abstract class BaseNPC {
         if (this.domainActive) return false;
         this.domainActive = true;
         this.domainTimer = duration;
+        this.applyDomainBuff(); // THIS IS THE MOMENT. the power awakens. npc gets its thing now.
         return true;
     }
 
@@ -204,8 +261,11 @@ export abstract class BaseNPC {
     // override takeDamage to check npc shield/invincible before reducing hp
     public takeDamage(dmg: number): void {
         if (this.npcInvincible) return;
+        if (this.domainInvulnerable) return; // domain buff: some npcs literally cannot die inside their domain. suck it.
         if (this.npcShieldHits > 0) { this.npcShieldHits--; return; }
-        this.hp = Math.max(0, this.hp - dmg);
+        // domain dmgReduction: positive = reduced dmg (tanky), negative = extra dmg (emo mode)
+        const reducedDmg = dmg * (1 - this.domainDmgReduction);
+        this.hp = Math.max(0, this.hp - reducedDmg);
         if (this.hp <= 0) this.die();
     }
 
