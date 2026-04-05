@@ -159,6 +159,7 @@ export interface ActiveDomain {
     stunPulseTimer: number;
     uniqueTimer: number;            // for per-domain special effect tick
     abilityTimer: number;           // counts down to the next guaranteed sure-hit ability
+    lifeTimer: number;              // domain force-closes after 10s if nobody dies inside
     sphere: THREE.Mesh;
     light: THREE.PointLight;
     innerLight: THREE.PointLight;   // secondary light for atmosphere
@@ -274,6 +275,7 @@ export class DomainExpansionSystem {
             stunPulseTimer: def.stunPulse,
             uniqueTimer: 0,
             abilityTimer: DomainExpansionSystem.ABILITY_INTERVALS[defKey] ?? 3,
+            lifeTimer: 10, // disappears after 10s if no kill -- domain cant hold forever
             sphere, light, innerLight,
         };
 
@@ -356,7 +358,15 @@ export class DomainExpansionSystem {
             d.uniqueTimer += deltaTime;
             this.tickUniqueEffect(d, deltaTime, playerPos, onPlayerDamage, onPlayerStun);
 
-            // domain only closes when the NPC that cast it dies -- not on a timer
+            // tick life timer -- domain force-collapses after 10s if no one died
+            d.lifeTimer -= deltaTime;
+            if (d.lifeTimer <= 0) {
+                this.onDomainEffect?.('domain_timeout', d.castPos, d.def.radius);
+                this.closeDomain(d, i);
+                continue;
+            }
+
+            // domain also closes when the NPC that cast it dies
             if (d.npc.hp <= 0) {
                 // KILL BURST: detonation when domain collapses -- punish lingering inside
                 if (d.playerLockedInside) {

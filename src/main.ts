@@ -344,6 +344,9 @@ class CatGodWorld {
                     this.chat.addMessage('event', '💀 DOMAIN EXECUTE — you were too weak. the domain finished it.');
                 } else if (effect === 'kill_burst') {
                     this.chat.addMessage('event', '💥 DOMAIN COLLAPSE DETONATION — standing inside was a mistake.');
+                } else if (effect === 'domain_timeout') {
+                    // ugh. domain ran out of time. nobody died. whatever. it collapses anyway.
+                    this.chat.addMessage('event', '⏳ domain faded — 10s. no kill. it dissolved.');
                 }
             };
         }
