@@ -1,5 +1,5 @@
 node_modules/
-dist/
+# dist/ is now included for submission
 .DS_Store
 *.local
 .vscode/settings.json
