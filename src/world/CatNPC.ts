@@ -33,6 +33,27 @@ export enum CatType {
     FAIRY = 'fairy',
     CAVEMAN = 'caveman',
     ALIEN = 'alien',
+    // 20 MORE because the void demands variety. i am sorry. i am not sorry.
+    BARD = 'bard',
+    MIME = 'mime',
+    BERSERKER = 'berserker',
+    WITCH = 'witch',
+    GRIM_REAPER = 'grim_reaper',
+    ICE_WIZARD = 'ice_wizard',
+    FIRE_DEMON = 'fire_demon',
+    THUNDER_GOD = 'thunder_god',
+    MEDIC = 'medic',
+    HACKER = 'hacker',
+    BARBARIAN = 'barbarian',
+    JESTER = 'jester',
+    FALLEN_ANGEL = 'fallen_angel',
+    ROBOT_SUPREME = 'robot_supreme',
+    CLOUD_SURFER = 'cloud_surfer',
+    PLUMBER = 'plumber',
+    GLADIATOR = 'gladiator',
+    ORACLE = 'oracle',
+    MONK = 'monk',
+    PIRATE_GHOST = 'pirate_ghost',
 }
 
 export class CatNPC extends BaseNPC {
@@ -113,8 +134,27 @@ export class CatNPC extends BaseNPC {
                 return this.createFairyCat(group);
             case CatType.CAVEMAN:
                 return this.createCavemanCat(group);
-            case CatType.ALIEN:
-                return this.createAlienCat(group);
+            case CatType.ALIEN:       return this.createAlienCat(group);
+            case CatType.BARD:         return this.createBardCat(group);
+            case CatType.MIME:         return this.createMimeCat(group);
+            case CatType.BERSERKER:    return this.createBerserkerCat(group);
+            case CatType.WITCH:        return this.createWitchCat(group);
+            case CatType.GRIM_REAPER:  return this.createGrimReaperCat(group);
+            case CatType.ICE_WIZARD:   return this.createIceWizardCat(group);
+            case CatType.FIRE_DEMON:   return this.createFireDemonCat(group);
+            case CatType.THUNDER_GOD:  return this.createThunderGodCat(group);
+            case CatType.MEDIC:        return this.createMedicCat(group);
+            case CatType.HACKER:       return this.createHackerCat(group);
+            case CatType.BARBARIAN:    return this.createBarbarianCat(group);
+            case CatType.JESTER:       return this.createJesterCat(group);
+            case CatType.FALLEN_ANGEL: return this.createFallenAngelCat(group);
+            case CatType.ROBOT_SUPREME: return this.createRobotSupremeCat(group);
+            case CatType.CLOUD_SURFER: return this.createCloudSurferCat(group);
+            case CatType.PLUMBER:      return this.createPlumberCat(group);
+            case CatType.GLADIATOR:    return this.createGladiatorCat(group);
+            case CatType.ORACLE:       return this.createOracleCat(group);
+            case CatType.MONK:         return this.createMonkCat(group);
+            case CatType.PIRATE_GHOST: return this.createPirateGhostCat(group);
         }
 
         return group;
@@ -915,6 +955,391 @@ export class CatNPC extends BaseNPC {
         tail.position.set(0, 0.3, -0.6);
         tail.rotation.z = 0.5;
         group.add(tail);
+        return group;
+    }
+
+    private createBardCat(group: THREE.Group): THREE.Group {
+        // tired of silent NPCs?? NOT ANYMORE!! this one plays lute!! nobody asked!!
+        this.createNormalCat(group);
+        const lute = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
+        lute.position.set(0.7, 0.3, 0.3); lute.scale.set(0.6, 1.2, 0.4);
+        group.add(lute);
+        const luteNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0x5c3a1e }));
+        luteNeck.rotation.z = 0.5; luteNeck.position.set(1.1, 0.85, 0.3);
+        group.add(luteNeck);
+        const hat = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.7, 8), new THREE.MeshStandardMaterial({ color: 0x8844aa }));
+        hat.position.y = 2.0; hat.rotation.z = 0.3;
+        group.add(hat);
+        return group;
+    }
+
+    private createMimeCat(group: THREE.Group): THREE.Group {
+        // ...
+        const mat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), mat);
+        body.castShadow = true; group.add(body);
+        for (let i = 0; i < 4; i++) {
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.15, 0.82), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+            stripe.position.y = -0.55 + i * 0.42; group.add(stripe);
+        }
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 14, 14), mat);
+        head.position.y = 1.0; group.add(head);
+        const beret = new THREE.Mesh(new THREE.SphereGeometry(0.62, 10, 10), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+        beret.position.y = 1.65; beret.scale.y = 0.44; group.add(beret);
+        const tear = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), new THREE.MeshBasicMaterial({ color: 0x4444ff }));
+        tear.position.set(-0.3, 1.05, 0.56); group.add(tear);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+        eyeL.position.set(-0.22, 1.25, 0.56); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.22, 1.25, 0.56); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.5, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createBerserkerCat(group: THREE.Group): THREE.Group {
+        // ugh this cat is just angry and large. ngl scared to nerf it.
+        const mat = new THREE.MeshStandardMaterial({ color: 0xcc3300, roughness: 0.8 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.7, 1.1), mat);
+        body.castShadow = true; group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 12), mat);
+        head.position.y = 1.25; group.add(head);
+        const helmMat = new THREE.MeshStandardMaterial({ color: 0x6b3a2a, metalness: 0.5 });
+        const helm = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 12), helmMat);
+        helm.position.y = 1.35; helm.scale.y = 0.75; group.add(helm);
+        for (const xSign of [-1, 1]) {
+            const horn = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.7, 6), helmMat);
+            horn.position.set(xSign * 0.75, 1.9, 0); horn.rotation.z = xSign * 0.5; group.add(horn);
+        }
+        const axeHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0x5c3a1e }));
+        axeHandle.position.set(0.95, 0.6, 0); axeHandle.rotation.z = 0.4; group.add(axeHandle);
+        const axeHead = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.1), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9 }));
+        axeHead.position.set(1.6, 1.3, 0); group.add(axeHead);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+        eyeL.position.set(-0.28, 1.35, 0.7); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.28, 1.35, 0.7); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.5, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createWitchCat(group: THREE.Group): THREE.Group {
+        // the witch hat was always the plan. this was never going to be a normal cat.
+        this.createNormalCat(group);
+        const hatMat = new THREE.MeshStandardMaterial({ color: 0x1a001a });
+        const brim = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.1, 12), hatMat);
+        brim.position.y = 1.55; group.add(brim);
+        const peak = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.4, 8), hatMat);
+        peak.position.y = 2.3; group.add(peak);
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.56, 0.1, 12), new THREE.MeshBasicMaterial({ color: 0xaa44ff }));
+        band.position.y = 1.7; group.add(band);
+        const cauldron = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.4, 10), new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.7 }));
+        cauldron.position.set(-0.85, 0.1, 0); group.add(cauldron);
+        const brew = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.08, 10), new THREE.MeshBasicMaterial({ color: 0x00ff66, transparent: true, opacity: 0.8 }));
+        brew.position.set(-0.85, 0.32, 0); group.add(brew);
+        return group;
+    }
+
+    private createGrimReaperCat(group: THREE.Group): THREE.Group {
+        // this cat took three hours. nobody will appreciate it. disappointed parent energy.
+        const mat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.85 });
+        const robe = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.2, 10), mat);
+        robe.position.y = -0.2; robe.rotation.x = Math.PI; group.add(robe);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 12), mat);
+        head.position.y = 1.2; group.add(head);
+        const hood = new THREE.Mesh(new THREE.ConeGeometry(0.72, 0.8, 10), mat);
+        hood.position.y = 1.85; group.add(hood);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00ff66 }));
+        eyeL.position.set(-0.22, 1.28, 0.5); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.22, 1.28, 0.5); group.add(eyeR);
+        const scytheHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x3a2010 }));
+        scytheHandle.position.set(0.9, 0.6, 0); scytheHandle.rotation.z = 0.25; group.add(scytheHandle);
+        const bladeCurve = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.08, 5, 14, Math.PI), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 1.0 }));
+        bladeCurve.position.set(1.45, 1.8, 0); bladeCurve.rotation.z = -0.6; group.add(bladeCurve);
+        return group;
+    }
+
+    private createIceWizardCat(group: THREE.Group): THREE.Group {
+        // Tired of being warm?? ICE WIZARD CAT changes everything!!
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0xaaddff });
+        const hat = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.3, 8), new THREE.MeshStandardMaterial({ color: 0x0044cc }));
+        hat.position.y = 2.1; group.add(hat);
+        for (let i = 0; i < 4; i++) {
+            const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.18, 0), new THREE.MeshStandardMaterial({ color: 0x88ddff, transparent: true, opacity: 0.8 }));
+            crystal.position.set(Math.cos(i / 4 * Math.PI * 2) * 1.1, 0.5, Math.sin(i / 4 * Math.PI * 2) * 1.1);
+            group.add(crystal);
+        }
+        const iceStaff = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.8, 6), new THREE.MeshStandardMaterial({ color: 0xaaddff, transparent: true, opacity: 0.7 }));
+        iceStaff.position.set(0.85, 0.9, 0); iceStaff.rotation.z = 0.3; group.add(iceStaff);
+        const iceTip = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), new THREE.MeshStandardMaterial({ color: 0x44aaff }));
+        iceTip.position.set(1.35, 1.9, 0); group.add(iceTip);
+        return group;
+    }
+
+    private createFireDemonCat(group: THREE.Group): THREE.Group {
+        // fire demon. OBVIOUSLY. my personality type is: ON FIRE.
+        const mat = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0x440000 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.6, 0.9), mat);
+        body.castShadow = true; group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.65, 12, 12), mat);
+        head.position.y = 1.1; group.add(head);
+        for (const xSign of [-1, 1]) {
+            const horn = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.6, 5), new THREE.MeshStandardMaterial({ color: 0x880000 }));
+            horn.position.set(xSign * 0.38, 1.8, 0); group.add(horn);
+        }
+        for (let i = 0; i < 5; i++) {
+            const flame = new THREE.Mesh(new THREE.SphereGeometry(0.2 + Math.random() * 0.15, 6, 6), new THREE.MeshBasicMaterial({ color: [0xff4400, 0xff8800, 0xffcc00][i % 3], transparent: true, opacity: 0.6 }));
+            flame.position.set((Math.random() - 0.5) * 1.5, 0.3 + Math.random() * 1.5, (Math.random() - 0.5) * 1.5);
+            group.add(flame);
+        }
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
+        eyeL.position.set(-0.25, 1.25, 0.6); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.25, 1.25, 0.6); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.6, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createThunderGodCat(group: THREE.Group): THREE.Group {
+        // henceforth: lightning does not miss. verily.
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0xffdd00, emissive: 0x443300 });
+        const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.25, 5), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.9 }));
+        crown.position.y = 1.7; group.add(crown);
+        for (let i = 0; i < 5; i++) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 4), new THREE.MeshBasicMaterial({ color: 0xFFD700 }));
+            spike.position.set(Math.cos(i / 5 * Math.PI * 2) * 0.65, 1.98, Math.sin(i / 5 * Math.PI * 2) * 0.65);
+            group.add(spike);
+        }
+        const hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.35), new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9 }));
+        hammerHead.position.set(1.15, 1.1, 0); group.add(hammerHead);
+        const hammerHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.0, 6), new THREE.MeshStandardMaterial({ color: 0x5c3a1e }));
+        hammerHandle.position.set(0.85, 0.55, 0); hammerHandle.rotation.z = 0.5; group.add(hammerHandle);
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(1.3, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.06 }));
+        group.add(glow);
+        return group;
+    }
+
+    private createMedicCat(group: THREE.Group): THREE.Group {
+        // TIRED of taking damage?? this cat heals others and nobody heals it back. whatever.
+        this.createNormalCat(group);
+        const coat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.7, 0.3), new THREE.MeshStandardMaterial({ color: 0xfafafa }));
+        coat.position.set(0, 0.05, 0.55); group.add(coat);
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.04), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+        crossV.position.set(0, 0.15, 0.72); group.add(crossV);
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.04), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+        crossH.position.set(0, 0.15, 0.72); group.add(crossH);
+        const mirrorBand = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.68, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8 }));
+        mirrorBand.rotation.z = Math.PI / 2; mirrorBand.position.set(0, 1.5, 0); group.add(mirrorBand);
+        return group;
+    }
+
+    private createHackerCat(group: THREE.Group): THREE.Group {
+        // they dont want you to know this cat has root access. (it does)
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x002200 });
+        const laptop = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.05), new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8 }));
+        laptop.position.set(0, 0.7, 0.6); group.add(laptop);
+        const screen = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.43, 0.01), new THREE.MeshBasicMaterial({ color: 0x00ff44, transparent: true, opacity: 0.9 }));
+        screen.position.set(0, 0.7, 0.63); group.add(screen);
+        for (let i = 0; i < 4; i++) {
+            const line = new THREE.Mesh(new THREE.BoxGeometry(0.5 - i * 0.06, 0.04, 0.01), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+            line.position.set(-0.05, 0.8 - i * 0.1, 0.64); group.add(line);
+        }
+        const hood = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 12), new THREE.MeshStandardMaterial({ color: 0x001100 }));
+        hood.position.y = 1.1; group.add(hood);
+        return group;
+    }
+
+    private createBarbarianCat(group: THREE.Group): THREE.Group {
+        // primal. loud. no shirt. the absolute state of this cat.
+        const mat = new THREE.MeshStandardMaterial({ color: 0xd2a679, roughness: 0.9 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.7, 1.0), mat);
+        body.castShadow = true; group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 14, 14), mat);
+        head.position.y = 1.3; group.add(head);
+        const beard = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.9, 0.35), new THREE.MeshStandardMaterial({ color: 0x5c3a1e }));
+        beard.position.set(0, 0.8, 0.5); group.add(beard);
+        for (const xSign of [-1, 1]) {
+            const pad = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), new THREE.MeshStandardMaterial({ color: 0x5c3a1e, roughness: 1.0 }));
+            pad.position.set(xSign * 0.85, 0.8, 0); pad.scale.y = 0.6; group.add(pad);
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.6, 6), new THREE.MeshStandardMaterial({ color: 0x3a2010 }));
+            handle.position.set(xSign * 1.15, 0.5, 0); handle.rotation.z = xSign * 0.35; group.add(handle);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.7, 0.08), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.85 }));
+            blade.position.set(xSign * 1.7, 1.1, 0); group.add(blade);
+        }
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshBasicMaterial({ color: 0x0000aa }));
+        eyeL.position.set(-0.28, 1.45, 0.64); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.28, 1.45, 0.64); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.5, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createJesterCat(group: THREE.Group): THREE.Group {
+        // the royal fool. bells included. sound not implemented. disappointment.
+        this.createNormalCat(group);
+        for (const [xSign, color] of [[-1, 0xff0000], [1, 0x0000ff]] as [number, number][]) {
+            const hornBell = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.8, 8), new THREE.MeshStandardMaterial({ color }));
+            hornBell.position.set(xSign * 0.4, 2.2, 0); hornBell.rotation.z = xSign * 0.5; group.add(hornBell);
+            const bell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 7), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8 }));
+            bell.position.set(xSign * 0.65, 2.6, 0); group.add(bell);
+        }
+        const dia1 = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.75, 0.83), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+        dia1.position.y = 0.2; group.add(dia1);
+        const dia2 = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.75, 0.83), new THREE.MeshStandardMaterial({ color: 0x0000ff }));
+        dia2.position.y = -0.4; group.add(dia2);
+        return group;
+    }
+
+    private createFallenAngelCat(group: THREE.Group): THREE.Group {
+        // used to be an angel. made some choices. wings are still there but they're dark now.
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x222233 });
+        for (const [xSign, rotZ] of [[-1, 0.85], [1, -0.85]] as [number, number][]) {
+            const wing = new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0x1a0022, transparent: true, opacity: 0.85 }));
+            wing.rotation.z = rotZ; wing.position.set(xSign * 1.0, 1.2, -0.3); group.add(wing);
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x440055 }));
+            tip.position.set(xSign * 1.6, 1.5, -0.3); tip.rotation.z = xSign * 0.3; group.add(tip);
+        }
+        const halo = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.1, 8, 24), new THREE.MeshBasicMaterial({ color: 0x330033 }));
+        halo.position.y = 1.9; halo.rotation.x = Math.PI / 2.5; halo.rotation.z = 0.5; group.add(halo);
+        return group;
+    }
+
+    private createRobotSupremeCat(group: THREE.Group): THREE.Group {
+        // INTRODUCING: ROBOT SUPREME!! BIGGER!! MORE ANTENNA!! SHOULDER CANNONS!!
+        const mat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.95, roughness: 0.05 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.8, 1.0), mat);
+        body.castShadow = true; group.add(body);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.95, 0.95), mat);
+        head.position.y = 1.4; group.add(head);
+        for (let i = -1; i <= 1; i++) {
+            const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.8, 5), mat);
+            ant.position.set(i * 0.3, 2.3, 0); group.add(ant);
+            const ball = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 7), new THREE.MeshBasicMaterial({ color: [0xff0000, 0x00ffff, 0xffff00][i + 1] }));
+            ball.position.set(i * 0.3, 2.75, 0); group.add(ball);
+        }
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.06), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
+        panel.position.set(0, 0.3, 0.52); group.add(panel);
+        for (const xSign of [-1, 1]) {
+            const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.15, 0.8, 8), mat);
+            cannon.position.set(xSign * 0.9, 0.8, 0.3); cannon.rotation.x = -0.4; group.add(cannon);
+        }
+        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.15, 0.1), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
+        eyeL.position.set(-0.22, 1.5, 0.49); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.22, 1.5, 0.49); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.22, 1.5, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createCloudSurferCat(group: THREE.Group): THREE.Group {
+        // this cat rides clouds. nobody gave it permission. still happening.
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x88ccff });
+        const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.8, 10, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0 }));
+        cloud.scale.set(1.5, 0.35, 1.0); cloud.position.y = -0.9; group.add(cloud);
+        const cloud2 = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0 }));
+        cloud2.scale.set(1.1, 0.3, 0.8); cloud2.position.set(0.7, -0.95, 0); group.add(cloud2);
+        for (const xSign of [-1, 1]) {
+            const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.04, 12), new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.85 }));
+            lens.rotation.x = Math.PI / 2; lens.position.set(xSign * 0.24, 1.28, 0.59); group.add(lens);
+        }
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.04), new THREE.MeshBasicMaterial({ color: 0x333333 }));
+        bridge.position.set(0, 1.28, 0.6); group.add(bridge);
+        return group;
+    }
+
+    private createPlumberCat(group: THREE.Group): THREE.Group {
+        // its a me. a cat. this entire method is a copyright risk. moving on.
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x2244aa });
+        const straps = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.4, 0.32), new THREE.MeshStandardMaterial({ color: 0x1133aa }));
+        straps.position.set(0, 0.1, 0.55); group.add(straps);
+        const capBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.08, 12), new THREE.MeshStandardMaterial({ color: 0xcc0000 }));
+        capBrim.position.y = 1.55; group.add(capBrim);
+        const capTop = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.55, 0.35, 12), new THREE.MeshStandardMaterial({ color: 0xcc0000 }));
+        capTop.position.y = 1.8; group.add(capTop);
+        const wrench = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8 }));
+        wrench.position.set(0.85, 0.5, 0.2); wrench.rotation.z = 0.5; group.add(wrench);
+        const wrenchHead = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.15), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8 }));
+        wrenchHead.position.set(1.22, 0.95, 0.2); group.add(wrenchHead);
+        return group;
+    }
+
+    private createGladiatorCat(group: THREE.Group): THREE.Group {
+        // HEAR YE!! henceforth the arena cat doth enter! glory or perishing!
+        const mat = new THREE.MeshStandardMaterial({ color: 0xc8a46e });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.65, 0.95), mat);
+        body.castShadow = true; group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.65, 14, 14), mat);
+        head.position.y = 1.15; group.add(head);
+        const helm = new THREE.Mesh(new THREE.SphereGeometry(0.72, 12, 12), new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.8 }));
+        helm.position.y = 1.25; helm.scale.y = 0.8; group.add(helm);
+        const crest = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.7, 0.7), new THREE.MeshStandardMaterial({ color: 0xcc0000 }));
+        crest.position.y = 1.95; group.add(crest);
+        const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 14), new THREE.MeshStandardMaterial({ color: 0x4444aa, metalness: 0.5 }));
+        shield.rotation.z = Math.PI / 2; shield.position.set(-0.85, 0.5, 0.2); group.add(shield);
+        const shieldBoss = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({ color: 0xFFD700 }));
+        shieldBoss.position.set(-0.95, 0.5, 0.2); group.add(shieldBoss);
+        const gladius = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.0, 0.08), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 1.0 }));
+        gladius.position.set(0.85, 0.7, 0); gladius.rotation.z = 0.3; group.add(gladius);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), new THREE.MeshBasicMaterial({ color: 0x4400aa }));
+        eyeL.position.set(-0.24, 1.32, 0.6); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.24, 1.32, 0.6); group.add(eyeR);
+        const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.5, 8), mat);
+        tail.position.set(0, 0.3, -0.6); tail.rotation.z = 0.5; group.add(tail);
+        return group;
+    }
+
+    private createOracleCat(group: THREE.Group): THREE.Group {
+        // the future is: more cats. it was always going to be more cats. this was inevitable.
+        this.createNormalCat(group);
+        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x331155 });
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0x8844ff, transparent: true, opacity: 0.7 }));
+        ball.position.set(0, 0.7, 0.7); group.add(ball);
+        const ballGlow = new THREE.Mesh(new THREE.SphereGeometry(0.45, 12, 12), new THREE.MeshBasicMaterial({ color: 0x6600ff, transparent: true, opacity: 0.18 }));
+        ballGlow.position.set(0, 0.7, 0.7); group.add(ballGlow);
+        const robe = new THREE.Mesh(new THREE.ConeGeometry(0.92, 1.8, 10), new THREE.MeshStandardMaterial({ color: 0x220044 }));
+        robe.rotation.x = Math.PI; robe.position.y = -0.15; group.add(robe);
+        const headpiece = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.1, 6, 18), new THREE.MeshStandardMaterial({ color: 0x9900ff, metalness: 0.5 }));
+        headpiece.position.y = 1.7; headpiece.rotation.x = Math.PI / 2; group.add(headpiece);
+        const gem = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+        gem.position.set(0, 1.7, 0.66); group.add(gem);
+        return group;
+    }
+
+    private createMonkCat(group: THREE.Group): THREE.Group {
+        // inner peace. outer peace. surprisingly. for a cat. the beads help.
+        this.createNormalCat(group);
+        const robe = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.9, 10), new THREE.MeshStandardMaterial({ color: 0xff8800 }));
+        robe.rotation.x = Math.PI; robe.position.y = -0.1; group.add(robe);
+        const robeShoulder = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.35, 0.85), new THREE.MeshStandardMaterial({ color: 0xff8800 }));
+        robeShoulder.position.y = 0.5; group.add(robeShoulder);
+        const beadStr = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.05, 5, 20), new THREE.MeshStandardMaterial({ color: 0x5c3a1e }));
+        beadStr.position.y = 0.3; beadStr.rotation.x = 0.5; group.add(beadStr);
+        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.04), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+        eyeL.position.set(-0.2, 1.28, 0.56); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.2, 1.28, 0.56); group.add(eyeR);
+        return group;
+    }
+
+    private createPirateGhostCat(group: THREE.Group): THREE.Group {
+        // deceased pirate. still at sea. technically. (no sea exists. details.)
+        const mat = new THREE.MeshStandardMaterial({ color: 0xbbddcc, transparent: true, opacity: 0.6 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.4, 0.8), mat); group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 14, 14), mat);
+        head.position.y = 1.0; group.add(head);
+        const ghostTail = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.4, 8), new THREE.MeshStandardMaterial({ color: 0xaaccbb, transparent: true, opacity: 0.4 }));
+        ghostTail.rotation.x = Math.PI; ghostTail.position.y = -0.65; group.add(ghostTail);
+        const hat = new THREE.Mesh(new THREE.ConeGeometry(1.0, 0.45, 8), new THREE.MeshStandardMaterial({ color: 0x223322, transparent: true, opacity: 0.8 }));
+        hat.position.y = 1.85; group.add(hat);
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(1.25, 10, 10), new THREE.MeshBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.07 }));
+        group.add(glow);
+        const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00ff88 }));
+        eyeL.position.set(-0.22, 1.2, 0.54); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.22, 1.2, 0.54); group.add(eyeR);
         return group;
     }
 

@@ -50,7 +50,7 @@ export class SageCharacter {
         const group = new THREE.Group();
 
         // Core ethereal body - glowing orb
-        const coreGeo = new THREE.SphereGeometry(0.6, 32, 32);
+        const coreGeo = new THREE.SphereGeometry(0.6, 10, 10); // 32,32 was overkill on a tiny orb
         const coreMat = new THREE.MeshBasicMaterial({
             color: 0x8844ff,
             transparent: true,

@@ -143,9 +143,15 @@ export class NPCManager {
         for (const npc of this.npcs) npc.setSpeakCallback(fn);
     }
 
+    // how many chaos entities before we start saying no -- performance guard
+    private readonly MAX_NPCS = 35;
+
     public addNPC(npc: BaseNPC): void {
+        if (this.npcs.length >= this.MAX_NPCS) return; // cap it. the void is already full.
         if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // wire bubble on the fly
-        this.npcs.push(npc); // just yeet it in there
+        // disable shadow casting on ALL npc sub-meshes -- huge perf win, nobody notices shadows on a small cat
+        npc.getMesh().traverse((child) => { child.castShadow = false; child.receiveShadow = false; });
+        this.npcs.push(npc); // yeet
     }
 
     public removeNPC(npc: BaseNPC): void {
@@ -264,10 +270,9 @@ export class NPCManager {
             }
         }
         if (this.spawnTimer >= this.spawnInterval) {
-            this.spawnNewNPC();
+            if (this.npcs.length < this.MAX_NPCS) this.spawnNewNPC(); // respect the cap before spawning
             this.spawnTimer = 0;
-            // randomize spawn interval so its not boring
-            this.spawnInterval = 3 + Math.random() * 4;
+            this.spawnInterval = 3 + Math.random() * 4; // randomize next interval
         }
 
         // yeet dead cats (except the god one lol) and fire the death callback for loot

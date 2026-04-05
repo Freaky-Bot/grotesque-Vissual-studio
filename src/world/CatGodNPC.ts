@@ -34,8 +34,8 @@ export class CatGodNPC {
     private createCatGodMesh(): THREE.Group {
         const group = new THREE.Group();
 
-        // DIVINE AURA - multiple layers of glowing rings
-        const auraGeometry = new THREE.SphereGeometry(10, 32, 32);
+        // DIVINE AURA -- 8 segs. transparent spheres dont need 32. nobody checks the wireframe.
+        const auraGeometry = new THREE.SphereGeometry(10, 8, 8);
         const auraMaterial = new THREE.MeshBasicMaterial({ 
             color: 0xffaa00, 
             transparent: true, 
@@ -44,7 +44,7 @@ export class CatGodNPC {
         const aura = new THREE.Mesh(auraGeometry, auraMaterial);
         group.add(aura);
 
-        const aura2Geometry = new THREE.SphereGeometry(12, 32, 32);
+        const aura2Geometry = new THREE.SphereGeometry(12, 8, 8);
         const aura2Material = new THREE.MeshBasicMaterial({ 
             color: 0xffff00, 
             transparent: true, 
@@ -67,7 +67,7 @@ export class CatGodNPC {
         group.add(robe);
 
         // CAT HEAD - blessed feline features
-        const headGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+        const headGeometry = new THREE.SphereGeometry(1.5, 10, 10); // was 32,32 -- nobody needs 32 segments on a cat head
         const headMaterial = new THREE.MeshStandardMaterial({ 
             color: 0xffcc99,
             metalness: 0.1,
