@@ -75,6 +75,9 @@ class CatGodWorld {
     private onionLayerActive: boolean = false; // absorb 1 hit
     private shieldHitsRemaining: number = 0;   // shield absorb charges
     private soulGemActive: boolean = false;    // auto-revive on death
+    // domain debuffs -- applied by sure-hit abilities. real nasty stuff.
+    private attackPenaltyTimer: number = 0;   // player deals 0 dmg while this is active
+    private hudHideTimer: number = 0;          // player HUD hidden -- voidcat messes with ur perception
 
     constructor() {
         this.renderEngine = new RenderEngine();
@@ -229,19 +232,12 @@ class CatGodWorld {
                 } else if (effect === 'barney') {
                     this.npcManager.forceSpawnBarney();
                     this.chat.addMessage('event', '🦕 BARNEY EMERGES FROM THE LOVE DOMAIN');
-                } else if (effect === 'wizard') {
-                    const angle = Math.random() * Math.PI * 2;
-                    const r = Math.random() * 15;
-                    this.sageCharacter.teleportTo(new THREE.Vector3(
-                        center.x + Math.cos(angle) * r, 2, center.z + Math.sin(angle) * r
-                    ));
-                    this.chat.addMessage('event', '🧙 The wizard\'s domain warped you!');
                 } else if (effect === 'shrek') {
                     this.mudSlowTimer = Math.max(this.mudSlowTimer, 4);
                     this.chat.addMessage('event', '🥞 SHREK\'S SWAMP: You are ankle-deep in mud.');
                 } else if (effect === 'disco') {
                     this.sageCharacter.stun?.(1.5);
-                    this.chat.addMessage('event', '🩩 DISCO DOMAIN: You cannot resist the groove.');
+                    this.chat.addMessage('event', '🪩 DISCO DOMAIN: You cannot resist the groove.');
                 } else if (effect === 'emo') {
                     document.body.style.filter = 'saturate(0.05) brightness(0.7)';
                 } else if (effect === 'shadow') {
@@ -252,72 +248,98 @@ class CatGodWorld {
                     setTimeout(() => { document.body.style.filter = ''; }, 80);
                 } else if (effect === 'screen_clear') {
                     document.body.style.filter = '';
-                // ----- SURE HIT ABILITY EFFECTS -----
+                // ----- SURE HIT ABILITY EFFECTS (thematic rewrites) -----
                 } else if (effect === 'ability_normal') {
-                    this.chat.addMessage('event', '🐱 INFINITE MEOW BARRAGE — 5 guaranteed hits!!');
+                    // INFINITE MEOW BARRAGE -- pure feral spam
+                    this.chat.addMessage('event', '🐱 INFINITE MEOW BARRAGE — 5 hits. unstoppable. just a cat going feral.');
                 } else if (effect === 'ability_jesus') {
-                    document.body.style.filter = 'brightness(3) saturate(0)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 200);
-                    this.chat.addMessage('event', '✝️ HOLY JUDGMENT — there is no mercy here.');
-                } else if (effect === 'ability_robot') {
-                    document.body.style.filter = 'hue-rotate(120deg) brightness(2)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 150);
-                    this.chat.addMessage('event', '🤖 LOGIC LOCK — TARGET ACQUIRED. CALCULATING IMPACT.');
-                } else if (effect === 'ability_orb') {
-                    document.body.style.filter = 'saturate(4) brightness(1.5)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 200);
-                    this.chat.addMessage('event', '🔮 OMNISCIENT GRASP — the orb sees you. always.');
-                } else if (effect === 'ability_angel') {
-                    document.body.style.filter = 'brightness(4) saturate(0)';
+                    // DIVINE FORGIVENESS -- blinds with holy light, heals jesus back to full
+                    document.body.style.filter = 'brightness(8) saturate(0)';
                     setTimeout(() => { document.body.style.filter = ''; }, 300);
-                    this.chat.addMessage('event', '👼 DIVINE SMITE — heavenly beat-down.');
-                } else if (effect === 'ability_pirate') {
-                    document.body.style.filter = 'brightness(0.3) sepia(1)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 150);
-                    this.chat.addMessage('event', '💣 CANNONBALL — direct hit. yarr.');
-                } else if (effect === 'ability_wizard') {
-                    document.body.style.filter = 'hue-rotate(270deg) brightness(2)';
+                    this.chat.addMessage('event', '✝️ DIVINE FORGIVENESS — jesus healed to full. you are forgiven. sort of.');
+                } else if (effect === 'ability_robot') {
+                    // SYSTEM OVERRIDE -- disables player attacks for 3s
+                    this.attackPenaltyTimer = Math.max(this.attackPenaltyTimer, 3);
+                    document.body.style.filter = 'hue-rotate(120deg) brightness(2)';
                     setTimeout(() => { document.body.style.filter = ''; }, 200);
-                    this.chat.addMessage('event', '🧙 TELEPORT TRAP — disoriented by arcane displacement.');
+                    this.chat.addMessage('event', '🤖 SYSTEM OVERRIDE — your attacks disabled for 3s. you have been logic-locked.');
+                } else if (effect === 'ability_orb') {
+                    // OMNISCIENT PULL -- yanks to center, no damage, just watching
+                    document.body.style.filter = 'saturate(5) brightness(1.8)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 250);
+                    this.chat.addMessage('event', '🔮 OMNISCIENT PULL — the orb sees you. it brought you closer. it always does.');
+                } else if (effect === 'ability_angel') {
+                    // GRACE DEBUFF -- angel heals, player gets slowed by the weight of divinity
+                    this.mudSlowTimer = Math.max(this.mudSlowTimer, 3);
+                    document.body.style.filter = 'brightness(3) saturate(0.2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 250);
+                    this.chat.addMessage('event', '😇 GRACE — the angel healed itself. you are heavy with divinity. movement halved.');
+                } else if (effect === 'ability_pirate') {
+                    // CANNONBALL -- just direct hit damage
+                    document.body.style.filter = 'brightness(0.3) sepia(1)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 180);
+                    this.chat.addMessage('event', '💣 CANNONBALL — direct hit. yarr. no tricks. just a cannon.');
+                } else if (effect === 'ability_wizard') {
+                    // ARCANE MAZE -- teleport + confuse movement
+                    this.confuseTimer = Math.max(this.confuseTimer, 4);
+                    document.body.style.filter = 'hue-rotate(270deg) brightness(2)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 250);
+                    this.chat.addMessage('event', '🧙 ARCANE MAZE — teleported and confused. controls inverted for 4s.');
                 } else if (effect === 'ability_vampire') {
+                    // LIFEDRAIN -- drains HP to vampire
                     document.body.style.filter = 'saturate(0) brightness(0.4)';
                     setTimeout(() => { document.body.style.filter = ''; }, 400);
-                    this.chat.addMessage('event', '🧛 LIFEDRAIN CLAMP — your blood fuels the palace.');
+                    this.chat.addMessage('event', '🧛 LIFEDRAIN — 25hp stolen. the vampire feasts.');
                 } else if (effect === 'ability_disco') {
+                    // FORCED GROOVE -- stun + control confusion
+                    this.confuseTimer = Math.max(this.confuseTimer, 2);
                     const dHue = Math.random();
                     document.body.style.filter = `hue-rotate(${dHue * 360}deg) brightness(2) saturate(3)`;
-                    setTimeout(() => { document.body.style.filter = ''; }, 300);
-                    this.chat.addMessage('event', '💃 FORCED GROOVE — YOU WILL DANCE.');
+                    setTimeout(() => { document.body.style.filter = ''; }, 350);
+                    this.chat.addMessage('event', '🪩 FORCED GROOVE — stunned + confused. you will dance whether you want to or not.');
                 } else if (effect === 'ability_shadow') {
+                    // BLACK FLASH -- screen goes black + 45 dmg
                     document.body.style.filter = 'brightness(0)';
                     setTimeout(() => { document.body.style.filter = ''; }, 250);
-                    this.chat.addMessage('event', '🖤 BLACK FLASH — you did not see it coming.');
+                    this.chat.addMessage('event', '🖤 BLACK FLASH — you did not see it coming. nobody does.');
                 } else if (effect === 'ability_barney') {
+                    // UNCONDITIONAL HUG -- teleport to center + stun, barney heals, no dmg
                     document.body.style.filter = 'hue-rotate(270deg) saturate(3) brightness(1.5)';
                     setTimeout(() => { document.body.style.filter = ''; }, 500);
-                    this.chat.addMessage('event', '🟣 UNCONDITIONAL HUG OF DOOM — mandatory participation.');
+                    this.chat.addMessage('event', '🟣 THE HUG IS MANDATORY — barney loves you. he healed. you are stunned. this is fine.');
                 } else if (effect === 'ability_emo') {
-                    document.body.style.filter = 'saturate(0) brightness(0.2)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 350);
-                    this.chat.addMessage('event', '😢 RESONANCE WAVE — nobody cares. 40 dmg.');
+                    // RESONANCE WAVE -- 40 dmg + bleak screen
+                    document.body.style.filter = 'saturate(0) brightness(0.15)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 400);
+                    this.chat.addMessage('event', '😢 RESONANCE WAVE — 40 dmg. nobody cares. especially not the emo.');
                 } else if (effect === 'ability_shrek') {
-                    this.mudSlowTimer = Math.max(this.mudSlowTimer, 5);
-                    document.body.style.filter = 'sepia(1) brightness(0.6)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 300);
-                    this.chat.addMessage('event', '🟩 SWAMP SINK — you are stuck. this is his domain.');
-                } else if (effect === 'ability_buffcat') {
-                    document.body.style.filter = 'saturate(0) contrast(3) brightness(0.5)';
-                    setTimeout(() => { document.body.style.filter = ''; }, 200);
-                    this.chat.addMessage('event', '💪 IRON FIST — 50 dmg. absolutely jacked. rip.');
-                } else if (effect === 'ability_voidcat') {
-                    document.body.style.filter = 'invert(1) brightness(0.2)';
+                    // THIS IS MY SWAMP -- max mud, no dmg, shrek just owns the swamp
+                    this.mudSlowTimer = Math.max(this.mudSlowTimer, 6);
+                    document.body.style.filter = 'sepia(1) brightness(0.5)';
                     setTimeout(() => { document.body.style.filter = ''; }, 350);
-                    this.chat.addMessage('event', '⬛ VOID ERASURE — your existence is questioned.');
-                } else if (effect === 'ability_hybrid') {
-                    const chaosHue = Math.random() * 360;
-                    document.body.style.filter = `hue-rotate(${chaosHue}deg) contrast(3)`;
+                    this.chat.addMessage('event', '🟢 THIS IS MY SWAMP — 6s full mud. shrek does not fight. he just owns this.');
+                } else if (effect === 'ability_buffcat') {
+                    // IRON FIST -- 50 dmg, no philosophy needed
+                    document.body.style.filter = 'saturate(0) contrast(4) brightness(0.5)';
                     setTimeout(() => { document.body.style.filter = ''; }, 200);
-                    this.chat.addMessage('event', `😵 CHAOS BURST — ${Math.round(_radius)} dmg. hybrid doesn't even know.`);
+                    this.chat.addMessage('event', '💪 IRON FIST — 50 dmg. buffcat has no theme. buffcat has biceps.');
+                } else if (effect === 'ability_voidcat') {
+                    // VOID PERCEPTION -- hides entire HUD, teleports, no damage
+                    this.hudHideTimer = Math.max(this.hudHideTimer, 5);
+                    document.body.style.filter = 'invert(1) brightness(0.1)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 400);
+                    this.chat.addMessage('event', '⬛ VOID PERCEPTION — HUD hidden 5s. voidcat fights with confusion. where is your hp?');
+                } else if (effect === 'ability_hybrid_dmg') {
+                    document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) contrast(3)`;
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                    this.chat.addMessage('event', '😵 CHAOS BURST [damage] — hybrid rolled attack. random dmg. it was surprised too.');
+                } else if (effect === 'ability_hybrid_heal') {
+                    this.chat.addMessage('event', '😵 CHAOS BURST [heal] — hybrid healed itself. 50% hp. it looked as confused as you.');
+                } else if (effect === 'ability_hybrid_chaos') {
+                    this.confuseTimer = Math.max(this.confuseTimer, 3);
+                    document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(5)`;
+                    setTimeout(() => { document.body.style.filter = ''; }, 300);
+                    this.chat.addMessage('event', '😵 CHAOS BURST [confusion] — stunned + confused. hybrid doesnt know what it is either.');
                 } else if (effect === 'execute_player') {
                     this.chat.addMessage('event', '💀 DOMAIN EXECUTE — you were too weak. the domain finished it.');
                 } else if (effect === 'kill_burst') {
@@ -428,6 +450,11 @@ class CatGodWorld {
 
     private tryAttackNearestNPC(): void {
         if (!this.sageCharacter.canAttack() || this.sageCharacter.isDead()) return;
+        // robot domain: system override -- attacks disabled
+        if (this.attackPenaltyTimer > 0) {
+            this.chat.addMessage('event', '🤖 ATTACK BLOCKED — system override active.');
+            return;
+        }
         const playerPos = this.sageCharacter.getPosition();
         const range = this.sageCharacter.getAttackRange(this.inventory.getRangeBonus());
         const baseDmg = this.sageCharacter.getAttackDamage(this.inventory.getAttackBonus());
@@ -773,6 +800,9 @@ class CatGodWorld {
             const mudMult = this.mudSlowTimer > 0 ? 0.35 : 1; // shrek mud slows to 35% speed lol
             this.sageCharacter.setSpeedMultiplier(fishMult * mudMult);
             if (this.mudSlowTimer > 0) this.mudSlowTimer -= deltaTime;
+            // tick domain debuff timers
+            if (this.attackPenaltyTimer > 0) this.attackPenaltyTimer -= deltaTime;
+            if (this.hudHideTimer > 0) this.hudHideTimer -= deltaTime;
 
             // tick all active buff/debuff timers -- none of these worked before bc nobody decremented them. oops.
             if (this.invincibleTimer > 0) this.invincibleTimer -= deltaTime;
@@ -1006,6 +1036,12 @@ class CatGodWorld {
     }
 
     private updateUI(): void {
+        // voidcat domain: hide entire HUD while hudHideTimer is active. you cant see anything.
+        const uiEl = document.getElementById('ui') as HTMLElement | null;
+        const hpEl = document.getElementById('hp-panel') as HTMLElement | null;
+        const hidden = this.hudHideTimer > 0;
+        if (uiEl) uiEl.style.visibility = hidden ? 'hidden' : '';
+        if (hpEl) hpEl.style.visibility = hidden ? 'hidden' : '';
         // hp bar update -- red if low, yellow if mid, green if healthy
         const hpCurrent = document.getElementById('hp-current');
         const hpMax = document.getElementById('hp-max');

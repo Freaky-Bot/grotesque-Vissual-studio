@@ -421,57 +421,52 @@ export class DomainExpansionSystem {
 
         switch (type) {
             case 'normal': {
-                // INFINITE MEOW BARRAGE: slams 5 guaranteed meow hits in a burst. no reaction time.
+                // INFINITE MEOW BARRAGE: pure spam. thematically: just a cat. going absolutely feral. 5 hits.
                 for (let i = 0; i < 5; i++) onPlayerDamage(6);
                 this.onDomainEffect?.('ability_normal', d.castPos, d.def.radius);
                 break;
             }
             case 'jesus': {
-                // HOLY JUDGMENT: divine light beam -- 25 damage + stun. you sinned. accept it.
-                onPlayerDamage(25);
-                onPlayerStun();
+                // DIVINE FORGIVENESS: jesus doesn't hurt you. he FORGIVES you.
+                // which means he heals himself back to full. debuff: blinds with holy light.
+                d.npc.hp = d.npc.maxHp; // full heal. he's jesus. he can do that.
                 this.onDomainEffect?.('ability_jesus', d.castPos, d.def.radius);
                 break;
             }
             case 'robot': {
-                // LOGIC LOCK: locks player to center with a targeting beam + 20 dmg. nowhere to run.
-                const robotLockPos = new THREE.Vector3(
-                    d.castPos.x + (Math.random() - 0.5) * 4,
-                    playerPos.y,
-                    d.castPos.z + (Math.random() - 0.5) * 4,
-                );
-                this.onPlayerPushback?.(robotLockPos); // drag to center
-                onPlayerDamage(20);
+                // SYSTEM OVERRIDE: disables player attacks for 3s. you have been logic-locked.
+                // zero damage -- robot doesn't need to punch you. it just makes you unable to fight.
                 this.onDomainEffect?.('ability_robot', d.castPos, d.def.radius);
                 break;
             }
             case 'orb': {
-                // OMNISCIENT GRASP: the orb SEES you and yanks you to it. 20 dmg + pull to center.
+                // OMNISCIENT PULL: the orb doesn't attack. it just slides you to the center and watches.
+                // being near the orb is the punishment.
                 const orbCenter = new THREE.Vector3(
-                    d.castPos.x + (Math.random() - 0.5) * 6,
+                    d.castPos.x + (Math.random() - 0.5) * 4,
                     playerPos.y,
-                    d.castPos.z + (Math.random() - 0.5) * 6,
+                    d.castPos.z + (Math.random() - 0.5) * 4,
                 );
                 this.onPlayerPushback?.(orbCenter);
-                onPlayerDamage(20);
                 this.onDomainEffect?.('ability_orb', d.castPos, d.def.radius);
                 break;
             }
             case 'angel': {
-                // DIVINE SMITE: holy feather storm. 30 dmg + stun. god is not forgiving here.
-                onPlayerDamage(30);
-                onPlayerStun();
+                // GRACE DEBUFF: angel blesses itself with divine grace (heals) + slows you
+                // with the weight of heaven. movement penalty, no direct damage.
+                d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 20);
                 this.onDomainEffect?.('ability_angel', d.castPos, d.def.radius);
                 break;
             }
             case 'pirate': {
-                // CANNONBALL: direct hit. 35 dmg. no warning. yarr.
+                // CANNONBALL: no theme subversion here. pirates shoot cannons. direct hit. 35 dmg.
                 onPlayerDamage(35);
                 this.onDomainEffect?.('ability_pirate', d.castPos, d.def.radius);
                 break;
             }
             case 'wizard': {
-                // TELEPORT TRAP: zaps player to a random spot inside. disorients + 20 dmg.
+                // ARCANE MAZE: teleport + confuse. the wizard doesn't hurt you directly.
+                // he makes you unable to navigate. movement inversion + random teleport.
                 const angle = Math.random() * Math.PI * 2;
                 const r = 2 + Math.random() * (d.def.radius * 0.7);
                 this.onPlayerPushback?.(new THREE.Vector3(
@@ -479,60 +474,61 @@ export class DomainExpansionSystem {
                     playerPos.y,
                     d.castPos.z + Math.sin(angle) * r,
                 ));
-                onPlayerDamage(20);
                 this.onDomainEffect?.('ability_wizard', d.castPos, d.def.radius);
                 break;
             }
             case 'vampire': {
-                // LIFEDRAIN CLAMP: drains 25 hp directly from player and gives it to the vampire. personal.
+                // LIFEDRAIN CLAMP: steals HP directly. very on-brand. no creative interpretation needed.
                 onPlayerDamage(25);
-                d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 25); // vampire gets it
+                d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 25); // vampire gets it back
                 this.onDomainEffect?.('ability_vampire', d.castPos, d.def.radius);
                 break;
             }
             case 'disco': {
-                // FORCED GROOVE: cant stop wont stop. stun + 10 dmg + extra groove effect.
-                onPlayerDamage(10);
+                // FORCED GROOVE: no damage. just pure movement chaos. inverts controls, stuns briefly.
+                // you WILL dance. you just wont be able to stop.
                 onPlayerStun();
                 this.onDomainEffect?.('ability_disco', d.castPos, d.def.radius);
                 break;
             }
             case 'shadow': {
-                // BLACK FLASH: the signature move. 45 guaranteed dmg + screen goes black.
+                // BLACK FLASH: screen goes pitch black + 45 dmg. the shadow strikes from darkness.
+                // this ones damage bc thats what shadow DOES
                 onPlayerDamage(45);
                 this.onDomainEffect?.('ability_shadow', d.castPos, d.def.radius);
                 break;
             }
             case 'barney': {
-                // UNCONDITIONAL HUG OF DOOM: teleports you to center + 15 dmg + 3s stun.
-                // the hug is mandatory. the hug is always there. the hug never ends.
+                // UNCONDITIONAL HUG: barney loves you. mandatory. he doesnt HURT you.
+                // he just teleports you to the center and heals HIMSELF and stuns you in the embrace.
                 this.onPlayerPushback?.(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
-                onPlayerDamage(15);
+                d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + 30); // the hug heals barney. love does that.
                 onPlayerStun();
                 this.onDomainEffect?.('ability_barney', d.castPos, d.def.radius);
                 break;
             }
             case 'emo': {
-                // RESONANCE WAVE: nobody cares. 40 dmg. glass domain hits hardest on offense.
+                // RESONANCE WAVE: 40 dmg. the emo is a glass cannon. they hit hard or they dont exist.
+                // also blinds screen -- perception bleak as the emo's soul
                 onPlayerDamage(40);
                 this.onDomainEffect?.('ability_emo', d.castPos, d.def.radius);
                 break;
             }
             case 'shrek': {
-                // SWAMP SINK: mud everywhere + 20 dmg. this is his swamp. u r just living in it.
-                onPlayerDamage(20);
+                // THIS IS MY SWAMP: no damage. shrek doesnt fight. he just owns the swamp.
+                // max mud debuff. the mud is the attack. you are standing in shrek's domain.
                 this.onDomainEffect?.('ability_shrek', d.castPos, d.def.radius);
                 break;
             }
             case 'buffcat': {
-                // IRON FIST: 50 dmg. thats it. direct. unblockable. just completely jacked.
+                // IRON FIST: 50 dmg. thats it. buffcat doesnt have themes. buffcat has biceps.
                 onPlayerDamage(50);
                 this.onDomainEffect?.('ability_buffcat', d.castPos, d.def.radius);
                 break;
             }
             case 'voidcat': {
-                // VOID ERASURE: 35 dmg + screen invert + teleport to random edge. existence questioned.
-                onPlayerDamage(35);
+                // VOID PERCEPTION: hides the entire HUD. no dmg. voidcat fights with confusion.
+                // you cant see your hp. you cant see anything. somewhere in the dark, the void cat waits.
                 const vAngle = Math.random() * Math.PI * 2;
                 const vR = d.def.radius * 0.8;
                 this.onPlayerPushback?.(new THREE.Vector3(
@@ -544,12 +540,20 @@ export class DomainExpansionSystem {
                 break;
             }
             case 'hybrid': {
-                // CHAOS BURST: completely random. could be 20 dmg. could be 80. who knows. hybrid doesn't.
-                const chaosDmg = 20 + Math.random() * 60;
-                onPlayerDamage(chaosDmg);
-                if (Math.random() < 0.4) onPlayerStun();
-                d.abilityTimer = 2 + Math.random() * 4; // random next interval too bc of course
-                this.onDomainEffect?.('ability_hybrid', d.castPos, chaosDmg);
+                // CHAOS BURST: roll dice. could heal the hybrid. could nuke you. could just confuse.
+                // the hybrid doesn't know what it is. its ability reflects that.
+                const roll = Math.random();
+                if (roll < 0.33) {
+                    onPlayerDamage(20 + Math.random() * 60); // damage roll
+                    this.onDomainEffect?.('ability_hybrid_dmg', d.castPos, d.def.radius);
+                } else if (roll < 0.66) {
+                    d.npc.hp = Math.min(d.npc.maxHp, d.npc.hp + d.npc.maxHp * 0.5); // hybrid heals itself
+                    this.onDomainEffect?.('ability_hybrid_heal', d.castPos, d.def.radius);
+                } else {
+                    onPlayerStun();
+                    this.onDomainEffect?.('ability_hybrid_chaos', d.castPos, d.def.radius); // just stun + confusion
+                }
+                d.abilityTimer = 2 + Math.random() * 4;
                 break;
             }
         }
