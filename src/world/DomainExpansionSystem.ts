@@ -122,13 +122,13 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
     },
     // ----- PLAYER DOMAIN -- the sage awakens. honestly nobody expected this. -----
     player: {
-        name: 'Boundless Ink Realm',
+        name: 'Aberrant Throne',
         npcType: 'player',
-        flavorText: 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.',
-        radius: 32, domainColor: 0x8844ff, fogColor: 0x220044,
+        flavorText: 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.',
+        radius: 28, domainColor: 0x4400aa, fogColor: 0x110033,
         damage: 0,        // player domain doesn't hurt the player
-        npcDamage: 12,    // but it SHREDS every npc inside it (12 dps)
-        stunPulse: 0, healPerSec: 0, duration: 15, guaranteedHit: true, isPlayerDomain: true,
+        npcDamage: 16,    // 16 dps ambient + bonus from throne pillar proximity
+        stunPulse: 0, healPerSec: 0, duration: 20, guaranteedHit: true, isPlayerDomain: true,
     },
 };
 
@@ -149,6 +149,8 @@ export interface ActivePlayerDomain {
     sphere: THREE.Mesh;
     fogSphere: THREE.Mesh;  // same deal -- local fog only, not scene-wide
     light: THREE.PointLight;
+    pillars: THREE.Mesh[];        // corebound-style throne pillars at cardinal points
+    pillarLights: THREE.PointLight[];  // each pillar glows
 }
 
 export class DomainExpansionSystem {
@@ -299,7 +301,7 @@ export class DomainExpansionSystem {
 
     public hasActiveDomain(): boolean { return this.activeDomains.length > 0; }
 
-    // opens the PLAYER's domain -- centered on player, damages npcs inside, not the player themselves
+    // opens the PLAYER's domain -- aberrant throne, 4 dungeon pillars spawn in a ring
     public openPlayerDomain(): void {
         if (this.playerDomain) return; // already going
         const def = DOMAIN_DEFS['player'];
@@ -310,20 +312,43 @@ export class DomainExpansionSystem {
         });
         const sphere = new THREE.Mesh(geo, mat);
         this.scene.add(sphere);
-        // fog sphere -- localized, no global scene.fog garbage anymore
+        // localized fog sphere -- stays inside the dome, not global
         const fogGeo = new THREE.SphereGeometry(def.radius * 0.98, 24, 24);
         const fogMat = new THREE.MeshBasicMaterial({
-            color: def.fogColor, transparent: true, opacity: 0.28,
+            color: def.fogColor, transparent: true, opacity: 0.32,
             side: THREE.FrontSide, depthWrite: false
         });
         const fogSphere = new THREE.Mesh(fogGeo, fogMat);
         this.scene.add(fogSphere);
-        const light = new THREE.PointLight(def.domainColor, 4, def.radius * 1.8);
+        const light = new THREE.PointLight(def.domainColor, 5, def.radius * 2);
         this.scene.add(light);
+
+        // spawn 4 throne pillars at cardinal offsets -- corebound dungeon core vibes
+        const pillarRadius = def.radius * 0.55;
+        const pillars: THREE.Mesh[] = [];
+        const pillarLights: THREE.PointLight[] = [];
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2;
+            const px = Math.cos(angle) * pillarRadius;
+            const pz = Math.sin(angle) * pillarRadius;
+            // tall thin box -- dungeon totem
+            const pGeo = new THREE.BoxGeometry(0.8, 8, 0.8);
+            const pMat = new THREE.MeshBasicMaterial({ color: 0x220055 });
+            const pillar = new THREE.Mesh(pGeo, pMat);
+            pillar.position.set(px, 4, pz); // y=4 centers the 8-tall box on ground
+            this.scene.add(pillar);
+            pillars.push(pillar);
+            // each pillar gets a small purple glow
+            const pl = new THREE.PointLight(0x9922ff, 2.5, 10);
+            pl.position.set(px, 6, pz);
+            this.scene.add(pl);
+            pillarLights.push(pl);
+        }
+
         this.playerDomain = {
-            def,
-            timeRemaining: def.duration,
+            def, timeRemaining: def.duration,
             sphere, fogSphere, light,
+            pillars, pillarLights,
         };
         this.onDomainOpen?.(def.name, def.flavorText);
     }
@@ -340,16 +365,37 @@ export class DomainExpansionSystem {
         pd.sphere.position.set(playerPos.x, 0, playerPos.z);
         pd.fogSphere.position.set(playerPos.x, 0, playerPos.z);
         pd.light.position.set(playerPos.x, 5, playerPos.z);
-        // pulsing opacity bc why not meow~
+        // pulsing skin -- the throne breathes
         (pd.sphere.material as THREE.MeshBasicMaterial).opacity = 0.12 + Math.sin(Date.now() * 0.003) * 0.07;
-        (pd.fogSphere.material as THREE.MeshBasicMaterial).opacity = 0.22 + Math.sin(Date.now() * 0.002 + 1) * 0.06;
+        (pd.fogSphere.material as THREE.MeshBasicMaterial).opacity = 0.25 + Math.sin(Date.now() * 0.002 + 1) * 0.07;
+
+        // move throne pillars with the player + pulse their glow
+        const pillarRadius = pd.def.radius * 0.55;
+        for (let i = 0; i < pd.pillars.length; i++) {
+            const angle = (i / pd.pillars.length) * Math.PI * 2;
+            const px = playerPos.x + Math.cos(angle) * pillarRadius;
+            const pz = playerPos.z + Math.sin(angle) * pillarRadius;
+            pd.pillars[i].position.set(px, 4, pz);
+            pd.pillarLights[i].position.set(px, 6, pz);
+            pd.pillarLights[i].intensity = 2.0 + Math.sin(Date.now() * 0.004 + i * 1.5) * 0.8;
+        }
+
         for (const npc of npcs) {
             if (!npc.isAlive()) continue;
             const np = npc.getPosition();
             const dx = np.x - playerPos.x;
             const dz = np.z - playerPos.z;
-            if (Math.sqrt(dx * dx + dz * dz) < pd.def.radius) {
+            const distFromCenter = Math.sqrt(dx * dx + dz * dz);
+            if (distFromCenter < pd.def.radius) {
                 npc.takeDamage(pd.def.npcDamage * dt);
+                // bonus damage if near a throne pillar -- the dungeon core punishes proximity
+                for (const pillar of pd.pillars) {
+                    const pdx = np.x - pillar.position.x;
+                    const pdz = np.z - pillar.position.z;
+                    if (Math.sqrt(pdx * pdx + pdz * pdz) < 5) {
+                        npc.takeDamage(20 * dt); // extra 20 dps near each pillar
+                    }
+                }
             }
         }
         if (pd.timeRemaining <= 0) {
@@ -360,6 +406,13 @@ export class DomainExpansionSystem {
             (pd.fogSphere.material as THREE.MeshBasicMaterial).dispose();
             pd.sphere.geometry.dispose();
             pd.fogSphere.geometry.dispose();
+            // tear down the throne pillars -- domain collapsed
+            for (let i = 0; i < pd.pillars.length; i++) {
+                this.scene.remove(pd.pillars[i]);
+                this.scene.remove(pd.pillarLights[i]);
+                (pd.pillars[i].material as THREE.MeshBasicMaterial).dispose();
+                pd.pillars[i].geometry.dispose();
+            }
             this.onPlayerDomainClose?.(pd.def.name);
             this.playerDomain = null;
         }

@@ -285,8 +285,8 @@ class CatGodWorld {
                 if (this.sageCharacter.tryActivateDomain()) {
                     const ds = this.npcManager.getDomainSystem();
                     if (ds) ds.openPlayerDomain();
-                    this.showDomainBanner('Boundless Ink Realm', 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.');
-                    this.chat.addMessage('event', '⚡ DOMAIN EXPANSION: BOUNDLESS INK REALM');
+                    this.showDomainBanner('Aberrant Throne', 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.');
+                    this.chat.addMessage('event', '⚡ DOMAIN EXPANSION: ABERRANT THRONE');
                 } else {
                     const cd = Math.ceil(this.sageCharacter.getDomainCooldown());
                     this.chat.addMessage('event', cd > 0 ? `⏳ Domain cooldown: ${cd}s remaining` : '⚡ Domain already active!');
@@ -740,10 +740,10 @@ class CatGodWorld {
                 // low hp auto-awakened -- dramatic moment ngl
                 const ds = this.npcManager.getDomainSystem();
                 if (ds && !ds.isPlayerDomainActive()) ds.openPlayerDomain();
-                this.showDomainBanner('Boundless Ink Realm', 'I HAVE LIVED A THOUSAND LIVES. INSIDE MY DOMAIN, YOU LIVE NONE.');
-                this.chat.addMessage('event', '⚡ Domain Expansion AWAKENED at low HP!!');
+                this.showDomainBanner('Aberrant Throne', 'I DWELL IN A DREAM, BY A LAW OF MY OWN. STEP INSIDE MY THRONE AND CEASE TO EXIST.');
+                this.chat.addMessage('event', '⚡ Domain Expansion ABERRANT THRONE awakened at low HP!!');
             } else if (domainTick === 'closed') {
-                this.chat.addMessage('event', '💨 Boundless Ink Realm collapsed. 90s cooldown.');
+                this.chat.addMessage('event', '💨 Aberrant Throne collapsed. 90s cooldown.');
             }
             // update the player domain sphere + deal npc damage each frame
             this.npcManager.getDomainSystem()?.updatePlayerDomain(
