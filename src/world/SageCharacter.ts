@@ -10,6 +10,13 @@ export class SageCharacter {
     private glowIntensity: number = 1;
     private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
+    // player health -- yeah we die now. whatever.
+    public hp: number = 100;
+    public readonly maxHp: number = 100;
+    private attackCooldown_: number = 0;
+    private readonly BASE_ATTACK_RANGE: number = 4.0;
+    private readonly BASE_ATTACK_DMG: number = 15;
+
     // gravity + jumping
     private verticalVelocity: number = 0;
     private isGrounded: boolean = true;
@@ -303,5 +310,41 @@ export class SageCharacter {
     // fish speed boost: pass the multiplier from ItemPickupSystem every frame
     public setSpeedMultiplier(mult: number): void {
         this.speedMult = mult;
+    }
+
+    // health + attack methods -- the sage can fight back meow
+    public takeDamage(dmg: number): void {
+        this.hp = Math.max(0, this.hp - dmg);
+    }
+
+    public isDead(): boolean {
+        return this.hp <= 0;
+    }
+
+    public respawn(): void {
+        this.hp = this.maxHp;
+        this.position.set(10, 2, -10);
+        this.verticalVelocity = 0;
+        this.mesh.position.copy(this.position);
+    }
+
+    public tickAttackCooldown(deltaTime: number): void {
+        if (this.attackCooldown_ > 0) this.attackCooldown_ -= deltaTime;
+    }
+
+    public canAttack(): boolean {
+        return this.attackCooldown_ <= 0;
+    }
+
+    public markAttacked(): void {
+        this.attackCooldown_ = 0.6; // 0.6s between attacks
+    }
+
+    public getAttackRange(bonusRange: number = 0): number {
+        return this.BASE_ATTACK_RANGE + bonusRange;
+    }
+
+    public getAttackDamage(bonusDmg: number = 0): number {
+        return this.BASE_ATTACK_DMG + bonusDmg;
     }
 }

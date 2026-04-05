@@ -91,6 +91,17 @@ export class ItemPickupSystem {
         }
     }
 
+    // call these from inventory use -- same effect as walking over the item
+    public applyFish(): void {
+        this.speedMultiplier = 2.2;
+        this.speedTimer = 10;
+    }
+
+    public applyCatnip(): void {
+        this.isWobbly = true;
+        this.wobblyTimer = 8;
+    }
+
     private collectItem(item: PickupItem): void {
         if (item.type === ItemType.FISH) {
             this.speedMultiplier = 2.2;

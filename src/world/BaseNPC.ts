@@ -11,6 +11,12 @@ export abstract class BaseNPC {
     protected bubbleHeadOffset: number = 3.5; // how high above position to show bubble, override per npc type
     private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
+    // health -- everyone has hp now. welcome to combat zone.
+    protected hp: number = 40;
+    protected maxHp: number = 40;
+    private attackTimer_: number = 0;
+    protected attackInterval_: number = 2.0;
+
     // gravity + jumping -- grounded npcs get this for free
     protected verticalVelocity: number = 0;
     protected isGrounded: boolean = true;
@@ -95,6 +101,36 @@ export abstract class BaseNPC {
 
     public die(): void {
         this.isAlive_ = false;
+    }
+
+    // hp stuff -- now mobs can get bonked uwu
+    public takeDamage(dmg: number): void {
+        this.hp = Math.max(0, this.hp - dmg);
+        if (this.hp <= 0) this.die();
+    }
+
+    public getHp(): number { return this.hp; }
+    public getMaxHp(): number { return this.maxHp; }
+
+    // set hp ceiling + refill -- call this right after constructing the npc
+    public setMaxHp(newMax: number): void {
+        this.maxHp = newMax;
+        this.hp = newMax;
+    }
+
+    // returns damage dealt this tick (0 if not attacking or out of range)
+    public tickAttack(playerPos: THREE.Vector3, deltaTime: number, range: number, damage: number): number {
+        if (damage <= 0) return 0;
+        this.attackTimer_ -= deltaTime;
+        if (this.attackTimer_ <= 0) {
+            const dist = this.position.distanceTo(playerPos);
+            if (dist <= range) {
+                this.attackTimer_ = this.attackInterval_;
+                return damage;
+            }
+            this.attackTimer_ = 0.3; // re-check soon if player out of range
+        }
+        return 0;
     }
 
     public abstract getType(): string;

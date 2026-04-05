@@ -206,11 +206,125 @@
             pointer-events: none;
             z-index: 305;
         }
+
+        /* ---- HP panel (top right) ---- */
+        #hp-panel {
+            position: fixed;
+            top: 12px; right: 14px;
+            background: rgba(0,0,0,0.72);
+            border-radius: 8px;
+            padding: 8px 12px;
+            z-index: 110;
+            min-width: 160px;
+            font-family: Arial, sans-serif;
+        }
+        #hp-label {
+            color: #ff6b6b;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        #hp-bar-bg {
+            width: 100%; height: 10px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #hp-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: #44ee66;
+            border-radius: 5px;
+            transition: width 0.15s ease, background 0.3s ease;
+        }
+
+        /* ---- hotbar (bottom center) ---- */
+        #hotbar {
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 110;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            pointer-events: none;
+        }
+        #hotbar-label {
+            color: #ffdd88;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            min-height: 16px;
+        }
+        #hotbar-slots {
+            display: flex;
+            gap: 5px;
+        }
+        .hotbar-slot {
+            width: 48px; height: 48px;
+            background: rgba(0,0,0,0.65);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-family: Arial, sans-serif;
+            transition: border-color 0.1s;
+        }
+        .hotbar-slot.selected {
+            border-color: #ffdd55;
+            background: rgba(255,220,60,0.18);
+        }
+        .slot-icon { font-size: 22px; line-height: 1; }
+        .slot-count {
+            position: absolute;
+            bottom: 2px; right: 4px;
+            font-size: 10px;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 0 1px 2px #000;
+        }
+        .slot-key {
+            position: absolute;
+            top: 2px; left: 4px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* ---- death overlay ---- */
+        #death-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(100,0,0,0.7);
+            z-index: 600;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial Black, Arial, sans-serif;
+        }
+        #death-text {
+            font-size: 64px;
+            font-weight: 900;
+            color: #ff2222;
+            text-shadow: 0 0 40px #ff0000, 0 4px 8px rgba(0,0,0,0.8);
+            letter-spacing: 4px;
+        }
+        #death-sub {
+            font-size: 18px;
+            color: rgba(255,200,200,0.8);
+            margin-top: 14px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
     <div id="ui">
-        <div>Cat God World - WASD to move, SPACE jump, P procreate, F faction, Right-Click rotate cam, M mute · Mobile: joystick left / drag right</div>
+        <div>Cat God World - WASD move · SPACE jump · LClick attack · E use item · 1-6 slots · P procreate · F faction · Right-Click cam · M mute</div>
         <div id="playerKills">Player Kills: 0</div>
         <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
         <div id="procreation">💔 Get closer to Cat God</div>
@@ -232,6 +346,31 @@
     </div>
 
     <script type="module" src="./src/main.ts"></script>
+
+    <!-- hp panel top right -- finally the player has health lol -->
+    <div id="hp-panel">
+        <div id="hp-label">❤️ <span id="hp-current">100</span> / <span id="hp-max">100</span></div>
+        <div id="hp-bar-bg"><div id="hp-bar-fill"></div></div>
+    </div>
+
+    <!-- hotbar bottom center -- 6 item slots, 1-6 to select, E to use -->
+    <div id="hotbar">
+        <div id="hotbar-label"></div>
+        <div id="hotbar-slots">
+            <div class="hotbar-slot selected" data-slot="0"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">1</span></div>
+            <div class="hotbar-slot" data-slot="1"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">2</span></div>
+            <div class="hotbar-slot" data-slot="2"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">3</span></div>
+            <div class="hotbar-slot" data-slot="3"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">4</span></div>
+            <div class="hotbar-slot" data-slot="4"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">5</span></div>
+            <div class="hotbar-slot" data-slot="5"><span class="slot-icon"></span><span class="slot-count"></span><span class="slot-key">6</span></div>
+        </div>
+    </div>
+
+    <!-- death overlay -- YOU DIED, classic -->
+    <div id="death-overlay">
+        <div id="death-text">YOU DIED</div>
+        <div id="death-sub">respawning in 3 seconds...</div>
+    </div>
 
     <!-- COMBO OVERLAY -- the purrfect combo screen flash -->
     <div id="combo-overlay" style="

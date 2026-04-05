@@ -23,6 +23,8 @@ import { DungeonGenerator } from './world/DungeonGenerator';
 import { VoidPortal } from './world/VoidPortal';
 import { ItemPickupSystem } from './world/ItemPickupSystem';
 import { ComboSystem } from './world/ComboSystem';
+import { BaseNPC } from './world/BaseNPC';
+import { InventorySystem, ITEM_INFO } from './world/InventorySystem';
 
 class CatGodWorld {
     private renderEngine: RenderEngine;
@@ -57,6 +59,10 @@ class CatGodWorld {
     private sunLight!: THREE.DirectionalLight; // ref kept for day/night
     private ambientLightRef!: THREE.AmbientLight; // ref kept for day/night + weather
     private mudSlowTimer: number = 0; // seconds of slowness remaining from shrek mud
+
+    // inventory + combat state -- about time the player can fight back
+    private inventory: InventorySystem = new InventorySystem();
+    private playerRespawnTimer: number = 0; // counts down to respawn after death
 
     constructor() {
         this.renderEngine = new RenderEngine();
@@ -151,6 +157,30 @@ class CatGodWorld {
         });
         this.npcManager.setWorldGenerator(this.worldGenerator);
 
+        // npc hits player: deal damage, flash the hp bar red
+        this.npcManager.onPlayerHit = (dmg) => {
+            if (this.sageCharacter.isDead()) return;
+            this.sageCharacter.takeDamage(dmg);
+            this.chat.addMessage('event', `💢 Ouch! -${dmg} HP`);
+            const bar = document.getElementById('hp-bar-fill');
+            if (bar) { bar.style.background = '#ff2222'; setTimeout(() => { if (bar) bar.style.background = ''; }, 200); }
+        };
+
+        // npc dies: roll loot, add to inventory
+        this.npcManager.onNpcKilled = (npcType, _pos) => {
+            const loot = InventorySystem.rollLoot(npcType);
+            if (loot) {
+                const added = this.inventory.addItem(loot);
+                if (added) {
+                    const info = ITEM_INFO[loot];
+                    this.chat.addMessage('event', `🎁 Dropped: ${info.icon} ${info.name}`);
+                }
+            }
+        };
+
+        // inventory hotbar update callback
+        this.inventory.onInventoryChange = () => this.renderHotbar();
+
         // assign factions to all npcs as they spawn (wire via bubbleCb timing hack)
         // just assign on each NPC after it gets added -- would be cleaner but this is sloppy code land
         const origBubbleFn = (pos: THREE.Vector3, text: string, h: number) => this.bubbles.showBubbleLive(pos, text, h);
@@ -179,6 +209,20 @@ class CatGodWorld {
         document.addEventListener('keydown', (e) => {
             this.keyPressed[e.key.toLowerCase()] = true;
 
+            // number keys 1-6 select hotbar slot
+            const slotKey = parseInt(e.key) - 1;
+            if (slotKey >= 0 && slotKey <= 5) {
+                this.inventory.selectSlot(slotKey);
+                this.renderHotbar();
+                return;
+            }
+
+            // E key = use equipped item
+            if (e.key.toLowerCase() === 'e' && !this.chat.isInputOpen()) {
+                this.useEquippedItem();
+                return;
+            }
+
             if (e.key.toLowerCase() === 'p') {
                 // Attempt procreation
                 const offspring = this.procreationSystem.procreate(
@@ -202,6 +246,72 @@ class CatGodWorld {
         document.addEventListener('keyup', (e) => {
             this.keyPressed[e.key.toLowerCase()] = false;
         });
+
+        // left click = attack nearest npc in range
+        document.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || this.chat.isInputOpen()) return;
+            this.tryAttackNearestNPC();
+        });
+    }
+
+    private tryAttackNearestNPC(): void {
+        if (!this.sageCharacter.canAttack() || this.sageCharacter.isDead()) return;
+        const playerPos = this.sageCharacter.getPosition();
+        const range = this.sageCharacter.getAttackRange(this.inventory.getRangeBonus());
+        const dmg = this.sageCharacter.getAttackDamage(this.inventory.getAttackBonus());
+        let closest: BaseNPC | null = null;
+        let closestDist = range;
+        for (const npc of this.npcManager.getNPCs()) {
+            if (!npc.isAlive()) continue;
+            const d = npc.getPosition().distanceTo(playerPos);
+            if (d < closestDist) { closestDist = d; closest = npc; }
+        }
+        if (closest) {
+            closest.takeDamage(dmg);
+            this.sageCharacter.markAttacked();
+            const died = !closest.isAlive();
+            this.chat.addMessage('event', died
+                ? `⚔ Killed a ${closest.getType()}! (+${dmg} dmg)`
+                : `⚔ Hit ${closest.getType()} for ${dmg} dmg`
+            );
+        }
+    }
+
+    private useEquippedItem(): void {
+        const used = this.inventory.useEquipped();
+        if (!used) return;
+        if (used === 'fish') {
+            this.itemPickups.applyFish();
+            this.chat.addMessage('event', '🐟 Fish! Speed x2.2 for 10s');
+        } else if (used === 'catnip') {
+            this.itemPickups.applyCatnip();
+            this.chat.addMessage('event', '🌿 Catnip! Vision wobbling...');
+        } else if (used === 'potion') {
+            const healed = Math.min(40, this.sageCharacter.maxHp - this.sageCharacter.hp);
+            this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 40);
+            this.chat.addMessage('event', `🧪 Potion! Healed ${healed} HP`);
+        } else if (used === 'void_shard') {
+            const playerPos = this.sageCharacter.getPosition();
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 10) {
+                    npc.takeDamage(30);
+                    hits++;
+                }
+            }
+            this.chat.addMessage('event', `💜 Void Shard! Blasted ${hits} mobs for 30 dmg`);
+        } else if (used === 'onion') {
+            const playerPos = this.sageCharacter.getPosition();
+            let hits = 0;
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(playerPos) < 12) {
+                    npc.takeDamage(20);
+                    hits++;
+                }
+            }
+            this.chat.addMessage('event', `🧅 Onion! Shrek tribute! Hit ${hits} mobs for 20 dmg`);
+        }
+        this.renderHotbar();
     }
 
     private setupLighting(): void {
@@ -327,6 +437,24 @@ class CatGodWorld {
                 console.log(`%cゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ`, 'color: purple; font-size: 14px;');
             }
 
+            // tick attack cooldown for the player
+            this.sageCharacter.tickAttackCooldown(deltaTime);
+
+            // player death + respawn logic
+            if (this.sageCharacter.isDead()) {
+                if (this.playerRespawnTimer <= 0) {
+                    this.playerRespawnTimer = 3.0; // respawn after 3 seconds
+                    const overlay = document.getElementById('death-overlay');
+                    if (overlay) overlay.style.display = 'flex';
+                }
+                this.playerRespawnTimer -= deltaTime;
+                if (this.playerRespawnTimer <= 0) {
+                    this.sageCharacter.respawn();
+                    const overlay = document.getElementById('death-overlay');
+                    if (overlay) overlay.style.display = 'none';
+                }
+            }
+
             // Update UI
             this.updateUI();
 
@@ -420,7 +548,35 @@ class CatGodWorld {
         if (el) el.textContent = `Online: ${this.remotePlayers.size + 1}`; // +1 for yourself
     }
 
+    private renderHotbar(): void {
+        const slots = document.querySelectorAll('.hotbar-slot');
+        slots.forEach((el, i) => {
+            const item = this.inventory.slots[i];
+            const iconEl = el.querySelector('.slot-icon') as HTMLElement | null;
+            const countEl = el.querySelector('.slot-count') as HTMLElement | null;
+            if (iconEl) iconEl.textContent = item ? item.icon : '';
+            if (countEl) countEl.textContent = item && item.quantity > 1 ? `x${item.quantity}` : '';
+            el.classList.toggle('selected', i === this.inventory.selectedSlot);
+        });
+        const label = document.getElementById('hotbar-label');
+        if (label) {
+            const eq = this.inventory.getEquipped();
+            label.textContent = eq ? `${eq.icon} ${eq.name} — ${eq.description}` : '';
+        }
+    }
+
     private updateUI(): void {
+        // hp bar update -- red if low, yellow if mid, green if healthy
+        const hpCurrent = document.getElementById('hp-current');
+        const hpMax = document.getElementById('hp-max');
+        const hpFill = document.getElementById('hp-bar-fill');
+        if (hpCurrent) hpCurrent.textContent = String(Math.max(0, Math.ceil(this.sageCharacter.hp)));
+        if (hpMax) hpMax.textContent = String(this.sageCharacter.maxHp);
+        if (hpFill) {
+            const pct = Math.max(0, this.sageCharacter.hp / this.sageCharacter.maxHp) * 100;
+            hpFill.style.width = `${pct}%`;
+            hpFill.style.background = pct > 60 ? '#44ee66' : pct > 30 ? '#ffcc00' : '#ff3333';
+        }
         const playerKillsEl = document.getElementById('playerKills');
         const npcStatsEl = document.getElementById('npcStats');
         const procreationEl = document.getElementById('procreation');

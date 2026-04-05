@@ -17,6 +17,21 @@ export class NPCManager {
     private onMudHit: ((slowDuration: number) => void) | null = null; // set from main for shrek mud
     private worldGenerator: { damageBuildingNear: (pos: THREE.Vector3, r: number) => void } | null = null;
 
+    // combat callbacks -- main.ts wires these upp
+    public onPlayerHit: ((dmg: number) => void) | null = null;
+    public onNpcKilled: ((npcType: string, pos: THREE.Vector3) => void) | null = null;
+
+    // how hard each npc type hits + at what range. barney = 0 bc he loves u
+    private static readonly NPC_ATTACK_STATS: Record<string, { dmg: number; range: number }> = {
+        cat:     { dmg: 5,  range: 3.0 },
+        barney:  { dmg: 0,  range: 0   },
+        emo:     { dmg: 12, range: 7.0 },
+        shrek:   { dmg: 20, range: 4.5 },
+        buffcat: { dmg: 15, range: 3.5 },
+        voidcat: { dmg: 8,  range: 5.0 },
+        hybrid:  { dmg: 10, range: 3.0 },
+    };
+
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         // spawn barney right away, he's always here, he was always here
@@ -68,6 +83,13 @@ export class NPCManager {
                 this.worldGenerator.damageBuildingNear(npc.getPosition(), 10);
             }
             npc.update(deltaTime);
+
+            // npc attacks player if close enough -- every npc has its own cooldown via tickAttack
+            if (this.playerPos && this.onPlayerHit) {
+                const stats = NPCManager.NPC_ATTACK_STATS[npc.getType()] ?? { dmg: 5, range: 3.5 };
+                const dmg = npc.tickAttack(this.playerPos, deltaTime, stats.range, stats.dmg);
+                if (dmg > 0) this.onPlayerHit(dmg);
+            }
         }
 
         // spawn new cats cuz chaos
@@ -79,10 +101,11 @@ export class NPCManager {
             this.spawnInterval = 3 + Math.random() * 4;
         }
 
-        // yeet dead cats (except the god one lol)
+        // yeet dead cats (except the god one lol) and fire the death callback for loot
         this.npcs = this.npcs.filter(npc => {
             if (!npc.isAlive()) {
                 this.scene.remove(npc.getMesh());
+                this.onNpcKilled?.(npc.getType(), npc.getPosition().clone()); // drop dat loot
                 return false; // removed from life :( rip
             }
             return true;
@@ -148,6 +171,7 @@ export class NPCManager {
         const dist = 25 + Math.random() * 70;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const emo = new EmoNPC(pos);
+        emo.setMaxHp(75); // edgy boi isnt THAT tanky
         if (this.bubbleCb) emo.setSpeakCallback(this.bubbleCb);
         if (this.playerPos) emo.setPlayerRef(this.playerPos);
         this.addNPC(emo);
@@ -161,6 +185,7 @@ export class NPCManager {
         const dist = 30 + Math.random() * 80;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const barney = new BarneyNPC(pos);
+        barney.setMaxHp(150); // he is a big purple dinosaur. he is tank.
         if (this.bubbleCb) barney.setSpeakCallback(this.bubbleCb);
         this.addNPC(barney);
         this.scene.add(barney.getMesh());
@@ -188,6 +213,7 @@ export class NPCManager {
         const dist = 35 + Math.random() * 80;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const shrek = new ShrekNPC(pos);
+        shrek.setMaxHp(200); // ITS HIS SWAMP. YOU CANNOT KILL HIM EASILY.
         if (this.bubbleCb) shrek.setSpeakCallback(this.bubbleCb);
         if (this.playerPos) shrek.setPlayerRef(this.playerPos);
         if (this.onMudHit) shrek.setMudHitCallback(this.onMudHit);
@@ -201,6 +227,7 @@ export class NPCManager {
         const dist = 30 + Math.random() * 90;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const buff = new BuffCatNPC(pos);
+        buff.setMaxHp(80); // jacked but not immortal
         if (this.bubbleCb) buff.setSpeakCallback(this.bubbleCb);
         this.addNPC(buff);
         this.scene.add(buff.getMesh());
@@ -212,6 +239,7 @@ export class NPCManager {
         const dist = 25 + Math.random() * 100;
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const voidCat = new VoidCatNPC(pos);
+        voidCat.setMaxHp(70); // void is spooky but fragile
         if (this.bubbleCb) voidCat.setSpeakCallback(this.bubbleCb);
         this.addNPC(voidCat);
         this.scene.add(voidCat.getMesh());

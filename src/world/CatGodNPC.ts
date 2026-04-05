@@ -22,6 +22,15 @@ export class CatGodNPC {
         scene.add(this.mesh);
     }
 
+    // da cat god cannot die. da cat god is ETERNAL. this is a no-op on purpose uwu~
+    public takeDamage(_dmg: number): void {
+        // lmao nice try. the cat god laughs at ur damage numbers.
+    }
+
+    public isAlive(): boolean {
+        return true; // always. forever. the void cannot claim what was never mortal.
+    }
+
     private createCatGodMesh(): THREE.Group {
         const group = new THREE.Group();
 
