@@ -111,7 +111,7 @@ export class CameraController {
         // horizontal drag rotates around Y axis (yaw)
         this.orbitAngleY -= dx * this.mouseSensitivity;
         // vertical drag rotates pitch -- clamped so u cant flip upside down
-        this.orbitAngleX -= dy * this.mouseSensitivity;
+        this.orbitAngleX += dy * this.mouseSensitivity;
         this.orbitAngleX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 3, this.orbitAngleX));
     }
 
