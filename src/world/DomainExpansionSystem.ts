@@ -65,8 +65,8 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         name: 'Davy Jones\' Locker',
         npcType: 'pirate', flavorText: 'YARR!! WELCOME TO THE BOTTOM OF THE SEA!!',
         radius: 34, domainColor: 0x004488, fogColor: 0x002244,
-        damage: 20, npcDamage: 0, stunPulse: 2, healPerSec: 4, duration: 11, guaranteedHit: true, isPlayerDomain: false,
-        killBurst: 45, executeHpPct: 0.20, pullRadius: 43,
+        damage: 13, npcDamage: 0, stunPulse: 3.5, healPerSec: 3, duration: 11, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 25, executeHpPct: 0.14, pullRadius: 43,
     },
     wizard:   {
         name: 'Infinite Magic Loop',
@@ -473,8 +473,8 @@ export class DomainExpansionSystem {
                 // CANNONBALL: only fires if player is within 75% of domain radius.
                 // too far back and the cannonball arc misses. you have to be in range.
                 const distPirate = playerPos.distanceTo(new THREE.Vector3(d.castPos.x, playerPos.y, d.castPos.z));
-                if (distPirate > d.def.radius * 0.75) { d.abilityTimer = 1; break; }
-                onPlayerDamage(35);
+                if (distPirate > d.def.radius * 0.6) { d.abilityTimer = 1; break; }
+                onPlayerDamage(22);
                 this.onDomainEffect?.('ability_pirate', d.castPos, d.def.radius);
                 break;
             }
