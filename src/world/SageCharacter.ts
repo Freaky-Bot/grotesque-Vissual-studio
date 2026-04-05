@@ -319,6 +319,11 @@ export class SageCharacter {
         this.jumpMult = mult;
     }
 
+    public setConfused(c: boolean): void {
+        // donut effect: inverts movement for a few sec. nobody asked for this but here we are.
+        this.confused = c;
+    }
+
     public teleportTo(pos: THREE.Vector3): void {
         this.position.set(pos.x, Math.max(this.GROUND_Y, pos.y), pos.z);
         this.verticalVelocity = 0;
