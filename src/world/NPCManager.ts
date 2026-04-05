@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { BaseNPC } from './BaseNPC';
 import { CatNPC, CatType } from './CatNPC';
 import { BarneyNPC } from './BarneyNPC';
+import { EmoNPC } from './EmoNPC';
 
 export class NPCManager {
     private npcs: BaseNPC[] = [];
@@ -9,11 +10,14 @@ export class NPCManager {
     private spawnTimer: number = 0;
     private spawnInterval: number = 5; // Spawn new NPCs every 5 seconds (or whenever they feel like it lol)
     private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+    private playerPos: THREE.Vector3 | null = null; // updated each frame for stand targeting
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         // spawn barney right away, he's always here, he was always here
         this.spawnBarney();
+        // spawn an emo too, every world needs one sad boi
+        this.spawnEmo();
     }
 
     public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
@@ -40,6 +44,10 @@ export class NPCManager {
     public update(deltaTime: number): void {
         // make all the kitties go brrrr
         for (const npc of this.npcs) {
+            // pass player pos to emos so their stand knows where to aim
+            if (npc instanceof EmoNPC && this.playerPos) {
+                npc.setPlayerRef(this.playerPos);
+            }
             npc.update(deltaTime);
         }
 
@@ -62,9 +70,19 @@ export class NPCManager {
         });
     }
 
+    // call this every frame from main.ts with the player's position
+    public setPlayerPos(pos: THREE.Vector3): void {
+        this.playerPos = pos;
+    }
+
     private spawnNewNPC(): void {
-        // 12% chance to be barney instead of a cat -- he shows up sometimes
-        if (Math.random() < 0.12) {
+        // 8% emo, 10% barney, rest cats
+        const roll = Math.random();
+        if (roll < 0.08) {
+            this.spawnEmo();
+            return;
+        }
+        if (roll < 0.18) {
             this.spawnBarney();
             return;
         }
@@ -97,6 +115,17 @@ export class NPCManager {
         if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb); // dont forget this one
         this.addNPC(npc);
         this.scene.add(npc.getMesh());
+    }
+
+    private spawnEmo(): void {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 25 + Math.random() * 70;
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const emo = new EmoNPC(pos);
+        if (this.bubbleCb) emo.setSpeakCallback(this.bubbleCb);
+        if (this.playerPos) emo.setPlayerRef(this.playerPos);
+        this.addNPC(emo);
+        this.scene.add(emo.getMesh());
     }
 
     private spawnBarney(): void {

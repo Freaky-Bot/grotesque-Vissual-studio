@@ -182,6 +182,9 @@ class CatGodWorld {
             this.physicsWorld.update(deltaTime);
             this.sageCharacter.update(deltaTime, this.cameraController.getOrbitAngleY(), this.chat.isInputOpen(), joyDx, joyDy);
 
+            // give npc manager the player pos each frame (needed for emo stand targeting)
+            this.npcManager.setPlayerPos(this.sageCharacter.getPosition());
+
             // broadcast our position to the server at ~20hz (throttled internally)
             const p = this.sageCharacter.getPosition();
             this.multiplayer.sendPosition(p.x, p.y, p.z, this.sageCharacter.getRotationY());
