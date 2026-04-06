@@ -900,6 +900,22 @@
             <div id="pregame-hint">click to claim ur divine destiny meow~</div>
         </div>
     </div>
+    <script>
+        // inline handler -- completely independent of the module loading nyaa~
+        // verily the button shall always work regardless of whatever chaos is happening in main.ts
+        document.getElementById('pregame-start').addEventListener('click', function() {
+            var menu = document.getElementById('pregame-menu');
+            menu.style.opacity = '0';
+            menu.style.pointerEvents = 'none';
+            setTimeout(function() {
+                menu.style.display = 'none';
+                // call the game init -- set by main.ts when it loads
+                if (typeof window.__catGodInit === 'function') {
+                    window.__catGodInit();
+                }
+            }, 620);
+        });
+    </script>
 
     <div id="ui">
         <div>Cat God World - WASD move · SPACE jump · LClick attack · E use item · 1-6 slots · P procreate · F faction · Drag cam · Scroll zoom · Click lock · M mute</div>
@@ -1158,7 +1174,7 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v2.3.1</div>
+    <div id="version-hud">v2.3.2</div>
 
     <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
     <div id="chaos-hud" style="

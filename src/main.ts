@@ -1779,33 +1779,8 @@ class CatGodWorld {
     }
 }
 
-// henceforth: the world shall not load until the noble player clicks START
-// verily we wait for them to be ready before unleashing the chaos
-function initOnStart() {
-    const menu = document.getElementById('pregame-menu');
-    const btn = document.getElementById('pregame-start');
-
-    if (!btn || !menu) {
-        // no menu found?? whatever just start the game i guess
-        new CatGodWorld();
-        return;
-    }
-
-    btn.addEventListener('click', () => {
-        // fade out da menu nyaa~
-        menu.classList.add('hidden');
-        setTimeout(() => {
-            menu.style.display = 'none';
-            new CatGodWorld();
-        }, 620); // wait for fade transition to finish before nuking the element
-    }, { once: true });
-}
-
-// Initialize the world when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initOnStart();
-    });
-} else {
-    initOnStart();
-}
+// henceforth: expose da game init as a global so da inline button script in index.html
+// can call it when clicked -- this is way more reliable than hunting for the button from a module
+// verily the two halves of the startup ritual are united through window.__catGodInit
+declare global { interface Window { __catGodInit: () => void; } }
+window.__catGodInit = () => { new CatGodWorld(); };
