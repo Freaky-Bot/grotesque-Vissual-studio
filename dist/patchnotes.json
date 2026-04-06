@@ -1,0 +1,202 @@
+[
+  {
+    "msg": "v2.3.2 fix: menu version now auto-syncs from version-hud on DOMContentLoaded nyaa~ only one hardcoded version string to maintain now so dis wont disappear again meow meow~ uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "4aca691"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "3f22484"
+  },
+  {
+    "msg": "v2.3.2 fix: show version number on da main menu uwu nyaa~ da smol v2.3.2 label now sits below da hint text meow meow~ 🐱💕",
+    "date": "2026-04-05",
+    "hash": "84a513f"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "9b1a042"
+  },
+  {
+    "msg": "v2.3.2 fix: start button now actually works meow!! moved click handler to inline script in HTML body so its bulletproof and doesnt depend on module timing nyaa~ window.__catGodInit bridges da button to da game init uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "2b7ad52"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "30d149f"
+  },
+  {
+    "msg": "v2.3.1 feat: added pre-game menu uwu da big gold START button appears before da world loads nyaa~ click it to initialize da realm meow meow~ 🐱✨💕",
+    "date": "2026-04-05",
+    "hash": "4a9f74a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "9b48791"
+  },
+  {
+    "msg": "v2.3.0 feat: map expansion and cleanup meow meow~ ground is now 2000x2000 nyaa~ world bounds expanded to 800 units, initial structures reduced and spread way out, added structure cap (max 60) and far-culling so da map stays breathable uwu 🌍💕",
+    "date": "2026-04-05",
+    "hash": "42de7db"
+  },
+  {
+    "msg": "v2.2.2 chore: added smol Object.assign guard script so da cursed THREE.js non-writable position crash cant happen again nyaa~ prebuild check now yeets da build if anyone tries dat evil pattern uwu 🐾💕",
+    "date": "2026-04-05",
+    "hash": "dce34fe"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "5b304f1"
+  },
+  {
+    "msg": "v2.2.1 fix: black screen was Object.assign on THREE.Mesh position/rotation nyaa~ THREE.js r183 defines those as non-writable so strict mode ES modules threw TypeError meow meow~ changed to .position.set() and .rotation.set() uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "8483610"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "c3996e9"
+  },
+  {
+    "msg": "v2.2.0 feat: CAT GOD REMASTERED uwu 👑✨ 2 pairs of wings, 3-layer halos wiff orbiting gems, divine crown wiff 5 spires, glowing teal eyes, detailed face (muzzle snout mouth), robes wiff collar + hem + chest star, multi-segment tail, divine staff wiff orb, SMITE ability zaps hostile npcs, HEAL ability +20hp when player is close nyaa~ 💕🐱⚡",
+    "date": "2026-04-05",
+    "hash": "19f935f"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "8e7961d"
+  },
+  {
+    "msg": "v2.1.7 fix: DIO now instantly hostile to EVERYONE on spawn nyaa~ markHostileToPlayer + markHostileToNpc called in constructor AND every frame so da timer nevew expires uwu he was hostile in utero meow 💕🧛",
+    "date": "2026-04-05",
+    "hash": "63b850d"
+  },
+  {
+    "msg": "v2.1.6 fix: ZA WARUDO was nevew firing meow~ DIO wasnt flagged hostile until knife HIT so cooldown expired b4 next check nyaa~ now marks hostile on sight + removed isHostileToPlayer gate uwu 🕰️💕",
+    "date": "2026-04-05",
+    "hash": "ad0d9e7"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "b91bd06"
+  },
+  {
+    "msg": "v2.1.5 feat: gib DIO da THE WORLD stand uwu~ grey silver humanoid manifests beside him when ZA WARUDO fires meow~ gold hearts, glowing yellow eyes, punching pose, hovers n pulses then fades after 5.5s nyaa~ 🕰️💕",
+    "date": "2026-04-05",
+    "hash": "980bc9a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "b2b8db8"
+  },
+  {
+    "msg": "v2.1.4 feat: DIO remodelwed uwu~ shoulder pads, bone necklace, heart chest gem, proper tiara, dramatic cape collar, REAL spiky hair nyaa~ lines fixed too KONO DIO DA 💕",
+    "date": "2026-04-05",
+    "hash": "7e3bebe"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "e038642"
+  },
+  {
+    "msg": "v2.1.3 fix: DIO was nevew in da spawn table meow!! now he spawns at start AND 2% roll nyaa~ YARE YARE DAZE uwu 💕",
+    "date": "2026-04-05",
+    "hash": "2fec4aa"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "b0fea65"
+  },
+  {
+    "msg": "v2.1.2 fix: stealth detection spam GONE meow~ null da callback AND added 5s cooldown so even if remote breaks it again it wont spam every frame nyaa uwu 💕",
+    "date": "2026-04-05",
+    "hash": "b8dd250"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "3a4ad5f"
+  },
+  {
+    "msg": "v2.1.1 fix: da black screen is back again lmao nyaa~ remote commit sneaked allNPCs back in as playerPos arg meow meow 💕 fixed AGAIN uwu",
+    "date": "2026-04-05",
+    "hash": "941ebfd"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "9f8c772"
+  },
+  {
+    "msg": "v2.2.0 feat: jojo gameplay wired nyaa~!! HAMON breathing (H) heals +3hp/s for 8s uwu, NIGERUNDAYO sprint (N) gives 2.5x speed for 4s meow meow, YOUR NEXT LINE fires every 45-90s and DIO predicts ur fate purrr~!! hamonCooldown 30s, nigerundayoCooldown 20s, prediction window 12s with +10hp if comes true 💕🐾",
+    "date": "2026-04-05",
+    "hash": "4620c20"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "0c62982"
+  },
+  {
+    "msg": "v2.1.0 feat+fix: elmo arch nemesis of emo added nyaa~, portals actually teleport u now meow, npcs chase u when mad uwu, stealth is silent now purrr 💕🐾",
+    "date": "2026-04-05",
+    "hash": "2dc03e4"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "7632fd2"
+  },
+  {
+    "msg": "v2.0.1 fix: da black screen is gone nyaa~ purrr 💕 bigWorld.update was getting allNPCs as playerPos (oops meow), wrapped mega-systems in try-catch so crashes dont kill da render loop uwu 😸",
+    "date": "2026-04-05",
+    "hash": "eeddc92"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "a32f5b8"
+  },
+  {
+    "msg": "v2.0.0 feat: 100 feature mega update nyaa~!! 7 new npc types (viking, dj, cop, demon, baby, elder, glitch), BigWorldSystems, BigEventSystems, SocialBehaviorSystem, GameplayExtras, VisualExtras, ChaoticExtras all wired into main.ts UwU 💕🐾 chaos meter, level system, quests, crafting, fishing, racing, stealth, hunger, throwables, trails, holograms, frozen/heat effects, bloom pulses, growing cats, reverse gravity zones, time rewind, stalker npc and so much more meow meow~ ✨",
+    "date": "2026-04-05",
+    "hash": "57fc985"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "699110f"
+  },
+  {
+    "msg": "v1.5.0 feat: added DIO BRANDO boss npc meow~!! kono DIO da uwu 🧛💕 500hp boss with knife throws and ZA WARUDO time stop instead of domain nyaa~ all NPCs freeze for 5s toki wo tomare!!! spawns every 5 minutes and WILL find u, DIO has been wired into NPCManager + main.ts purrr",
+    "date": "2026-04-05",
+    "hash": "16e3770"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "e4bba5a"
+  },
+  {
+    "msg": "v1.4.3 fix: domains now use da proper hostility system uwu~ targetInRange only counts entities dis npc is actually hostile to, isHostile() replaces isInCombat() in tickDomain, player attacks and npc fights properly gate da domain roll meow 🐱💕",
+    "date": "2026-04-05",
+    "hash": "c61d767"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "a4aec00"
+  }
+]
