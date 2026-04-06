@@ -21,6 +21,7 @@ export class BigWorldSystems {
     private rollerCoaster: THREE.Group | null = null;
     private ruinPieces: THREE.Object3D[] = [];
     private cityPortals: { mesh: THREE.Mesh; pos: THREE.Vector3 }[] = [];
+    private portalCooldown: number = 0; // so u dont instantly chain-teleport every frame. ugh.
     private movingPlatforms: { mesh: THREE.Mesh; startY: number; phase: number }[] = [];
     private livingTrees: { group: THREE.Group; growTimer: number; maxScale: number; dying: boolean }[] = [];
 
@@ -583,6 +584,8 @@ export class BigWorldSystems {
             // pulse opacity
             (p.mesh.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(t * 3) * 0.3;
         }
+        // cooldown so we dont fire every single frame and chain-teleport the player forever lmao
+        if (this.portalCooldown > 0) { this.portalCooldown -= dt; return; }
         // check if player walked through a portal
         if (this.playerPos) {
             for (const p of this.cityPortals) {
@@ -590,7 +593,10 @@ export class BigWorldSystems {
                     // teleport to random other portal
                     const others = this.cityPortals.filter(op => op !== p);
                     const dest = others[Math.floor(Math.random() * others.length)];
-                    if (dest) this.onPortalTeleport?.(dest.pos.clone());
+                    if (dest) {
+                        this.onPortalTeleport?.(dest.pos.clone());
+                        this.portalCooldown = 3; // 3 second cooldown so u dont instantly teleport back
+                    }
                     break;
                 }
             }

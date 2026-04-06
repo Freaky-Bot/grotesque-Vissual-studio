@@ -9,6 +9,7 @@ import { VoidCatNPC } from './VoidCatNPC';
 import { ObamaNPC } from './ObamaNPC';
 import { TrumpNPC } from './TrumpNPC';
 import { DioNPC } from './DioNPC';
+import { ElmoNPC } from './ElmoNPC';
 import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
 import { InventorySystem, ITEM_INFO } from './InventorySystem';
 
@@ -114,6 +115,7 @@ export class NPCManager {
         baby:        '8x speed -- BABY TURBO MODE. FASTEST THING ALIVE. SOMEHOW.',
         elder:       '6x damage + 80% armor + slow -- ANCIENT JUDGMENT. UNHURRIED. UNMERCIFUL.',
         glitch:      'INVULNERABLE + 3x damage -- UNTRACEABLE. THE KILL COMES FROM NOWHERE.',
+        elmo:        '3x damage when hunting emos -- ELMO IS VERY ANGRY AND VERY RED',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -178,6 +180,7 @@ export class NPCManager {
         baby:        { dmg: 4,  range: 2.0 }, // tiny bite. adorable. still hurts.
         elder:       { dmg: 28, range: 3.5 }, // ancient strike. slow but devastating.
         glitch:      { dmg: 16, range: 999  }, // range is infinite bc it teleports next to u. sorry.
+        elmo:        { dmg: 16, range: 4.0 }, // THE TICKLE MONSTER deals 16 damage. do not underestimate.
     };
 
     constructor(scene: THREE.Scene) {
@@ -235,6 +238,27 @@ export class NPCManager {
             if (npc instanceof EmoNPC && this.playerPos) {
                 npc.setPlayerRef(this.playerPos);
             }
+            // ELMO: give player ref, then find nearest emo and set as arch-nemesis hunt target
+            // he wont rest until every emo in this world laughs. by force.
+            if (npc instanceof ElmoNPC) {
+                if (this.playerPos) npc.setPlayerRef(this.playerPos);
+                let closestEmo: THREE.Vector3 | null = null;
+                let closestEmoDist = 60; // elmo only detects emos within 60 units -- beyond that he just vibes
+                for (const other of this.npcs) {
+                    if (other instanceof EmoNPC && other.isAlive()) {
+                        const d = npc.getPosition().distanceTo(other.getPosition());
+                        if (d < closestEmoDist) {
+                            closestEmoDist = d;
+                            closestEmo = other.getPosition().clone();
+                            // mark the emo as hostile to elmo (so domain activates too)
+                            other.markHostileToNpc();
+                        }
+                    }
+                }
+                npc.setEmoTarget(closestEmo);
+                // elmo is hostile to player too when hunt mode is on -- otherwise he just vibes
+                if (closestEmo) npc.markHostileToPlayer();
+            }
             // shrek gets player pos for mud attacks
             if (npc instanceof ShrekNPC && this.playerPos) {
                 npc.setPlayerRef(this.playerPos);
@@ -254,6 +278,9 @@ export class NPCManager {
                     npc.markHostileToPlayer();
                 });
             }
+            // ALL npcs: if hostile to player, set chase target so they actually pursue
+            // this is the fix for "npcs dont fight back" -- they were just wandering randomly before lol
+            npc.chaseTarget = (this.playerPos && npc.isHostileToPlayer()) ? this.playerPos.clone() : null;
             // buff cat doing zoomies can damage buildings
             if (npc instanceof BuffCatNPC && this.worldGenerator) {
                 this.worldGenerator.damageBuildingNear(npc.getPosition(), 10);
@@ -459,15 +486,16 @@ export class NPCManager {
     }
 
     private spawnNewNPC(): void {
-        // updated spawn weights: emo 7%, barney 8%, shrek 5%, buffcat 6%, voidcat 5%, rest = cats
+        // updated spawn weights: emo 7%, elmo 4%, barney 8%, shrek 5%, buffcat 6%, voidcat 5%, rest = cats
         const roll = Math.random();
         if (roll < 0.07) { this.spawnEmo(); return; }
-        if (roll < 0.15) { this.spawnBarney(); return; }
-        if (roll < 0.20) { this.spawnShrek(); return; }
-        if (roll < 0.26) { this.spawnBuffCat(); return; }
-        if (roll < 0.31) { this.spawnVoidCat(); return; }
-        if (roll < 0.35) { this.spawnObama(); return; }
-        if (roll < 0.39) { this.spawnTrump(); return; }
+        if (roll < 0.11) { this.spawnElmo(); return; } // elmo spawns slightly less than emo -- keeps balance
+        if (roll < 0.19) { this.spawnBarney(); return; }
+        if (roll < 0.24) { this.spawnShrek(); return; }
+        if (roll < 0.30) { this.spawnBuffCat(); return; }
+        if (roll < 0.35) { this.spawnVoidCat(); return; }
+        if (roll < 0.39) { this.spawnObama(); return; }
+        if (roll < 0.43) { this.spawnTrump(); return; }
         // Random cat type - JOJO EDITION!! ゴゴゴゴゴ
         const catTypes = [
             CatType.NORMAL,
@@ -567,6 +595,21 @@ export class NPCManager {
         if (Math.random() < 0.10) emo.forceActivateDomain(13);
         this.addNPC(emo);
         this.scene.add(emo.getMesh());
+    }
+
+    private spawnElmo(): void {
+        // only ONE elmo allowed at a time -- he is singular. he is the only sunshine. THE ONLY ONE.
+        // (also two elmos at once would be extremely terrifying. not yet. maybe never.)
+        if (this.npcs.some(n => n.getType() === 'elmo')) return;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 25 + Math.random() * 60;
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const elmo = new ElmoNPC(pos);
+        if (this.bubbleCb) elmo.setSpeakCallback(this.bubbleCb);
+        if (this.playerPos) elmo.setPlayerRef(this.playerPos);
+        this.addNPC(elmo);
+        this.scene.add(elmo.getMesh());
+        console.log('%c😡 ELMO HAS ARRIVED. THE EMO HUNT BEGINS.', 'color: #dd1111; font-weight: bold; font-size: 14px');
     }
 
     private spawnBarney(): void {

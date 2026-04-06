@@ -117,6 +117,7 @@ export abstract class BaseNPC {
             case 'baby':       this.domainSpeedMult = 8.0; this.domainDamageMult = 1.2; break; // BABY TURBO. just goes so fast. scary.
             case 'elder':      this.domainSpeedMult = 0.3; this.domainDamageMult = 6.0; this.domainDmgReduction = 0.8; break; // slow but literally unkillable and one-shots
             case 'glitch':     this.domainDamageMult = 3.0; this.domainInvulnerable = true; break; // cant kill what u cant track
+            case 'elmo':       this.domainSpeedMult = 5.0; this.domainDamageMult = 3.0; break; // ELMO IS RUNNING AT YOU. FULL SPEED. LAUGHING.
         }
     }
     // wipe all buff fields back to neutral -- call this when the domain collapses
@@ -141,6 +142,10 @@ export abstract class BaseNPC {
     protected fleeTimer_: number = 0;                   // how long to keep fleeing (reset each hit)
     private readonly FLEE_THRESHOLD: number = 0.20;     // flee below 20% HP
     private readonly FLEE_SPEED_MULT: number = 2.2;     // flee faster than normal move
+
+    // CHASE TARGET -- set by NPCManager when this npc is hostile to the player
+    // without this they just wander randomly and never actually fight back. pathetic.
+    public chaseTarget: THREE.Vector3 | null = null;
 
     constructor(position: THREE.Vector3) {
         this.position = position.clone();
@@ -182,6 +187,18 @@ export abstract class BaseNPC {
         // just vibing randomly lol
         if (Math.random() < 0.03) {
             this.targetAngle = Math.random() * Math.PI * 2;
+        }
+
+        // CHASE MODE: if hostile to player and we have a chase target, override random walk and GO GET EM
+        // this is why npcs now actually fight back. revolutionary. they were literally just wandering before. ugh.
+        if (this.chaseTarget && this.hostileToPlayerTimer > 0) {
+            const dx = this.chaseTarget.x - this.position.x;
+            const dz = this.chaseTarget.z - this.position.z;
+            const distToPlayer = Math.sqrt(dx * dx + dz * dz);
+            // only chase if not already in attack range -- no point running INTO the player
+            if (distToPlayer > 2.5) {
+                this.targetAngle = Math.atan2(dx, dz);
+            }
         }
 
         // occasional random jump -- about once every 4-8 seconds statistically

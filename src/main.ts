@@ -1088,7 +1088,6 @@ class CatGodWorld {
         };
 
         // ====== 100-FEATURE MEGA INIT -- all the big systems ======
-        try {
         this.bigWorld = new BigWorldSystems(this.scene);
         this.bigWorld.onMeteorImpact = (pos) => {
             screenShake(true);
@@ -1203,10 +1202,6 @@ class CatGodWorld {
         this.chaoticExtras.onReverseGravityZone = (pos) => { this.chat.addMessage('event', `☁️ Reverse gravity zone spawned at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})!`); };
         this.chaoticExtras.onNPCCloned = (npc) => { this.chat.addMessage('event', `🪞 ${npc.getType()} was CLONED!!`); };
         this.chaoticExtras.onStalkerDetected = (type) => { this.chat.addMessage('event', `👁️‍🗨️ The ${type} is getting very close...`); };
-        } catch (e) {
-            // ugh something in the mega init exploded. log it. game still runs -- just without the 100 features.
-            console.error('[mega-init crash]', e);
-        }
         // ====================================================
     }
 
@@ -1297,32 +1292,25 @@ class CatGodWorld {
             // ====== 100-FEATURE MEGA UPDATE LOOP -- all new chaos systems ======
             const playerPos = this.sageCharacter.getPosition();
             const allNPCs = this.npcManager.getNPCs();
-            try {
-                // bigWorld takes (dt, playerPos) -- NOT allNPCs. dont repeat that mistake.
-                this.bigWorld?.npcPositions && (this.bigWorld.npcPositions = allNPCs.map(n => n.getPosition()));
-                this.bigWorld?.update(effectiveDt, playerPos);
-                this.bigEvents?.update(effectiveDt, allNPCs, playerPos);
-                this.socialBehavior?.update(effectiveDt, allNPCs);
-                this.questSystem?.update(effectiveDt);
-                this.fishingSystem?.update(effectiveDt);
-                this.racingSystem?.update(effectiveDt);
-                this.stealthSystem?.checkDetection(playerPos, allNPCs);
-                this.hungerSystem?.update(effectiveDt, allNPCs);
-                this.throwables?.update(effectiveDt, allNPCs, playerPos);
-                this.trailFx?.update(effectiveDt);
-                this.hologramFx?.update(effectiveDt);
-                this.frozenFx?.update(effectiveDt);
-                this.heatFx?.update(effectiveDt);
-                this.bloomPulse?.update(effectiveDt);
-                this.chaoticExtras?.update(effectiveDt, allNPCs, playerPos);
-                this.chaoticExtras?.recordPlayerPos(playerPos);
-                // reverse gravity zone check
-                if (this.chaoticExtras?.isInReverseGravityZone(playerPos)) {
-                    this.sageCharacter.applyForce?.(new THREE.Vector3(0, 25 * effectiveDt, 0));
-                }
-            } catch (e) {
-                // ugh something crashed in the mega systems. log it. dont die.
-                console.error('[mega-systems crash]', e);
+            this.bigWorld.update(effectiveDt, allNPCs, playerPos);
+            this.bigEvents.update(effectiveDt, allNPCs, playerPos);
+            this.socialBehavior.update(effectiveDt, allNPCs);
+            this.questSystem.update(effectiveDt);
+            this.fishingSystem.update(effectiveDt);
+            this.racingSystem.update(effectiveDt);
+            this.stealthSystem.checkDetection(playerPos, allNPCs);
+            this.hungerSystem.update(effectiveDt, allNPCs);
+            this.throwables.update(effectiveDt, allNPCs, playerPos);
+            this.trailFx.update(effectiveDt);
+            this.hologramFx.update(effectiveDt);
+            this.frozenFx.update(effectiveDt);
+            this.heatFx.update(effectiveDt);
+            this.bloomPulse.update(effectiveDt);
+            this.chaoticExtras.update(effectiveDt, allNPCs, playerPos);
+            this.chaoticExtras.recordPlayerPos(playerPos);
+            // reverse gravity zone check -- flip Y velocity if inside zone
+            if (this.chaoticExtras.isInReverseGravityZone(playerPos)) {
+                this.sageCharacter.applyForce?.(new THREE.Vector3(0, 25 * effectiveDt, 0));
             }
             // =====================================================================
 
