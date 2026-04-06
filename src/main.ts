@@ -1365,7 +1365,8 @@ class CatGodWorld {
             // ====== 100-FEATURE MEGA UPDATE LOOP -- all new chaos systems ======
             const playerPos = this.sageCharacter.getPosition();
             const allNPCs = this.npcManager.getNPCs();
-            this.bigWorld.update(effectiveDt, allNPCs, playerPos);
+            this.bigWorld.npcPositions = allNPCs.map(n => n.getPosition()); // set separately bc update only takes (dt, playerPos)
+            this.bigWorld.update(effectiveDt, playerPos);
             this.bigEvents.update(effectiveDt, allNPCs, playerPos);
             this.socialBehavior.update(effectiveDt, allNPCs);
             this.questSystem.update(effectiveDt);
