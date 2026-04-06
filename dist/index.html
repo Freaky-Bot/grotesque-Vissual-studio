@@ -383,102 +383,66 @@
             color: rgba(255,255,255,0.18);
             margin-top: 6px;
         }
-        #pregame-patchbtn {
-            background: none;
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 20px;
-            color: rgba(255,255,255,0.35);
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            padding: 5px 18px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: border-color 0.15s, color 0.15s;
-        }
-        #pregame-patchbtn:hover {
-            border-color: rgba(255,200,0,0.5);
-            color: rgba(255,200,0,0.8);
-        }
-        /* ---- PATCH NOTES PANEL -- real heckin scrollable list of commits nyaa~ ---- */
-        #patchnotes-overlay {
-            display: none;
+        /* ---- PATCH NOTES -- scrollable inline list, centered at bottom of menu nyaa~ ---- */
+        #patchnotes-wrap {
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.82);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-        #patchnotes-overlay.open { display: flex; }
-        #patchnotes-panel {
-            background: #0f0520;
-            border: 1px solid rgba(255,200,0,0.3);
-            border-radius: 12px;
-            width: min(640px, 92vw);
-            max-height: 75vh;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(520px, 90vw);
+            max-height: 38vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 0 40px rgba(255,150,0,0.15);
-        }
-        #patchnotes-header {
-            padding: 16px 22px 12px;
-            border-bottom: 1px solid rgba(255,200,0,0.15);
-            display: flex;
             align-items: center;
-            justify-content: space-between;
+            pointer-events: auto;
         }
-        #patchnotes-header h2 {
-            margin: 0;
-            font-family: Arial Black, Arial, sans-serif;
-            font-size: 18px;
-            color: #ffd700;
-            letter-spacing: 1px;
+        #patchnotes-label {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: rgba(255,200,0,0.35);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            user-select: none;
         }
-        #patchnotes-close {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.4);
-            font-size: 22px;
-            cursor: pointer;
-            line-height: 1;
-            padding: 0 4px;
-        }
-        #patchnotes-close:hover { color: #ff6666; }
         #patchnotes-list {
+            width: 100%;
             overflow-y: auto;
-            padding: 14px 22px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 1px;
+            padding: 0 4px 20px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,200,0,0.25) transparent;
+            scrollbar-color: rgba(255,200,0,0.2) transparent;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
         }
         .pn-entry {
             display: flex;
             flex-direction: column;
-            gap: 2px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 1px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            text-align: center;
         }
         .pn-entry:last-child { border-bottom: none; }
         .pn-msg {
             font-family: Arial, sans-serif;
-            font-size: 13px;
-            color: rgba(255,255,255,0.88);
+            font-size: 11px;
+            color: rgba(255,255,255,0.55);
             line-height: 1.4;
         }
         .pn-meta {
             font-family: Arial, sans-serif;
-            font-size: 10px;
-            color: rgba(255,255,255,0.28);
+            font-size: 9px;
+            color: rgba(255,255,255,0.18);
         }
         .pn-loading {
             font-family: Arial, sans-serif;
-            font-size: 13px;
-            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
             font-style: italic;
-            padding: 20px 0;
+            padding: 10px 0;
             text-align: center;
         }
         @keyframes pregame-float {
@@ -1002,9 +966,13 @@
             <div id="pregame-title">🐱 CAT GOD WORLD</div>
             <div id="pregame-subtitle">a slightly unhinged 3D realm uwu</div>
             <button id="pregame-start">▶ START</button>
-            <button id="pregame-patchbtn">📋 patch notes</button>
             <div id="pregame-hint">click to claim ur divine destiny meow~</div>
-            <div id="pregame-version">v2.3.2</div>
+            <div id="pregame-version">v2.4.0</div>
+        </div>
+        <!-- patch notes: inline scrollable list at the bottom of the menu nyaa~ -->
+        <div id="patchnotes-wrap">
+            <div id="patchnotes-label">— patch notes —</div>
+            <div id="patchnotes-list"><div class="pn-loading">loading...</div></div>
         </div>
     </div>
     <script>
@@ -1023,28 +991,25 @@
             }, 620);
         });
         // sync menu version from version-hud so there's only ONE source of truth nyaa~
-        // version-hud is later in the DOM so we use DOMContentLoaded to be safe meow~
         document.addEventListener('DOMContentLoaded', function() {
             var hudVer = document.getElementById('version-hud');
             var menuVer = document.getElementById('pregame-version');
             if (hudVer && menuVer) { menuVer.textContent = hudVer.textContent; }
-        });
 
-        // patch notes button -- fetch patchnotes.json and show the panel nyaa~
-        var patchLoaded = false;
-        document.getElementById('pregame-patchbtn').addEventListener('click', function() {
-            var overlay = document.getElementById('patchnotes-overlay');
-            overlay.classList.add('open');
-            if (patchLoaded) return;
-            patchLoaded = true;
+            // auto-load patch notes inline -- no button, just shows at the bottom meow~
+            // chore: commits filtered out bc nobody cares about rebuilds in the patch notes
             var list = document.getElementById('patchnotes-list');
             fetch('patchnotes.json').then(function(r) { return r.json(); }).then(function(notes) {
+                var filtered = notes.filter(function(n) {
+                    var m = n.msg.toLowerCase();
+                    return !m.startsWith('chore:') && !m.match(/^chore\b/) && !m.includes('[skip ci]') && !m.includes('rebuild dist');
+                });
                 list.innerHTML = '';
-                if (!notes.length) {
-                    list.innerHTML = '<div class="pn-loading">no commits found meow~</div>';
+                if (!filtered.length) {
+                    list.innerHTML = '<div class="pn-loading">no patch notes yet meow~</div>';
                     return;
                 }
-                notes.forEach(function(n) {
+                filtered.forEach(function(n) {
                     var div = document.createElement('div');
                     div.className = 'pn-entry';
                     div.innerHTML =
@@ -1053,26 +1018,10 @@
                     list.appendChild(div);
                 });
             }).catch(function() {
-                list.innerHTML = '<div class="pn-loading">couldnt load patch notes :( meow</div>';
+                list.innerHTML = '<div class="pn-loading">patch notes unavailable meow</div>';
             });
         });
-        document.getElementById('patchnotes-close').addEventListener('click', function() {
-            document.getElementById('patchnotes-overlay').classList.remove('open');
-        });
     </script>
-
-    <!-- PATCH NOTES OVERLAY -- grabs real commit messages and shows dem nyaa~ -->
-    <div id="patchnotes-overlay">
-        <div id="patchnotes-panel">
-            <div id="patchnotes-header">
-                <h2>📋 Patch Notes</h2>
-                <button id="patchnotes-close">✕</button>
-            </div>
-            <div id="patchnotes-list">
-                <div class="pn-loading">loading commits meow~</div>
-            </div>
-        </div>
-    </div>
 
     <div id="ui">
         <div>Cat God World - WASD move · SPACE jump · LClick attack · E use item · 1-6 slots · P procreate · F faction · Drag cam · Scroll zoom · Click lock · M mute</div>
@@ -1096,7 +1045,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -1330,7 +1279,7 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v2.4.0</div>
+    <div id="version-hud">v2.4.1</div>
 
     <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
     <div id="chaos-hud" style="
