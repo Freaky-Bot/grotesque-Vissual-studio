@@ -922,6 +922,13 @@
                 }
             }, 620);
         });
+        // sync menu version from version-hud so there's only ONE source of truth nyaa~
+        // version-hud is later in the DOM so we use DOMContentLoaded to be safe meow~
+        document.addEventListener('DOMContentLoaded', function() {
+            var hudVer = document.getElementById('version-hud');
+            var menuVer = document.getElementById('pregame-version');
+            if (hudVer && menuVer) { menuVer.textContent = hudVer.textContent; }
+        });
     </script>
 
     <div id="ui">
