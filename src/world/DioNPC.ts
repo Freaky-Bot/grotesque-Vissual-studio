@@ -25,6 +25,13 @@ export class DioNPC extends BaseNPC {
     // main.ts wires this -- when DIO stops time, the world obeys
     public onZaWarudo: (() => void) | null = null;
 
+    // THE WORLD stand -- shows up beside DIO when ZA WARUDO fires. grey humanoid. scary.
+    private standGroup: THREE.Group | null = null;
+    private standVisible: boolean = false;
+    private standTimer: number = 0;
+    private readonly STAND_DURATION: number = 5.5;
+    private standPulse: number = 0;
+
     constructor(position: THREE.Vector3) {
         super(position);
         this.mesh = this.buildDio();
@@ -356,6 +363,26 @@ export class DioNPC extends BaseNPC {
             cape.rotation.x = 0.12 + Math.sin(Date.now() * 0.003) * 0.06;
         }
 
+        // THE WORLD stand -- hover beside DIO while time is stopped then disappear
+        if (this.standVisible && this.standGroup) {
+            this.standTimer -= deltaTime;
+            this.standPulse += deltaTime;
+            // float to DIO's right and slightly forward -- imposing presence beside him
+            this.standGroup.position.set(
+                this.position.x + Math.cos(this.mesh.rotation.y + 1.4) * 2.8,
+                this.position.y + Math.sin(this.standPulse * 3.5) * 0.2,
+                this.position.z + Math.sin(this.mesh.rotation.y + 1.4) * 2.8
+            );
+            this.standGroup.rotation.y = this.mesh.rotation.y + 0.2;
+            // pulse the stand light -- it breathes with menace
+            const standLight = this.standGroup.getObjectByName('stand-light') as THREE.PointLight;
+            if (standLight) standLight.intensity = 2.5 + Math.sin(this.standPulse * 8) * 1.5;
+            if (this.standTimer <= 0) {
+                this.standGroup.visible = false;
+                this.standVisible = false;
+            }
+        }
+
         // KNIFE THROW -- MUDA MUDA range attack
         this.knifeCooldown -= deltaTime;
         if (this.knifeCooldown <= 0 && dist < 45) {
@@ -415,10 +442,166 @@ export class DioNPC extends BaseNPC {
         }
     }
 
+    // HEAR YE -- THE WORLD doth manifest from the aether to smite all who stand before DIO
+    private buildTheWorldStand(): THREE.Group {
+        const g = new THREE.Group();
+        g.name = 'the-world-stand';
+
+        const silverMat = new THREE.MeshPhongMaterial({ color: 0xc8c8d0, specular: 0xffffff, shininess: 160, emissive: 0x1a1a22 });
+        const goldMat = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xcc7700, emissiveIntensity: 1.4 });
+        const eyeMat = new THREE.MeshPhongMaterial({ color: 0xffee00, emissive: 0xffcc00, emissiveIntensity: 4.5 });
+        const darkMat = new THREE.MeshPhongMaterial({ color: 0x1c1c24 });
+        const fistMat = new THREE.MeshPhongMaterial({ color: 0x9a9aaa, specular: 0xffffff, shininess: 200 });
+
+        // TORSO -- big. muscular. slightly intimidating on purpose.
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.1, 1.05), silverMat);
+        torso.position.y = 2.55;
+        g.add(torso);
+
+        // HEART ON CHEST -- canonical THE WORLD heart symbol (two spheres + downward cone)
+        const heartMatL = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 10), goldMat);
+        heartMatL.position.set(-0.24, 2.9, 0.56);
+        g.add(heartMatL);
+        const heartMatR = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 10), goldMat);
+        heartMatR.position.set(0.24, 2.9, 0.56);
+        g.add(heartMatR);
+        const heartTip = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.44, 8), goldMat);
+        heartTip.rotation.z = Math.PI;
+        heartTip.position.set(0, 2.52, 0.56);
+        g.add(heartTip);
+
+        // HEAD -- slightly squarish. menacing blank face.
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.15, 1.05), silverMat);
+        head.position.y = 4.15;
+        g.add(head);
+
+        // EYES -- bright glowing yellow slits. stand eyes are always unsettling.
+        const eyeGeo = new THREE.SphereGeometry(0.14, 9, 9);
+        const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+        eyeL.position.set(-0.3, 4.2, 0.55);
+        eyeL.scale.set(1, 0.55, 0.6); // squash into a slit
+        g.add(eyeL);
+        const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+        eyeR.position.set(0.3, 4.2, 0.55);
+        eyeR.scale.set(1, 0.55, 0.6);
+        g.add(eyeR);
+
+        // HEADBAND -- gold, wraps the forehead. THE WORLD signature look.
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.61, 0.61, 0.2, 14), goldMat);
+        band.position.y = 4.72;
+        g.add(band);
+        // small gem center of headband
+        const gem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeMat);
+        gem.position.set(0, 4.72, 0.61);
+        g.add(gem);
+
+        // SHOULDERS -- meaty. overhang the body slightly.
+        const shoulderGeo = new THREE.BoxGeometry(0.75, 0.7, 0.8);
+        const shoulderL = new THREE.Mesh(shoulderGeo, silverMat);
+        shoulderL.position.set(-1.27, 3.45, 0);
+        g.add(shoulderL);
+        const shoulderR = new THREE.Mesh(shoulderGeo, silverMat);
+        shoulderR.position.set(1.27, 3.45, 0);
+        g.add(shoulderR);
+
+        // heart symbol on each shoulder -- THE WORLD is thorough with its branding
+        const shL = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), goldMat);
+        shL.position.set(-1.27, 3.62, 0.43);
+        g.add(shL);
+        const shR = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), goldMat);
+        shR.position.set(1.27, 3.62, 0.43);
+        g.add(shR);
+
+        // UPPER ARMS -- rotated forward for the iconic punching pose
+        const armGeo = new THREE.BoxGeometry(0.58, 1.05, 0.6);
+        const upperArmL = new THREE.Mesh(armGeo, silverMat);
+        upperArmL.position.set(-1.68, 3.0, 0.55);
+        upperArmL.rotation.x = -0.65;
+        g.add(upperArmL);
+        const upperArmR = new THREE.Mesh(armGeo, silverMat);
+        upperArmR.position.set(1.68, 3.0, 0.55);
+        upperArmR.rotation.x = -0.65;
+        g.add(upperArmR);
+
+        // FOREARMS
+        const foreGeo = new THREE.BoxGeometry(0.52, 0.95, 0.55);
+        const foreL = new THREE.Mesh(foreGeo, silverMat);
+        foreL.position.set(-1.68, 2.35, 1.1);
+        foreL.rotation.x = -0.3;
+        g.add(foreL);
+        const foreR = new THREE.Mesh(foreGeo, silverMat);
+        foreR.position.set(1.68, 2.35, 1.1);
+        foreR.rotation.x = -0.3;
+        g.add(foreR);
+
+        // FISTS -- clenched. aimed at your face.
+        const fistGeo = new THREE.BoxGeometry(0.54, 0.54, 0.58);
+        const fistL = new THREE.Mesh(fistGeo, fistMat);
+        fistL.position.set(-1.68, 1.88, 1.5);
+        g.add(fistL);
+        const fistR = new THREE.Mesh(fistGeo, fistMat);
+        fistR.position.set(1.68, 1.88, 1.5);
+        g.add(fistR);
+
+        // gold knuckle trim on fists -- bc THE WORLD has standards
+        const knuckGeo = new THREE.BoxGeometry(0.56, 0.14, 0.12);
+        const knuckL = new THREE.Mesh(knuckGeo, goldMat);
+        knuckL.position.set(-1.68, 2.08, 1.56);
+        g.add(knuckL);
+        const knuckR = new THREE.Mesh(knuckGeo, goldMat);
+        knuckR.position.set(1.68, 2.08, 1.56);
+        g.add(knuckR);
+
+        // LEGS -- solid stance. it's not going anywhere.
+        const legGeo = new THREE.BoxGeometry(0.68, 1.85, 0.68);
+        const legL = new THREE.Mesh(legGeo, silverMat);
+        legL.position.set(-0.56, 0.88, 0);
+        g.add(legL);
+        const legR = new THREE.Mesh(legGeo, silverMat);
+        legR.position.set(0.56, 0.88, 0);
+        g.add(legR);
+
+        // BOOTS -- dark with gold toe cap. very fashionable for a stand.
+        const bootGeo = new THREE.BoxGeometry(0.72, 0.72, 0.88);
+        const bootL = new THREE.Mesh(bootGeo, darkMat);
+        bootL.position.set(-0.56, -0.06, 0.1);
+        g.add(bootL);
+        const bootR = new THREE.Mesh(bootGeo, darkMat);
+        bootR.position.set(0.56, -0.06, 0.1);
+        g.add(bootR);
+
+        // gold toe caps
+        const toeGeo = new THREE.BoxGeometry(0.74, 0.28, 0.32);
+        const toeL = new THREE.Mesh(toeGeo, goldMat);
+        toeL.position.set(-0.56, -0.06, 0.49);
+        g.add(toeL);
+        const toeR = new THREE.Mesh(toeGeo, goldMat);
+        toeR.position.set(0.56, -0.06, 0.49);
+        g.add(toeR);
+
+        // GOLDEN AURA LIGHT -- pulses when stand is active
+        const standLight = new THREE.PointLight(0xffdd44, 3.5, 14);
+        standLight.name = 'stand-light';
+        standLight.position.y = 3;
+        g.add(standLight);
+
+        g.visible = false; // dormant until ZA WARUDO
+        return g;
+    }
+
     private triggerZaWarudo(): void {
         // ゴゴゴゴゴ time stops ゴゴゴゴゴ
         console.log('%cZA WARUDO!!! TOKI WO TOMARE!!!', 'color: gold; font-size: 22px; font-weight: bold; text-shadow: 0 0 10px yellow;');
         console.log('%cゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ', 'color: purple; font-size: 14px;');
+        // THE WORLD manifests!! build lazily on first use so we don't waste memory until needed
+        if (!this.standGroup) {
+            this.standGroup = this.buildTheWorldStand();
+            this.mesh.parent?.add(this.standGroup);
+        }
+        this.standGroup.visible = true;
+        this.standVisible = true;
+        this.standTimer = this.STAND_DURATION;
+        this.standPulse = 0;
         this.onZaWarudo?.();
     }
 
@@ -426,6 +609,9 @@ export class DioNPC extends BaseNPC {
         // knives fall to the ground with their wielder. poetic.
         for (const k of this.knives) k.mesh.parent?.remove(k.mesh);
         this.knives = [];
+        // THE WORLD fades with DIO. even the stand cannot defy death... probably.
+        if (this.standGroup?.parent) this.standGroup.parent.remove(this.standGroup);
+        this.standGroup = null;
         super.die();
     }
 
