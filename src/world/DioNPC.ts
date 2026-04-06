@@ -61,6 +61,9 @@ export class DioNPC extends BaseNPC {
         ];
         this.bubbleHeadOffset = 7.5; // tall
         this.dialogueTimer = 3;
+        // DIO arrives hostile. he was hostile before he got here. he was hostile in utero.
+        this.markHostileToPlayer();
+        this.markHostileToNpc();
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
@@ -326,6 +329,10 @@ export class DioNPC extends BaseNPC {
 
     public update(deltaTime: number): void {
         if (!this.isAlive_) return;
+
+        // DIO hates EVERYONE. always. no exceptions. refresh every frame so timers never expire.
+        this.markHostileToPlayer();
+        this.markHostileToNpc();
 
         this.dialogueTimer -= deltaTime;
         if (this.dialogueTimer <= 0) {
