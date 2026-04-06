@@ -28,16 +28,16 @@ export class WorldGenerator {
         // Create ground plane - natural world without the awful city grid
         this.createGround();
 
-        // Initial scattered buildings, trees, and landmarks
-        for (let i = 0; i < 12; i++) {
+        // fewer structures, spread WAY out -- breathing room nyaa~
+        for (let i = 0; i < 7; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = 50 + Math.random() * 120;
+            const distance = 100 + Math.random() * 300;
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
 
             if (Math.random() < 0.2) {
                 this.createPark(x, z);
-            } else if (Math.random() < 0.3) {
+            } else if (Math.random() < 0.35) {
                 this.createTower(x, z);
             } else if (Math.random() < 0.5) {
                 this.createMonument(x, z);
@@ -48,28 +48,28 @@ export class WorldGenerator {
             }
         }
 
-        // Add some trees around the world for a less urban feel
-        for (let i = 0; i < 10; i++) {
+        // sparse trees scattered wide
+        for (let i = 0; i < 6; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = 40 + Math.random() * 120;
+            const distance = 80 + Math.random() * 350;
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
             this.createTree(x, z);
         }
 
-        // Add cars for movement, but not too many
-        for (let i = 0; i < 8; i++) {
+        // only 4 starter cars, not a traffic jam
+        for (let i = 0; i < 4; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = 60 + Math.random() * 100;
+            const distance = 100 + Math.random() * 200;
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
             this.createCar(x, z);
         }
 
-        // Add ambient street lights around the scene for mood
-        for (let i = 0; i < 6; i++) {
+        // 4 street lights spread out for ambiance
+        for (let i = 0; i < 4; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = 30 + Math.random() * 120;
+            const distance = 60 + Math.random() * 250;
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
             this.createStreetLight(x, z);
@@ -80,20 +80,25 @@ export class WorldGenerator {
         this.lastPlayerPosition.copy(playerPosition);
         this.worldTime += deltaTime;
 
-        // Spawn cars on streets and occasionally new city motion
+        // sparse structure spawning -- every 25s, only if below cap
         this.spawnTimer += deltaTime;
-        if (this.spawnTimer >= 12) {  // Less frequent spawning
-            if (Math.random() > 0.4) {
+        if (this.spawnTimer >= 25) {
+            // cull structures that wandered or spawned too far from origin (keep map tidy)
+            this.cullFarStructures();
+
+            // spawn rate gated by total count -- don't let it get crowded again
+            const totalStructures = this.buildings.length + this.trees.length;
+            if (totalStructures < 60 && Math.random() > 0.5) {
                 this.generateStructureNearPlayer();
             }
 
-            if (Math.random() > 0.5) {
+            if (this.cars.length < 12 && Math.random() > 0.6) {
                 const angle = Math.random() * Math.PI * 2;
-                const distance = 80 + Math.random() * 120;
+                const distance = 150 + Math.random() * 200;
                 const x = this.lastPlayerPosition.x + Math.cos(angle) * distance;
                 const z = this.lastPlayerPosition.z + Math.sin(angle) * distance;
 
-                if (Math.abs(x) < 200 && Math.abs(z) < 200) {
+                if (Math.abs(x) < 800 && Math.abs(z) < 800) {
                     this.createCar(x, z);
                 }
             }
@@ -106,9 +111,9 @@ export class WorldGenerator {
             car.position.x += Math.sin(this.worldTime + car.position.z) * 0.05;
             car.position.z += Math.cos(this.worldTime + car.position.x) * 0.05;
 
-            // Keep cars in bounds
-            car.position.x = Math.max(-200, Math.min(200, car.position.x));
-            car.position.z = Math.max(-200, Math.min(200, car.position.z));
+            // Keep cars in bounds of the big world nyaa~
+            car.position.x = Math.max(-800, Math.min(800, car.position.x));
+            car.position.z = Math.max(-800, Math.min(800, car.position.z));
 
             for (const child of car.children) {
                 if (child instanceof THREE.Mesh && child.geometry instanceof THREE.CylinderGeometry) {
@@ -163,17 +168,41 @@ export class WorldGenerator {
         }
     }
 
+    // if da map gets too cluttered remove stuff far from origin -- medieval cleanup crew
+    private cullFarStructures(): void {
+        const CULL_DIST = 700;
+        this.buildings = this.buildings.filter(b => {
+            if (b.position.length() > CULL_DIST) { this.scene.remove(b); return false; }
+            return true;
+        });
+        this.trees = this.trees.filter(t => {
+            if (t.position.length() > CULL_DIST) { this.scene.remove(t); return false; }
+            return true;
+        });
+        this.cars = this.cars.filter(c => {
+            if (c.position.length() > CULL_DIST) { this.scene.remove(c); return false; }
+            return true;
+        });
+        this.streetLights = this.streetLights.filter(l => {
+            if (l.position.length() > CULL_DIST) { this.scene.remove(l); return false; }
+            return true;
+        });
+        // sync buildingStates -- remove entries for culled buildings
+        this.buildingStates = this.buildingStates.filter(bs => this.buildings.includes(bs.obj as any) || this.scene.children.includes(bs.obj));
+    }
+
     private generateStructureNearPlayer(): void {
-        const types = ['building', 'tree', 'car', 'tower', 'monument', 'park', 'bridge'];
+        const types = ['building', 'tree', 'tower', 'monument', 'park', 'bridge'];
         const randomType = types[Math.floor(Math.random() * types.length)];
 
         const angle = Math.random() * Math.PI * 2;
-        const distance = 80 + Math.random() * 120;
+        // spawn further away so theres room to breathe nyaa~
+        const distance = 150 + Math.random() * 250;
         const x = this.lastPlayerPosition.x + Math.cos(angle) * distance;
         const z = this.lastPlayerPosition.z + Math.sin(angle) * distance;
 
-        const constrainedX = Math.max(-200, Math.min(200, x));
-        const constrainedZ = Math.max(-200, Math.min(200, z));
+        const constrainedX = Math.max(-800, Math.min(800, x));
+        const constrainedZ = Math.max(-800, Math.min(800, z));
 
         switch (randomType) {
             case 'building':
@@ -204,7 +233,8 @@ export class WorldGenerator {
     }
 
     private createGround(): void {
-        const groundGeometry = new THREE.PlaneGeometry(500, 500);
+        // MASSIVE ground plane -- the realm has expanded nyaa~
+        const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
         const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x3bd040 });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
