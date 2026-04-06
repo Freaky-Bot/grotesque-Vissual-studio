@@ -118,8 +118,6 @@ export abstract class BaseNPC {
             case 'elder':      this.domainSpeedMult = 0.3; this.domainDamageMult = 6.0; this.domainDmgReduction = 0.8; break; // slow but literally unkillable and one-shots
             case 'glitch':     this.domainDamageMult = 3.0; this.domainInvulnerable = true; break; // cant kill what u cant track
             case 'elmo':       this.domainSpeedMult = 5.0; this.domainDamageMult = 3.0; break; // ELMO IS RUNNING AT YOU. FULL SPEED. LAUGHING.
-            // birds dont get domain buffs. they NEVER open domains. this case should never fire. it wont. i hope.
-            case 'bird':       break; // nothing. birds dont have stands. they have WINGS. leave them alone.
         }
     }
     // wipe all buff fields back to neutral -- call this when the domain collapses

@@ -4,7 +4,7 @@
 // if you kill a bird you are the villain. we said what we said.
 
 import * as THREE from 'three';
-import { BaseNPC } from './BaseNPC';
+import { BaseNPC } from '../BaseNPC';
 
 // bird color palette -- nature's variety pack. different birds every time. incredible value!! -- infomercial dev
 const BIRD_COLORS = [
@@ -222,7 +222,7 @@ export class BirdNPC extends BaseNPC {
         this.mesh.position.copy(this.position);
     }
 
-    // called by NPCManager when a threat gets close -- bird FREAKS OUT and flees
+    // called by MobManager when a threat gets close -- bird FREAKS OUT and flees
     // verily, this creature is not built for combat. it is built for sky. ⚔️
     public scare(threatPos: THREE.Vector3): void {
         if (this.scaredTimer > 1.0) return; // already panicking, dont reset every frame

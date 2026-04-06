@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RenderEngine } from './renderEngine';
 import { CatGodNPC } from './world/CatGodNPC';
 import { NPCManager } from './world/NPCManager';
+import { MobManager } from './world/mobs/MobManager';
 import { WorldGenerator } from './world/WorldGenerator';
 import { PlayerTracker } from './world/PlayerTracker';
 import { SageCharacter } from './world/SageCharacter';
@@ -47,6 +48,7 @@ class CatGodWorld {
     private renderEngine: RenderEngine;
     private catGod: CatGodNPC;
     private npcManager: NPCManager;
+    private mobManager: MobManager;
     private worldGenerator: WorldGenerator;
     private playerTracker: PlayerTracker;
     private sageCharacter: SageCharacter;
@@ -142,6 +144,7 @@ class CatGodWorld {
         // Initialize systems
         this.playerTracker = new PlayerTracker();
         this.npcManager = new NPCManager(this.scene);
+        this.mobManager = new MobManager(this.scene);
         this.worldGenerator = new WorldGenerator(this.scene);
 
         // Create the cat god NPC
@@ -516,6 +519,7 @@ class CatGodWorld {
         this.npcManager.setBubbleCallback((pos, text, h) => {
             origBubbleFn(pos, text, h);
         });
+        this.mobManager.setBubbleCallback((pos, text, h) => origBubbleFn(pos, text, h));
 
         this.dungeon = new DungeonGenerator(this.scene);
         this.voidPortal = new VoidPortal(this.scene);
@@ -1375,6 +1379,8 @@ class CatGodWorld {
             }
             this.catGod.update(effectiveDt, this.sageCharacter.getPosition());
             this.npcManager.update(effectiveDt);
+            this.mobManager.setPlayerPos(this.sageCharacter.getPosition());
+            this.mobManager.update(effectiveDt, this.npcManager.getNPCs().map(n => n.getPosition()));
             this.worldGenerator.update(effectiveDt, this.sageCharacter.getPosition());
             this.worldGenerator.updateDestructibles(effectiveDt);
 

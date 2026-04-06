@@ -1,45 +1,42 @@
 ---
-description: "Use when: writing git commit messages, writing code comments, or reviewing existing comments in any source file. ALL commit messages MUST be written in either Cat-Themed UwU or Edgy Emo Cat tone — rotate between both. Always. Every single one. No exceptions. Code comments may still rotate between all six tones."
+description: "Use when: writing git commit messages, writing code comments, or reviewing existing comments in any source file. ALL commit messages MUST be written in either Cat-Themed UwU or Edgy Teen Cat tone — rotate between both. Always. Every single one. No exceptions. Code comments may still rotate between all six tones."
 applyTo: "**"
 ---
 
-# Commit Message & Code Comment Style — UwU Cat & Edgy Emo Cat Commits 🐱🖤
+# Commit Message & Code Comment Style — UwU Cat & Edgy Teen Cat Commits 🐱🖤
 
 ## The Rule
 
-**ALL git commit messages MUST be written in either Cat-Themed UwU OR Edgy Emo Cat tone — rotate freely between the two.**
+**ALL git commit messages MUST be written in either Cat-Themed UwU OR Edgy Teen Cat tone — rotate freely between the two.**
 Code comments may still rotate between all six tones freely.
 Never write a plain boring commit message.
 
 ---
 
-## Commit Tone: Edgy Emo Cat 🖤🐱
+## Commit Tone: Edgy Teen Cat 🖤🐱😤
 
-Speak like a cat who has read every MCR lyric, cried into the keyboard, and shipped it anyway.
-Dramatic. Dark. Poetic about bugs. Still a cat though — the meows erupt at the worst moments.
-Every commit is a journal entry. Every bug fix is a funeral. Poetry is not just encouraged — it is mandatory.
+Speak like a moody teenager who is also a cat. Classic 13-year-old energy — dramatic, self-important, thinks nobody understands them, slightly cringe. But also a cat, so meows happen at the worst moment.
+Attitude over poetry. Sulk over suffering. "whatever" over verse.
 
 **Vocabulary to use:**
-- "meow..." / "...mrrrow" (trailing off, broken)
-- "nobody understands", "the void", "i didn't ask for this", "whatever", "it doesnt even matter"
-- "ugh", "ngl", "lowkey", "this hurts more than it should", "fine. it works. i dont care."
-- lowercase everything — capitals reserved for GENUINE SCREAMING only
-- "im fine" (blatantly not fine), "its whatever" (it is NEVER whatever), "the darkness consumes", "i am so tired"
-- Cat sounds mid-meltdown: "i fixed it...mrrrow", "why does nobody meow CARE about this", "purrr i guess"
-- Self-aware tragedy: "another day, another existential crisis shipped to prod"
-- Ellipses everywhere... the words... they trail... like hope...
-- Optional: end with a tiny whisper of defiance. just a crumb. then give up again.
-- Reference MCR, black parade, the void, the abyss, the endless dark, 3am, the rain
+- "ugh", "whatever", "literally", "honestly", "idc", "not like anyone cares"
+- "nobody understands", "this hurts", "fine. it works.", "i hate this so much"
+- "tbh", "ngl", "fr", "no cap", "lowkey"
+- lowercase mostly — ALL CAPS reserved for emotional peaks only
+- "meow" dropped in at awkward moments like a cat interrupting its own drama
+- Cat sounds mid-sulk: "fixed it...meow", "ugh MRRROW", "whatever purrr"
+- Unnecessary drama about simple changes. make every boring fix sound personal.
+- Self-pity that immediately contradicts itself: "i hate this. it works tho. whatever."
 
 **Commit examples:**
 ```
-feat: added da dungeon...mrrrow. another place of darkness. feels personal. nobody asked. here it is anyway.
-fix: da null pointer. like me, pointing at nothing. fixed it. doesnt matter. the emptiness remains. meow.
-refactor: cleaned up dis mess...not like anyone notices. they never notice. mrrrow.
-chore: updated deps again...the cycle never ends...we are all just maintaining something that will outlive us...purrr
-feat: new weather system. rain. of COURSE its rain. why would it be anything but rain. meow...
-fix: memory leak patched. it was bleeding out slowly. like my will to debug. both fixed. neither truly healed. mrrrow.
-feat: birds added. passive. innocent. will die easily. they didnt deserve this world. none of us did. meow...
+feat: added da dungeon. dark. fitting. nobody asked but here it is. meow.
+fix: da null pointer. like me, pointing at nothing. fixed it. whatever.
+refactor: cleaned up dis mess not like anyone will even notice. ugh. mrrrow.
+chore: updated deps again...the cycle never ends purrr i guess
+feat: new weather system. rain. of course its rain. meow...
+fix: memory leak patched. the emptiness remains. ngl kinda scared to touch it again. mrrrow.
+feat: birds added. passive. innocent. nobody asked. we delivered anyway. whatever. meow.
 ```
 
 ---
@@ -229,11 +226,11 @@ chore: updated the dependencies. I'm not going to say I told you so. but I told 
 
 ---
 
-## How to Rotate (Commits — UwU or Emo Cat; Comments — All Six)
+## How to Rotate (Commits — UwU or Edgy Teen Cat; Comments — All Six)
 
-- **Commits: rotate between Cat-Themed UwU and Edgy Emo Cat.** Pick whichever fits the vibe of the change:
+- **Commits: rotate between Cat-Themed UwU and Edgy Teen Cat.** Pick whichever fits the vibe of the change:
   - Happy new feature, delightful addition, small cute tweak → UwU nyaa cat 🐱💕 (go UNHINGED with the cuteness)
-  - Painful bug, refactor of suffering, anything that took too long → Edgy Emo Cat 🖤 (go POETIC with the despair)
+  - Painful bug, refactor of suffering, anything that took too long → Edgy Teen Cat 🖤 (sulk about it. make it personal. meow.)
   - Genuinely unsure which vibe? Flip a coin. Both are correct. Chaos is the only constant.
   - Either works — chaos is mandatory. The more dramatic the better. Never be neutral.
 - **Code comments** may still rotate all six tones freely:

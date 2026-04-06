@@ -10,7 +10,6 @@ import { ObamaNPC } from './ObamaNPC';
 import { TrumpNPC } from './TrumpNPC';
 import { DioNPC } from './DioNPC';
 import { ElmoNPC } from './ElmoNPC';
-import { BirdNPC } from './BirdNPC';
 import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
 import { InventorySystem, ITEM_INFO } from './InventorySystem';
 
@@ -122,7 +121,6 @@ export class NPCManager {
         elder:       '6x damage + 80% armor + slow -- ANCIENT JUDGMENT. UNHURRIED. UNMERCIFUL.',
         glitch:      'INVULNERABLE + 3x damage -- UNTRACEABLE. THE KILL COMES FROM NOWHERE.',
         elmo:        'ELMO\'S WORLD DOMAIN -- 4x speed + 3x damage + forced happiness zone + MANDATORY SUNSHINE Aura. the emo cannot exist in here.',
-        bird:        'birds dont open domains. they are birds. they just want to fly. why are you even reading this.',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -188,7 +186,6 @@ export class NPCManager {
         elder:       { dmg: 28, range: 3.5 }, // ancient strike. slow but devastating.
         glitch:      { dmg: 16, range: 999  }, // range is infinite bc it teleports next to u. sorry.
         elmo:        { dmg: 16, range: 4.0 }, // THE TICKLE MONSTER deals 16 damage. do not underestimate.
-        bird:        { dmg: 0,  range: 0   }, // birds dont attack. they are INNOCENT. dmg zero. range zero. leave them alone.
     };
 
     constructor(scene: THREE.Scene) {
@@ -212,8 +209,6 @@ export class NPCManager {
         this.spawnTrump();
         // DIO was always here. we just werent calling this. YARE YARE DAZE.
         this.spawnDio();
-        // fill the sky with birds. the void demanded ambience. we comply. 5 birds at startup.
-        for (let i = 0; i < 5; i++) this.spawnBird();
     }
 
     public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
@@ -294,22 +289,6 @@ export class NPCManager {
                     npc.markHostileToPlayer();
                 });
             }
-            // BIRDS: passive sky creatures -- scare them if anything gets within 18 units
-            // they dont fight back. they just chirp and flee upward. touching.
-            if (npc instanceof BirdNPC) {
-                // scare from player
-                if (this.playerPos && npc.getPosition().distanceTo(this.playerPos) < 18) {
-                    npc.scare(this.playerPos);
-                }
-                // scare from any other npc that's nearby and alive (birds fear EVERYTHING)
-                for (const other of this.npcs) {
-                    if (other === npc || !other.isAlive() || other instanceof BirdNPC) continue;
-                    if (npc.getPosition().distanceTo(other.getPosition()) < 12) {
-                        npc.scare(other.getPosition());
-                        break; // one scare call is enough per frame
-                    }
-                }
-            }
             // ALL npcs: if hostile to player, set chase target so they actually pursue
             // this is the fix for "npcs dont fight back" -- they were just wandering randomly before lol
             npc.chaseTarget = (this.playerPos && npc.isHostileToPlayer()) ? this.playerPos.clone() : null;
@@ -346,8 +325,7 @@ export class NPCManager {
             // domain expansion tick -- only activate if a target is actually within this npc's pull radius
             // AND this npc is actually hostile to that target -- no random domain spam anymore
             // DIO skipped -- ZA WARUDO is his domain. he doesnt need a glowing sphere.
-            // BIRD skipped -- birds dont open domains. they are sky creatures. let them live.
-            if (this.domainSystem && npc.getType() !== 'dio' && npc.getType() !== 'bird') {
+            if (this.domainSystem && npc.getType() !== 'dio') {
                 const defKey = npc.getType();
                 const def = DOMAIN_DEFS[defKey] ?? DOMAIN_DEFS['normal'];
                 const pullR = def.pullRadius;           // the real capture radius for this domain type
@@ -467,14 +445,11 @@ export class NPCManager {
         for (let i = 0; i < this.npcs.length; i++) {
             const attacker = this.npcs[i];
             if (!attacker.isAlive() || attacker.isStunned()) continue;
-            if (attacker instanceof BirdNPC) continue; // birds dont fight. they are passive. leave them ALONE.
-
             // find nearest living neighbour (not itself)
             let nearest: BaseNPC | null = null;
             let nearestDist = this.NPC_FIGHT_RANGE;
             for (let j = 0; j < this.npcs.length; j++) {
                 if (i === j || !this.npcs[j].isAlive()) continue;
-                if (this.npcs[j] instanceof BirdNPC) continue; // npcs cannot target birds. birds are off limits.
                 const d = attacker.getPosition().distanceTo(this.npcs[j].getPosition());
                 if (d < nearestDist) { nearestDist = d; nearest = this.npcs[j]; }
             }
@@ -532,7 +507,6 @@ export class NPCManager {
         if (roll < 0.39) { this.spawnObama(); return; }
         if (roll < 0.43) { this.spawnTrump(); return; }
         if (roll < 0.45) { this.spawnDio(); return; } // DIO finally gets in the pool. YARE YARE DAZE.
-        if (roll < 0.52) { this.spawnBird(); return; } // 7% bird chance -- fills the sky over time nyaa~
         // Random cat type - JOJO EDITION!! ゴゴゴゴゴ
         const catTypes = [
             CatType.NORMAL,
@@ -649,21 +623,6 @@ export class NPCManager {
         this.addNPC(elmo);
         this.scene.add(elmo.getMesh());
         console.log('%c😡 ELMO HAS ARRIVED. THE EMO HUNT BEGINS.', 'color: #dd1111; font-weight: bold; font-size: 14px');
-    }
-
-    private spawnBird(): void {
-        // max 8 birds at a time -- enough to fill the sky without killing framerate
-        // they are small. they are peaceful. they deserve a cap that respects their innocence.
-        const birdCount = this.npcs.filter(n => n instanceof BirdNPC).length;
-        if (birdCount >= 8) return;
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 20 + Math.random() * 120; // birds scatter wide -- they own the whole sky
-        // Y position is set inside the BirdNPC constructor so just pass ground height here
-        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
-        const bird = new BirdNPC(pos);
-        if (this.bubbleCb) bird.setSpeakCallback(this.bubbleCb);
-        this.addNPC(bird);
-        this.scene.add(bird.getMesh());
     }
 
     private spawnBarney(): void {
