@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.4.1 fix: version-hud z-index above pregame menu nyaa~ patch notes wider+shorter+padded so top item doesnt fade out meow meow~ uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "d0b37b9"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "a9eb8c9"
+  },
+  {
     "msg": "v2.4.1 fix: patch notes now inline scrollable list at bottom of menu nyaa~ no more popup modal meow~ chore commits filtered out so only real changes show uwu 🐱📋💕",
     "date": "2026-04-05",
     "hash": "b86f875"
@@ -188,15 +198,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "a32f5b8"
-  },
-  {
-    "msg": "v2.0.0 feat: 100 feature mega update nyaa~!! 7 new npc types (viking, dj, cop, demon, baby, elder, glitch), BigWorldSystems, BigEventSystems, SocialBehaviorSystem, GameplayExtras, VisualExtras, ChaoticExtras all wired into main.ts UwU 💕🐾 chaos meter, level system, quests, crafting, fishing, racing, stealth, hunger, throwables, trails, holograms, frozen/heat effects, bloom pulses, growing cats, reverse gravity zones, time rewind, stalker npc and so much more meow meow~ ✨",
-    "date": "2026-04-05",
-    "hash": "57fc985"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-06",
-    "hash": "699110f"
   }
 ]
