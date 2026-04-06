@@ -255,23 +255,34 @@ export class NPCManager {
             }
 
             // domain expansion tick -- only activate if a target is actually within this npc's pull radius
+            // AND this npc is actually hostile to that target -- no random domain spam anymore
             if (this.domainSystem) {
                 const defKey = npc.getType();
                 const def = DOMAIN_DEFS[defKey] ?? DOMAIN_DEFS['normal'];
                 const pullR = def.pullRadius;           // the real capture radius for this domain type
                 const npcPos = npc.getPosition();
 
-                // find the closest thing this npc could trap -- player or other alive npc
-                let closestDist = Infinity;
-                if (this.playerPos) closestDist = Math.min(closestDist, npcPos.distanceTo(this.playerPos));
-                for (const other of this.npcs) {
-                    if (other !== npc && other.isAlive()) {
-                        closestDist = Math.min(closestDist, npcPos.distanceTo(other.getPosition()));
+                // separate checks: player hostility vs npc hostility -- they matter independently
+                // HENCEFORTH only threats this npc is ACTUALLY HOSTILE TO count as valid targets ⚔️
+                let playerInRange = false;
+                if (this.playerPos && npc.isHostileToPlayer()) {
+                    playerInRange = npcPos.distanceTo(this.playerPos) <= pullR;
+                }
+
+                let hostileNpcInRange = false;
+                if (npc.isHostileToNpc()) {
+                    for (const other of this.npcs) {
+                        if (other !== npc && other.isAlive()) {
+                            if (npcPos.distanceTo(other.getPosition()) <= pullR) {
+                                hostileNpcInRange = true;
+                                break; // found one. thats enough.
+                            }
+                        }
                     }
                 }
 
-                // targetInRange = closest threat is actually close enough to get pulled in
-                const targetInRange = closestDist <= pullR;
+                // targetInRange = something this npc actually hates is close enough to get caught
+                const targetInRange = playerInRange || hostileNpcInRange;
                 const justOpened = npc.tickDomain(deltaTime, targetInRange);
                 if (justOpened) {
                     this.domainSystem.openDomain(

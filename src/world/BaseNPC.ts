@@ -330,8 +330,8 @@ export abstract class BaseNPC {
 
     // domain expansion tick -- call from NPCManager every frame
     // returns true if domain just activated this tick (so NPCManager can open it)
-    // tickDomain -- targetInRange = true means something is close enough to get caught
-    // AND the npc must actually be in active combat (hit or been hit recently)
+    // targetInRange = true means something this npc is HOSTILE TO is within pull radius
+    // both conditions required: in range + flagged hostile. desperate hp overrides.
     public tickDomain(dt: number, targetInRange: boolean = false): boolean {
         // cool down after previous domain
         if (this.domainCooldown > 0) {
@@ -350,12 +350,12 @@ export abstract class BaseNPC {
         }
 
         // two conditions to roll:
-        // 1. target in range AND actively in combat (hit someone or got hit recently)
-        // 2. OR desperate: below 25% hp -- fires regardless, its a last stand
+        // 1. target in range AND this npc is flagged hostile to that target (15s grudge timer, proper system)
+        // 2. OR desperate: below 25% hp -- fires regardless, its a last stand, they dont care anymore
         if (this.domainCooldown <= 0 && this.isAlive_) {
             const hpPct = this.hp / Math.max(1, this.maxHp);
             const desperate = hpPct < 0.25;
-            const readyToFight = targetInRange && this.isInCombat();
+            const readyToFight = targetInRange && this.isHostile(); // uses da proper hostility system now uwu
             if (readyToFight || desperate) {
                 const chance = desperate ? this.DOMAIN_CHANCE_LOW_HP : this.DOMAIN_CHANCE_BASE;
                 if (Math.random() < chance * dt) {
