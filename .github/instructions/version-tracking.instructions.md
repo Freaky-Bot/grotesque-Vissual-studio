@@ -1,5 +1,5 @@
 ---
-description: "Use when: adding a new feature, fixing a bug, committing code, or making any change to gameplay or UI. Always bump the version number, update the bottom-right HUD, and prefix the git commit with the new version."
+description: "Use when: adding a new feature, fixing a bug, committing code, making any change to gameplay or UI, or starting any coding session. Always bump the version number, update the bottom-right HUD, and prefix the git commit with the new version. Before any change, verify the HUD version matches the last git commit version and sync it if not."
 applyTo: "**"
 ---
 
@@ -33,13 +33,31 @@ applyTo: "**"
 
 ## Steps to Follow on EVERY Change
 
+### Step 0 — Sync check (do this FIRST, before anything else)
+Before deciding the new version number, verify the HUD is not stale:
+
+1. Read the current `#version-hud` value from `index.html`
+2. Read the version prefix from the last git commit: `git log --oneline -1`
+3. Compare them:
+
+| HUD | Last commit | Action |
+|-----|-------------|--------|
+| `v1.3.0` | `v1.3.3 fix: ...` | HUD is stale — update it to `v1.3.3` **before** applying this session's bump |
+| `v1.4.0` | `v1.4.0 feat: ...` | In sync — proceed normally with the bump |
+| `v1.3.0` | no version prefix | Treat last HUD value as truth — proceed normally |
+
+**If the HUD is behind the last commit version, bring it up first.** Then apply the bump for the current change on top of the corrected base.
+
+> Example: HUD says `v1.3.0`, last commit was `v1.3.3`. You're adding a new feature.
+> Correct action: update HUD to `v1.3.3` first, THEN bump MINOR → `v1.4.0` for this change.
+
 ### 1. Decide the new version number
-Read the current version from the `#version-display` element in `index.html` or the `CURRENT_VERSION` constant. Apply the increment rule above.
+Read the current version from `#version-hud` in `index.html` (after Step 0 sync). Apply the increment rule above.
 
 ### 2. Update the HUD in `index.html`
-Find the version span and update the text:
+Find the version div and update the text:
 ```html
-<span id="version-display">v1.0.0</span>
+<div id="version-hud">v1.0.0</div>
 ```
 
 ### 3. Prefix the git commit message with the version
@@ -54,6 +72,9 @@ The version tag goes at the **very start** of the commit message string, before 
 ### 4. Never skip a version bump
 Every commit that changes gameplay, UI, logic, or assets must have a version bump.
 Comments-only or instruction file changes may use PATCH.
+
+### 5. Verify HUD matches commit before pushing
+After updating the HUD and before committing, confirm `#version-hud` in `index.html` shows exactly the version you're about to prefix the commit with. They must be identical.
 
 ---
 
@@ -88,3 +109,4 @@ CSS (already in `index.html`):
 **Start: `1.0.0`**
 
 Track the current version by reading `#version-hud` in `index.html`. That element is the single source of truth.
+**Always verify it matches `git log --oneline -1` at the start of every session.** If it doesn't, sync it immediately.
