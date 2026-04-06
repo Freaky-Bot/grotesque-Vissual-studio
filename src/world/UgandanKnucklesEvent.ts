@@ -37,17 +37,9 @@ export class UgandanKnucklesEvent {
         this.eventTimer += deltaTime;
 
         if (!this.isEventActive && this.eventTimer >= this.eventCooldown) {
-            // king singleton check -- da sovereign still lives? NO NEW RAIN. da herd is already assembled.
-            // this is not a coincidence. only one king. ALWAYS.
-            if (this.currentLeader && this.currentLeader.isAlive()) {
-                // king lives. reset timer and try again later. da wey never ends.
-                this.eventTimer = 0;
-                this.eventCooldown = 20 + Math.random() * 20;
-                this.onAnnounce?.('DA KING STILL RULES!! NO NEW RAIN WHILE DA SOVEREIGN LIVES!! DO U KNO DA WEY??');
-                console.log('%c👑 KING STILL LIVES. NEW RAIN DENIED. DA HERD REMAINS.', 'color:gold;font-size:13px;font-weight:bold;');
-            } else {
-                this.startRainEvent(playerPos);
-            }
+            // king singleton check -- if da king still lives, rain still comes BUT no new king crowns
+            // da herd swells. da king stays king. followers only. da wey is maintained.
+            this.startRainEvent(playerPos);
         }
 
         // drip em in one by one
@@ -115,11 +107,20 @@ export class UgandanKnucklesEvent {
         const count = 8 + Math.floor(Math.random() * 10);
         this.spawnBurst = count;
         this.burstTimer = 0;
-        // reset leader ref for this new wave
-        this.currentLeader = null;
+        // DO NOT reset currentLeader here -- if a king is alive, new wave is followers only
+        // only wipe it if the old king is actually dead so a new one can rise
+        if (this.currentLeader && !this.currentLeader.isAlive()) {
+            this.currentLeader = null;
+        }
+        const hasKing = this.currentLeader && this.currentLeader.isAlive();
         console.log('%c🦔 DE UGANDAN KNUCKLES ARE COMING!! DO U KNO DA WEY??', 'color:red;font-weight:bold;font-size:16px;');
-        console.log(`%c🦔 ${count} BRUDDAS + 1 LEADER DESCEND FROM DA SKY`, 'color:darkred;font-size:13px;');
-        this.onAnnounce?.(`DE UGANDAN KNUCKLES RAIN HAS BEGUN!! ${count} BRUDDAS + DA LEADER ARE DESCENDING!!`);
+        if (hasKing) {
+            console.log(`%c🦔 ${count} BRUDDAS DESCEND -- DA KING STILL REIGNS, NO NEW CROWN`, 'color:darkred;font-size:13px;');
+            this.onAnnounce?.(`DA RAIN CONTINUES!! ${count} MORE BRUDDAS DROP!! DA KING STILL LIVES -- NO NEW THRONE!!`);
+        } else {
+            console.log(`%c🦔 ${count} BRUDDAS + 1 LEADER DESCEND FROM DA SKY`, 'color:darkred;font-size:13px;');
+            this.onAnnounce?.(`DE UGANDAN KNUCKLES RAIN HAS BEGUN!! ${count} BRUDDAS + DA LEADER ARE DESCENDING!!`);
+        }
     }
 
     private spawnOneKnuckles(playerPosition: THREE.Vector3): void {
