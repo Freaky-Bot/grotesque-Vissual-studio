@@ -1214,7 +1214,7 @@ class CatGodWorld {
         };
 
         this.stealthSystem = new StealthSystem();
-        this.stealthSystem.onDetected = (type) => { this.chat.addMessage('event', `👁️ Detected by ${type}!`); };
+        this.stealthSystem.onDetected = null; // silent stealth -- if ur detected u just die, no announcement. ugh.
 
         this.hungerSystem = new NPCHungerSystem(this.scene);
         this.hungerSystem.onNPCStarving = (type) => { this.chat.addMessage('event', `😿 A ${type} is starving and seeking food!`); };
@@ -1372,7 +1372,7 @@ class CatGodWorld {
             this.questSystem.update(effectiveDt);
             this.fishingSystem.update(effectiveDt);
             this.racingSystem.update(effectiveDt);
-            this.stealthSystem.checkDetection(playerPos, allNPCs);
+            this.stealthSystem.checkDetection(playerPos, allNPCs, effectiveDt);
             this.hungerSystem.update(effectiveDt, allNPCs);
             this.throwables.update(effectiveDt, allNPCs, playerPos);
             this.trailFx.update(effectiveDt);

@@ -308,11 +308,19 @@ export class StealthSystem {
         return this.crouching ? this.CROUCH_RANGE : this.detectionRange;
     }
 
-    public checkDetection(playerPos: THREE.Vector3, npcs: BaseNPC[]): void {
+    private detectionCooldown: number = 0; // prevent spam -- callback fires at most once per 5s
+
+    public checkDetection(playerPos: THREE.Vector3, npcs: BaseNPC[], dt: number = 0.016): void {
+        // tick cooldown regardless of whether we detect anything
+        if (this.detectionCooldown > 0) this.detectionCooldown -= dt;
         const range = this.getDetectionRange();
         for (const npc of npcs) {
             if (npc.getPosition().distanceTo(playerPos) < range) {
-                if (!this.crouching) this.onDetected?.(npc.getType());
+                // cooldown gate: only fire callback if enough time has passed since last detection
+                if (!this.crouching && this.detectionCooldown <= 0) {
+                    this.onDetected?.(npc.getType());
+                    this.detectionCooldown = 5; // 5 second cooldown. detection is an event, not a ticker.
+                }
             }
         }
         if (this.crouching) this.onSneakSuccess?.();
