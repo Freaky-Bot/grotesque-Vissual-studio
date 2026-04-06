@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.5.0 feat: eternal sunshine...elmo's light stand...mrrrow. fires golden blasts at the emo. THE VOID meets its match. stand activates on emo detect, overdrive when emo pops their stand. nobody asked for this battle but here we are meow...",
+    "date": "2026-04-05",
+    "hash": "bc419e0"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "0a0c0ff"
+  },
+  {
     "msg": "v2.4.4 feat: patch notes now show all 148 commits all da way back to v1.0.0 nyaa~ bumped gen-patchnotes limit from 40 to 200 so nothing gets cut off meow meow~ uwu 🐱💕",
     "date": "2026-04-05",
     "hash": "2d997e2"

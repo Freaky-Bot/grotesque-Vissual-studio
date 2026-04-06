@@ -37,6 +37,11 @@ export class ElmoNPC extends BaseNPC {
     private lightProjectiles: Array<{ mesh: THREE.Mesh; vel: THREE.Vector3; life: number }> = [];
     private emoStandActive: boolean = false; // set true by npcmanager when nearby emo has their stand up
 
+    // day intensity -- 0 at night, 1 at noon. elmo feeds on sunlight like a chaos photovoltaic panel.
+    // higher value = more speed, more damage, faster stand, bigger attitude. nobody asked.
+    private dayIntensity: number = 0;
+    public setDayIntensity(v: number): void { this.dayIntensity = v; }
+
     // the things elmo says while vibing / while hunting emos
     private readonly normalLines: string[] = [
         "HA HA HA!! ELMO IS SO HAPPY!!",
@@ -376,6 +381,10 @@ export class ElmoNPC extends BaseNPC {
         // stand cooldown ticks
         if (this.standCooldown > 0) this.standCooldown -= deltaTime;
 
+        // dayMultiplier: 1.0 at night, up to 2.2 at high noon. elmo is solar powered. purely.
+        // this runs on every frame. every. single. frame. i know what im doing. probably.
+        const dayMult = 1.0 + this.dayIntensity * 1.2;
+
         // if we have an emo target, run at them at FULL SPEED with murderous intent
         // tired of watching these gloomy cats ruin the vibes. -- disappointed parent mode engaged
         if (this.emoTarget) {
@@ -386,27 +395,28 @@ export class ElmoNPC extends BaseNPC {
                 // lock on and CHARGE
                 (this as any).targetAngle = Math.atan2(dx, dz);
             }
-            // when stand is active elmo speeds up -- OVERDRIVE DASH MODE
-            const speed = this.standActive ? 7.5 : 6;
-            this.randomWalk(deltaTime, speed);
+            // when stand is active elmo speeds up -- OVERDRIVE DASH MODE, then scale by sun
+            const baseSpeed = this.standActive ? 7.5 : 6.0;
+            this.randomWalk(deltaTime, baseSpeed * dayMult);
         } else {
             // no emo nearby -- wander around being suspiciously cheerful
-            this.randomWalk(deltaTime, 3.5);
+            this.randomWalk(deltaTime, 3.5 * dayMult);
         }
 
         // ---- ETERNAL SUNSHINE stand logic ----
         if (this.standActive && this.lightStand) {
             this.standTimer += deltaTime;
-            this.standPulseTimer += deltaTime * 2.8;
+            // pulse speed also scales with sun -- at noon the stand is VIBRATING with energy
+            this.standPulseTimer += deltaTime * (2.8 + this.dayIntensity * 1.5);
 
             // stand hovers and radiates with divine menace
             this.lightStand.position.y = 0.5 + Math.sin(this.standPulseTimer) * 0.22;
-            this.lightStand.rotation.y += deltaTime * 1.1; // spins brightly. no chill.
+            this.lightStand.rotation.y += deltaTime * (1.1 + this.dayIntensity * 0.8); // spins faster in daylight
 
             // orbit the light orbs around the stand
             for (let i = 0; i < this.lightOrbs.length; i++) {
-                // when emo's stand is active -- orbit faster. OVERDRIVE.
-                const orbitSpeed = this.emoStandActive ? 6.5 : 4.0;
+                // emo stand active = overdrive. daytime = extra fast. both = absolutely unhinged.
+                const orbitSpeed = (this.emoStandActive ? 6.5 : 4.0) + this.dayIntensity * 3.0;
                 this.orbAngles[i] += deltaTime * orbitSpeed;
                 const radius = 0.9 + Math.sin(this.standPulseTimer + i * 1.4) * 0.18;
                 this.lightOrbs[i].position.set(
@@ -414,20 +424,21 @@ export class ElmoNPC extends BaseNPC {
                     1.2 + Math.sin(this.orbAngles[i] * 0.6) * 0.35,
                     Math.sin(this.orbAngles[i]) * radius,
                 );
-                // pulse opacity -- pulsing light is more intimidating than static light
-                (this.lightOrbs[i].material as THREE.MeshBasicMaterial).opacity =
-                    0.65 + Math.sin(this.standPulseTimer + i) * 0.3;
+                // pulse opacity -- brighter in daylight, this is not a coincidence
+                const brightness = 0.65 + Math.sin(this.standPulseTimer + i) * 0.3 + this.dayIntensity * 0.2;
+                (this.lightOrbs[i].material as THREE.MeshBasicMaterial).opacity = Math.min(1, brightness);
             }
 
             // fire light blast toward emo target
-            // emo stand active = fire every 1s. normal mode = every 2s. no mercy either way.
-            const fireRate = this.emoStandActive ? 1.0 : 2.0;
+            // daytime = 50% faster fire rate on top of emo-stand overdrive. sun-powered gun.
+            const baseFireRate = this.emoStandActive ? 1.0 : 2.0;
+            const fireRate = baseFireRate / Math.max(0.5, dayMult * 0.85); // shorter interval = faster
             if (this.emoTarget && Math.floor(this.standTimer / fireRate) > Math.floor((this.standTimer - deltaTime) / fireRate)) {
                 this.fireLightBlast(this.emoTarget);
             }
 
-            // deactivate after 7 seconds (or 5 in overdrive -- burns out faster but hits harder)
-            const duration = this.emoStandActive ? 5 : 7;
+            // stand lasts longer in daylight -- at noon duration goes from 7s to 12s
+            const duration = (this.emoStandActive ? 5 : 7) + this.dayIntensity * 5;
             if (this.standTimer >= duration) {
                 this.deactivateStand();
             }
@@ -449,8 +460,9 @@ export class ElmoNPC extends BaseNPC {
         }
 
         // bobbing animation -- even while hunting elmo bobs. he cannot stop.
+        // bobs slightly faster in daylight because elmo has too much energy at noon
         const t = Date.now() * 0.001;
-        this.mesh.position.y = 0 + Math.sin(t * 3) * 0.08;
+        this.mesh.position.y = 0 + Math.sin(t * (3 + this.dayIntensity * 2)) * 0.08;
 
         // speak on interval
         if (this.sceneTimer >= this.dialogueInterval) {

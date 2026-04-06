@@ -88,7 +88,17 @@ export class DayNightCycle {
         const sunAngle = (this.time - 0.25) * Math.PI * 2;
         return Math.max(0, -Math.sin(sunAngle));
     }
+    // returns 0 at midnight, 1 at noon -- elmo uses this for his day power boost
+    // tired of writing the same trig over and over. same formula, opposite sign. there.
+    public getDayIntensity(): number {
+        const sunAngle = (this.time - 0.25) * Math.PI * 2;
+        return Math.max(0, Math.sin(sunAngle));
+    }
 
+    public isDay(): boolean {
+        const sunAngle = (this.time - 0.25) * Math.PI * 2;
+        return Math.sin(sunAngle) >= 0;
+    }
     public getTimeString(): string {
         const hours = Math.floor(this.time * 24);
         const mins = Math.floor((this.time * 24 - hours) * 60);

@@ -43,6 +43,11 @@ export class NPCManager {
     private domainSystem: DomainExpansionSystem | null = null;
     public onDomainActivated: ((name: string, flavor: string) => void) | null = null;
 
+    // day intensity (0=night, 1=noon) -- passed in from main.ts each frame via dayNight.getDayIntensity()
+    // elmo gets stronger in the day, like a small furry red solar panel of rage
+    private dayIntensity: number = 0;
+    public setDayIntensity(v: number): void { this.dayIntensity = v; }
+
     // what each npc type gets when its domain opens -- shown in the chat so the player knows what hit them
     private static readonly DOMAIN_BUFF_DESCS: Record<string, string> = {
         normal:  '4x SPEED + double damage -- ITS GOING FERAL',
@@ -115,7 +120,7 @@ export class NPCManager {
         baby:        '8x speed -- BABY TURBO MODE. FASTEST THING ALIVE. SOMEHOW.',
         elder:       '6x damage + 80% armor + slow -- ANCIENT JUDGMENT. UNHURRIED. UNMERCIFUL.',
         glitch:      'INVULNERABLE + 3x damage -- UNTRACEABLE. THE KILL COMES FROM NOWHERE.',
-        elmo:        '3x damage when hunting emos -- ELMO IS VERY ANGRY AND VERY RED',
+        elmo:        'ELMO\'S WORLD DOMAIN -- 4x speed + 3x damage + forced happiness zone + MANDATORY SUNSHINE Aura. the emo cannot exist in here.',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -261,6 +266,7 @@ export class NPCManager {
                 }
                 npc.setEmoTarget(closestEmo);
                 npc.setEmoStandActive(closestEmoStandActive); // tell elmo if emo stand is active -- overdrive mode
+                npc.setDayIntensity(this.dayIntensity); // sun up = elmo stronger. its just how it works.
                 // elmo is hostile to player too when hunt mode is on -- otherwise he just vibes
                 if (closestEmo) npc.markHostileToPlayer();
             }
@@ -613,6 +619,8 @@ export class NPCManager {
         const elmo = new ElmoNPC(pos);
         if (this.bubbleCb) elmo.setSpeakCallback(this.bubbleCb);
         if (this.playerPos) elmo.setPlayerRef(this.playerPos);
+        elmo.setDayIntensity(this.dayIntensity); // start elmo with current day power level
+        if (Math.random() < 0.10) elmo.forceActivateDomain(12); // 10% chance to open ELMO'S WORLD on spawn lol
         this.addNPC(elmo);
         this.scene.add(elmo.getMesh());
         console.log('%c😡 ELMO HAS ARRIVED. THE EMO HUNT BEGINS.', 'color: #dd1111; font-weight: bold; font-size: 14px');

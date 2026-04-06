@@ -111,6 +111,15 @@ export const DOMAIN_DEFS: Record<string, DomainDef> = {
         damage: 28, npcDamage: 0, stunPulse: 2, healPerSec: 8, duration: 13, guaranteedHit: true, isPlayerDomain: false,
         killBurst: 55, executeHpPct: 0.25, pullRadius: 48,
     },
+    // HEAR YE. THE DOMAIN OF ETERNAL SUNSHINE HATH BEEN INSCRIBED INTO THE SACRED REGISTRY. ⚔️☀️
+    // no darkness permitted inside. not one shadow. not one negative vibe. MANDATORY HAPPINESS.
+    elmo:     {
+        name: "Elmo's World",
+        npcType: 'elmo', flavorText: "ELMO WELCOMES YOU TO ELMO'S WORLD!! YOU CANNOT LEAVE!! HA HA HA!!",
+        radius: 40, domainColor: 0xffcc00, fogColor: 0xff8800,
+        damage: 20, npcDamage: 0, stunPulse: 3, healPerSec: 12, duration: 14, guaranteedHit: true, isPlayerDomain: false,
+        killBurst: 45, executeHpPct: 0.18, pullRadius: 52,
+    },
     shrek:    {
         name: 'Swamp of Eternal Despair',
         npcType: 'shrek', flavorText: 'THIS IS MY SWAMP. THIS HAS ALWAYS BEEN MY SWAMP.',

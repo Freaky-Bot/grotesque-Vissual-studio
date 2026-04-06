@@ -1124,8 +1124,8 @@ class CatGodWorld {
         this.weatherSystem.onWeatherChange = (w) => {
             this.chat.addMessage('event', `⛅ Weather: ${w.toUpperCase()}`);
         };
-        this.dayNight.onNightFall = () => this.chat.addMessage('event', '🌙 Night has fallen. The emos grow stronger.');
-        this.dayNight.onDayBreak = () => this.chat.addMessage('event', '☀️ A new day begins!');
+        this.dayNight.onNightFall = () => this.chat.addMessage('event', '🌙 Night has fallen. The emos grow stronger. Elmo loses his daytime power...');
+        this.dayNight.onDayBreak = () => this.chat.addMessage('event', '☀️ A new day begins! Elmo grows stronger in the sunlight!');
 
         // world events -- random dramatic stuff every few minutes nyaa~
         this.worldEvents = new WorldEventsSystem(this.scene);
@@ -1380,6 +1380,7 @@ class CatGodWorld {
 
             // ALL THE NEW SYSTEMS -- yeet em in the update loop
             this.dayNight.update(effectiveDt);
+            this.npcManager.setDayIntensity(this.dayNight.getDayIntensity()); // elmo gets this. he earned it.
             this.weatherSystem.update(effectiveDt);
             this.factionSystem.update(effectiveDt, this.npcManager.getNPCs());
             this.voidPortal.update(effectiveDt, this.sageCharacter.getPosition());
