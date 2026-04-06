@@ -202,6 +202,8 @@ export class NPCManager {
         // the political duo. unexpected. unasked for. here anyway.
         this.spawnObama();
         this.spawnTrump();
+        // DIO was always here. we just werent calling this. YARE YARE DAZE.
+        this.spawnDio();
     }
 
     public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
@@ -486,7 +488,7 @@ export class NPCManager {
     }
 
     private spawnNewNPC(): void {
-        // updated spawn weights: emo 7%, elmo 4%, barney 8%, shrek 5%, buffcat 6%, voidcat 5%, rest = cats
+        // updated spawn weights: emo 7%, elmo 4%, barney 8%, shrek 5%, buffcat 6%, voidcat 5%, dio 2%, rest = cats
         const roll = Math.random();
         if (roll < 0.07) { this.spawnEmo(); return; }
         if (roll < 0.11) { this.spawnElmo(); return; } // elmo spawns slightly less than emo -- keeps balance
@@ -496,6 +498,7 @@ export class NPCManager {
         if (roll < 0.35) { this.spawnVoidCat(); return; }
         if (roll < 0.39) { this.spawnObama(); return; }
         if (roll < 0.43) { this.spawnTrump(); return; }
+        if (roll < 0.45) { this.spawnDio(); return; } // DIO finally gets in the pool. YARE YARE DAZE.
         // Random cat type - JOJO EDITION!! ゴゴゴゴゴ
         const catTypes = [
             CatType.NORMAL,
