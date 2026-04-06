@@ -253,25 +253,30 @@ export class NPCManager {
                 }
             }
 
-            // domain expansion tick -- count nearby threats so NPCs only activate mid-combat
+            // domain expansion tick -- only activate if a target is actually within this npc's pull radius
             if (this.domainSystem) {
-                // count: player + any other alive NPC within 20 units = "in combat"
-                let threatCount = 0;
+                const defKey = npc.getType();
+                const def = DOMAIN_DEFS[defKey] ?? DOMAIN_DEFS['normal'];
+                const pullR = def.pullRadius;           // the real capture radius for this domain type
                 const npcPos = npc.getPosition();
-                if (this.playerPos && npcPos.distanceTo(this.playerPos) < 20) threatCount++;
+
+                // find the closest thing this npc could trap -- player or other alive npc
+                let closestDist = Infinity;
+                if (this.playerPos) closestDist = Math.min(closestDist, npcPos.distanceTo(this.playerPos));
                 for (const other of this.npcs) {
-                    if (other !== npc && other.isAlive() && npcPos.distanceTo(other.getPosition()) < 20) {
-                        threatCount++;
+                    if (other !== npc && other.isAlive()) {
+                        closestDist = Math.min(closestDist, npcPos.distanceTo(other.getPosition()));
                     }
                 }
-                const justOpened = npc.tickDomain(deltaTime, threatCount);
+
+                // targetInRange = closest threat is actually close enough to get pulled in
+                const targetInRange = closestDist <= pullR;
+                const justOpened = npc.tickDomain(deltaTime, targetInRange);
                 if (justOpened) {
-                    // open the domain using the npc's type as the key
-                    const defKey = npc.getType();
                     this.domainSystem.openDomain(
                         { getPosition: () => npc.getPosition(), takeDamage: (d) => npc.takeDamage(d), getType: () => npc.getType(), hp: npc.getHp(), maxHp: npc.getMaxHp() },
                         DOMAIN_DEFS[defKey] ? defKey : 'normal',
-                        this.playerPos ?? undefined,  // pass playerPos so domain knows if player is trapped inside
+                        this.playerPos ?? undefined,
                     );
                     // announce the domain buff so main.ts can show it in chat
                     const buffDesc = NPCManager.DOMAIN_BUFF_DESCS[defKey] ?? 'power unknown';
