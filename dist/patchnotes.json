@@ -1,5 +1,10 @@
 [
   {
+    "msg": "v2.6.1 feat: npm run ship -- patchnotes written before commit so latest entry always shows in-game nyaa~...no more lag...the void weeps...eternal sunshine delivers uwu 🚢☀️",
+    "date": "2026-04-05",
+    "hash": "6aea746"
+  },
+  {
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "c9a7419"
