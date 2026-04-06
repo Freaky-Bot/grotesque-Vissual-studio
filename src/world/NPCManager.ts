@@ -246,18 +246,21 @@ export class NPCManager {
                 if (this.playerPos) npc.setPlayerRef(this.playerPos);
                 let closestEmo: THREE.Vector3 | null = null;
                 let closestEmoDist = 60; // elmo only detects emos within 60 units -- beyond that he just vibes
+                let closestEmoStandActive = false; // is the targeted emo's void stand up? elmo needs to know
                 for (const other of this.npcs) {
                     if (other instanceof EmoNPC && other.isAlive()) {
                         const d = npc.getPosition().distanceTo(other.getPosition());
                         if (d < closestEmoDist) {
                             closestEmoDist = d;
                             closestEmo = other.getPosition().clone();
+                            closestEmoStandActive = other.isStandActive();
                             // mark the emo as hostile to elmo (so domain activates too)
                             other.markHostileToNpc();
                         }
                     }
                 }
                 npc.setEmoTarget(closestEmo);
+                npc.setEmoStandActive(closestEmoStandActive); // tell elmo if emo stand is active -- overdrive mode
                 // elmo is hostile to player too when hunt mode is on -- otherwise he just vibes
                 if (closestEmo) npc.markHostileToPlayer();
             }

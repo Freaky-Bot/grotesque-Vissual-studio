@@ -398,6 +398,12 @@ export class EmoNPC extends BaseNPC {
         return 'emo'; // *sigh*
     }
 
+    // the void stand status -- elmo needs to know this to activate overdrive mode
+    // when THE VOID is up, ETERNAL SUNSHINE goes berserk. thats the deal. forever.
+    public isStandActive(): boolean {
+        return this.standActive;
+    }
+
     // cleanup stand projectiles when emo dies (ya know, if that happens)
     public die(): void {
         super.die();

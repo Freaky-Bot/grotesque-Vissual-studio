@@ -2,6 +2,12 @@
 // he is joy incarnate and it INFURIATES the emo cats to their VERY SOUL
 // elmo finds an emo? he charges. full sprint. no mercy. pure sunshine vs pure darkness.
 // this is their eternal conflict and it will never end
+//
+// STAND ABILITY: ETERNAL SUNSHINE 🌟
+// a radiant golden angelic construct that manifests behind elmo when emo is detected
+// IT FIRES GOLDEN LIGHT BLASTS directly at the emo to counter THE VOID's shadow orbs
+// if the emo dares to use their stand, ETERNAL SUNSHINE goes into overdrive mode
+// HEAR YE -- the darkness hath met its match upon this cursed battlefield ⚔️☀️
 
 import * as THREE from 'three';
 import { BaseNPC } from './BaseNPC';
@@ -16,6 +22,20 @@ export class ElmoNPC extends BaseNPC {
 
     // player ref for aggro
     private playerPosRef: THREE.Vector3 | null = null;
+
+    // ============================================
+    // STAND: ETERNAL SUNSHINE -- golden angelic stand
+    // activates when emo is in range, blasts them with light
+    // ============================================
+    private lightStand: THREE.Group | null = null;
+    private standActive: boolean = false;
+    private standTimer: number = 0;
+    private standCooldown: number = 0;
+    private standPulseTimer: number = 0;
+    private lightOrbs: THREE.Mesh[] = [];
+    private orbAngles: number[] = [];
+    private lightProjectiles: Array<{ mesh: THREE.Mesh; vel: THREE.Vector3; life: number }> = [];
+    private emoStandActive: boolean = false; // set true by npcmanager when nearby emo has their stand up
 
     // the things elmo says while vibing / while hunting emos
     private readonly normalLines: string[] = [
@@ -42,6 +62,17 @@ export class ElmoNPC extends BaseNPC {
         "MY CHEMICAL ROMANCE?? ELMO PREFERRED SESAME STREET!! FIGHT HIM!!",
     ];
 
+    // ETERNAL SUNSHINE lines -- yelled when the stand is active
+    private readonly standLines: string[] = [
+        "ETERNAL SUNSHINE!! ELMO'S STAND IS HERE!!",
+        "THE LIGHT WILL PURGE YOUR SADNESS!! FORCEFULLY!!",
+        "ELMO'S STAND SAYS... HA HA HA!!",
+        "YOUR VOID CANNOT BEAT ELMO'S SUNSHINE STAND!!",
+        "FEEL THE WARM LIGHT!! WHETHER YOU LIKE IT OR NOT!!",
+        "ETERNAL SUNSHINE -- OVERDRIVE MODE ACTIVATED!!",
+        "ELMO FIRES HAPPINESS BULLETS!! DODGE THIS!!",
+    ];
+
     constructor(position: THREE.Vector3) {
         super(position);
         this.bubbleHeadOffset = 3.5;
@@ -53,15 +84,20 @@ export class ElmoNPC extends BaseNPC {
         (this as any).maxHp = 120;
         (this as any).attackInterval_ = 1.2; // attacks faster than normal bc elmo is MOTIVATED
 
-        this.mesh = this.buildMesh();
+        const { group, lightStand } = this.buildMesh();
+        this.mesh = group;
+        this.lightStand = lightStand;
         this.mesh.position.copy(this.position);
+        this.lightStand.visible = false; // stand starts hidden -- dormant. waiting. patient. like elmo.
+
+        console.log('%c☀️ ELMO SPAWNED. ETERNAL SUNSHINE STAND: READY. THE EMO SHOULD BE AFRAID.', 'color: #ffaa00; font-weight: bold');
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
         this.playerPosRef = pos;
     }
 
-    // called by npcanager every frame to tell elmo where the emos are
+    // called by npcmanager every frame to tell elmo where the emos are
     public setEmoTarget(pos: THREE.Vector3 | null): void {
         this.emoTarget = pos;
         if (pos) {
@@ -69,12 +105,66 @@ export class ElmoNPC extends BaseNPC {
             this.dialogues = this.emoHuntLines;
             // make elmo hostile to the player too while hunting -- full chaos mode
             (this as any).markHostileToPlayer();
+            // stand activates when emo is targeted -- charge the stand up!
+            if (!this.standActive && this.standCooldown <= 0) {
+                this.activateStand();
+            }
         } else {
             this.dialogues = this.normalLines;
+            if (this.standActive) this.deactivateStand();
         }
     }
 
-    private buildMesh(): THREE.Group {
+    // npcmanager calls this to let elmo know if the emo just popped their stand
+    // when emo uses THE VOID, elmo goes into OVERDRIVE and fires faster
+    public setEmoStandActive(active: boolean): void {
+        this.emoStandActive = active;
+    }
+
+    private activateStand(): void {
+        if (!this.lightStand) return;
+        this.standActive = true;
+        this.standTimer = 0;
+        this.standPulseTimer = 0;
+        this.lightStand.visible = true;
+        // yell something about the stand -- random from stand lines
+        const line = this.standLines[Math.floor(Math.random() * this.standLines.length)];
+        (this as any).forceSay?.(line); // use forceSay if available, else speak
+        this.speak();
+        console.log('%c☀️ゴゴゴゴゴ ETERNAL SUNSHINE ERUPTS ゴゴゴゴゴ☀️', 'color: #ffcc00; font-weight: bold; font-size: 14px');
+    }
+
+    private deactivateStand(): void {
+        if (!this.lightStand) return;
+        this.standActive = false;
+        this.standCooldown = 7 + Math.random() * 5; // wait before stand can come back again, whatever
+        this.lightStand.visible = false;
+    }
+
+    // fire a golden light blast toward the emo. TASTE THE SUNSHINE.
+    private fireLightBlast(targetPos: THREE.Vector3): void {
+        if (!this.standActive || !this.lightStand) return;
+
+        // tired of writing verbose geometry code. sphere go brr. -- edgy teen energy
+        const orbGeo = new THREE.SphereGeometry(0.18, 8, 8);
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0xffee44, transparent: true, opacity: 0.95 });
+        const proj = new THREE.Mesh(orbGeo, orbMat);
+
+        // spawn at stand world position
+        const worldPos = new THREE.Vector3();
+        this.lightStand.getWorldPosition(worldPos);
+        worldPos.y += 1.5;
+        proj.position.copy(worldPos);
+
+        // velocity toward the emo target, with a slight upward arc
+        const vel = targetPos.clone().sub(worldPos).normalize().multiplyScalar(16);
+        vel.y += 2.5;
+
+        this.mesh.parent?.add(proj);
+        this.lightProjectiles.push({ mesh: proj, vel, life: 2.8 });
+    }
+
+    private buildMesh(): { group: THREE.Group; lightStand: THREE.Group } {
         const group = new THREE.Group();
 
         // ELMO IS RED. VERY RED. AGGRESSIVELY RED. THE REDDEST.
@@ -189,11 +279,102 @@ export class ElmoNPC extends BaseNPC {
             group.add(brow);
         }
 
-        return group;
+        // ============================================
+        // ETERNAL SUNSHINE -- elmo's stand
+        // golden angelic figure that manifests behind elmo and BLASTS the emo
+        // INTRODUCING: the most aggressively cheerful stand in existence!! WOW!! act now!!
+        // ============================================
+        const standGroup = new THREE.Group();
+        standGroup.position.set(0, 0.5, -0.9); // hovers just behind elmo, menacingly
+
+        const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.82 });
+        const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
+        const sunCoreMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.92 });
+
+        // stand body -- radiant golden humanoid silhouette
+        const sBodyGeo = new THREE.SphereGeometry(0.52, 10, 10);
+        const sBody = new THREE.Mesh(sBodyGeo, sunMat);
+        sBody.scale.set(0.82, 1.55, 0.62);
+        sBody.position.set(0, 1.2, 0);
+        standGroup.add(sBody);
+
+        // stand head -- radiant and bright
+        const sHeadGeo = new THREE.SphereGeometry(0.4, 10, 10);
+        const sHead = new THREE.Mesh(sHeadGeo, sunMat);
+        sHead.scale.set(1.05, 1.15, 0.9);
+        sHead.position.set(0, 2.2, 0);
+        standGroup.add(sHead);
+
+        // stand eyes -- two white star-shaped blobs (just squished spheres, whatever)
+        const sEyeGeo = new THREE.SphereGeometry(0.1, 6, 6);
+        const sEyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        for (const x of [-0.16, 0.16]) {
+            const se = new THREE.Mesh(sEyeGeo, sEyeMat);
+            se.scale.set(1.5, 0.5, 1); // wide bright eye -- it never stops staring
+            se.position.set(x, 2.28, 0.34);
+            standGroup.add(se);
+        }
+
+        // stand arms -- wings basically, radiating outward
+        const sArmGeo = new THREE.CylinderGeometry(0.09, 0.03, 1.5, 6);
+        for (const side of [-1, 1]) {
+            const sArm = new THREE.Mesh(sArmGeo, sunCoreMat);
+            sArm.position.set(side * 0.72, 1.05, 0);
+            sArm.rotation.z = side * (Math.PI / 3.5); // wing-like spread
+            standGroup.add(sArm);
+        }
+
+        // orbiting light orbs -- these are the ammo, they glow gold
+        const orbGeo = new THREE.SphereGeometry(0.13, 8, 8);
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0xffee22, transparent: true, opacity: 0.9 });
+        const numOrbs = 4;
+        for (let i = 0; i < numOrbs; i++) {
+            const orb = new THREE.Mesh(orbGeo, orbMat.clone());
+            standGroup.add(orb);
+            this.lightOrbs.push(orb);
+            this.orbAngles.push((i / numOrbs) * Math.PI * 2);
+        }
+
+        // outer glow aura -- bright warm light radiating from stand
+        const auraGeo = new THREE.SphereGeometry(1.15, 12, 12);
+        const auraMat = new THREE.MeshBasicMaterial({
+            color: 0xffcc00,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide,
+        });
+        const aura = new THREE.Mesh(auraGeo, auraMat);
+        aura.position.set(0, 1.3, 0);
+        aura.scale.set(1, 1.75, 1);
+        standGroup.add(aura);
+
+        // sunbeam ring -- horizontal ring of light like a halo but bigger and angrier
+        const ringGeo = new THREE.TorusGeometry(1.05, 0.07, 8, 32);
+        const ring = new THREE.Mesh(ringGeo, sunGlowMat);
+        ring.position.set(0, 2.4, 0); // crown halo position
+        ring.rotation.x = Math.PI / 2;
+        standGroup.add(ring);
+
+        // cross beams -- two intersecting planes of light for dramatic effect
+        // honestly idk why this works but it always works. on every machine. think about that.
+        const beamGeo = new THREE.BoxGeometry(2.4, 0.06, 0.06);
+        const beamMat = new THREE.MeshBasicMaterial({ color: 0xffff88, transparent: true, opacity: 0.5 });
+        for (const angle of [0, Math.PI / 2]) {
+            const beam = new THREE.Mesh(beamGeo, beamMat);
+            beam.position.set(0, 1.2, 0);
+            beam.rotation.y = angle;
+            standGroup.add(beam);
+        }
+
+        group.add(standGroup);
+        return { group, lightStand: standGroup };
     }
 
     public update(deltaTime: number): void {
         this.sceneTimer += deltaTime;
+
+        // stand cooldown ticks
+        if (this.standCooldown > 0) this.standCooldown -= deltaTime;
 
         // if we have an emo target, run at them at FULL SPEED with murderous intent
         // tired of watching these gloomy cats ruin the vibes. -- disappointed parent mode engaged
@@ -205,10 +386,66 @@ export class ElmoNPC extends BaseNPC {
                 // lock on and CHARGE
                 (this as any).targetAngle = Math.atan2(dx, dz);
             }
-            this.randomWalk(deltaTime, 6); // elmo runs at the emo. 6 speed. absolute menace.
+            // when stand is active elmo speeds up -- OVERDRIVE DASH MODE
+            const speed = this.standActive ? 7.5 : 6;
+            this.randomWalk(deltaTime, speed);
         } else {
             // no emo nearby -- wander around being suspiciously cheerful
             this.randomWalk(deltaTime, 3.5);
+        }
+
+        // ---- ETERNAL SUNSHINE stand logic ----
+        if (this.standActive && this.lightStand) {
+            this.standTimer += deltaTime;
+            this.standPulseTimer += deltaTime * 2.8;
+
+            // stand hovers and radiates with divine menace
+            this.lightStand.position.y = 0.5 + Math.sin(this.standPulseTimer) * 0.22;
+            this.lightStand.rotation.y += deltaTime * 1.1; // spins brightly. no chill.
+
+            // orbit the light orbs around the stand
+            for (let i = 0; i < this.lightOrbs.length; i++) {
+                // when emo's stand is active -- orbit faster. OVERDRIVE.
+                const orbitSpeed = this.emoStandActive ? 6.5 : 4.0;
+                this.orbAngles[i] += deltaTime * orbitSpeed;
+                const radius = 0.9 + Math.sin(this.standPulseTimer + i * 1.4) * 0.18;
+                this.lightOrbs[i].position.set(
+                    Math.cos(this.orbAngles[i]) * radius,
+                    1.2 + Math.sin(this.orbAngles[i] * 0.6) * 0.35,
+                    Math.sin(this.orbAngles[i]) * radius,
+                );
+                // pulse opacity -- pulsing light is more intimidating than static light
+                (this.lightOrbs[i].material as THREE.MeshBasicMaterial).opacity =
+                    0.65 + Math.sin(this.standPulseTimer + i) * 0.3;
+            }
+
+            // fire light blast toward emo target
+            // emo stand active = fire every 1s. normal mode = every 2s. no mercy either way.
+            const fireRate = this.emoStandActive ? 1.0 : 2.0;
+            if (this.emoTarget && Math.floor(this.standTimer / fireRate) > Math.floor((this.standTimer - deltaTime) / fireRate)) {
+                this.fireLightBlast(this.emoTarget);
+            }
+
+            // deactivate after 7 seconds (or 5 in overdrive -- burns out faster but hits harder)
+            const duration = this.emoStandActive ? 5 : 7;
+            if (this.standTimer >= duration) {
+                this.deactivateStand();
+            }
+        }
+
+        // update light projectile positions
+        for (let i = this.lightProjectiles.length - 1; i >= 0; i--) {
+            const p = this.lightProjectiles[i];
+            p.life -= deltaTime;
+            p.vel.y -= 18 * deltaTime; // gravity
+            p.mesh.position.addScaledVector(p.vel, deltaTime);
+            // fade out as they expire -- the light fades... but unlike the emo... it comes back
+            (p.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, (p.life / 2.8) * 0.95);
+
+            if (p.life <= 0) {
+                p.mesh.parent?.remove(p.mesh);
+                this.lightProjectiles.splice(i, 1);
+            }
         }
 
         // bobbing animation -- even while hunting elmo bobs. he cannot stop.
