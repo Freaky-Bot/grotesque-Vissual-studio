@@ -73,6 +73,7 @@ class CatGodWorld {
     private sunLight!: THREE.DirectionalLight; // ref kept for day/night
     private ambientLightRef!: THREE.AmbientLight; // ref kept for day/night + weather
     private mudSlowTimer: number = 0; // seconds of slowness remaining from shrek mud
+    private dioSpawnTimer: number = 180; // DIO spawns after 3 minutes. the wait makes him scarier.
 
     // inventory + combat state -- about time the player can fight back
     private inventory: InventorySystem = new InventorySystem();
@@ -242,6 +243,30 @@ class CatGodWorld {
                     }
                 }
             }
+        };
+
+        // ZA WARUDO -- DIO stops time. everyone freezes. main.ts handles the consequences.
+        this.npcManager.onDioZaWarudo = () => {
+            // stun every NPC -- they are FROZEN in time. DIO wins.
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getType() !== 'dio') npc.stun(5);
+            }
+            // slow the player too -- partial time stop effect
+            this.mudSlowTimer = Math.max(this.mudSlowTimer, 5);
+            // white screen flash -- THE CLASSIC ZA WARUDO EFFECT
+            document.body.style.filter = 'brightness(10) saturate(0)';
+            setTimeout(() => {
+                document.body.style.filter = 'brightness(3) saturate(0)';
+                setTimeout(() => { document.body.style.filter = ''; }, 500);
+            }, 200);
+            // chat goes mental
+            this.chat.addMessage('event', '⏱️ ZA WARUDO!!! TOKI WO TOMARE!!!');
+            this.chat.addMessage('event', '⏱️ DIO has stopped time. 5 seconds of hell.');
+            setTimeout(() => {
+                this.chat.addMessage('event', '⏱️ ...5 seconds have passed. TIME MOVES AGAIN.');
+            }, 5000);
+            // shake camera -- DIO-level shockwave
+            screenShake(true);
         };
 
         // domain expansion announcement -- splash the domain name big on screen
@@ -1117,6 +1142,16 @@ class CatGodWorld {
 
             // spit on him brudda (ugandan knuckles rain event)
             this.ugandanKnucklesEvent.update(deltaTime, this.sageCharacter.getPosition());
+
+            // DIO SPAWN TIMER -- KONO DIO DA. every 5 minutes he shows up again.
+            this.dioSpawnTimer -= deltaTime;
+            if (this.dioSpawnTimer <= 0) {
+                this.npcManager.forceSpawnDio();
+                this.showDomainBanner('KONO DIO DA!!!', 'IT WAS ME, DIO!! THE VILLAIN OF THIS WORLD HAS ARRIVED!! ZA WARUDO AWAITS!!');
+                this.chat.addMessage('event', '🧛 KONO DIO DA!!! The villain of this world has spawned!!');
+                this.chat.addMessage('event', '🧛 DIO has 500 HP and no domain -- only ZA WARUDO. beware.');
+                this.dioSpawnTimer = 300; // respawns every 5 minutes. he is persistent.
+            }
 
             // reproject all chat bubbles to screen every frame
             this.bubbles.update();

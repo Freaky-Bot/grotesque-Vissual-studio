@@ -8,6 +8,7 @@ import { BuffCatNPC } from './BuffCatNPC';
 import { VoidCatNPC } from './VoidCatNPC';
 import { ObamaNPC } from './ObamaNPC';
 import { TrumpNPC } from './TrumpNPC';
+import { DioNPC } from './DioNPC';
 import { DomainExpansionSystem, DOMAIN_DEFS } from './DomainExpansionSystem';
 import { InventorySystem, ITEM_INFO } from './InventorySystem';
 
@@ -28,6 +29,8 @@ export class NPCManager {
     public onNpcEquipItem: ((npcType: string, itemName: string) => void) | null = null;
     // called when a domain opens and npc gets its special ability -- so main.ts can scream about it
     public onDomainBuff: ((npcType: string, buffDesc: string) => void) | null = null;
+    // DIO stops time -- main.ts handles the actual freeze effect
+    public onDioZaWarudo: (() => void) | null = null;
 
     // npc-vs-npc combat timer -- they fight each other every few seconds
     private npcFightTimer: number = 0;
@@ -59,6 +62,8 @@ export class NPCManager {
         hybrid:  'RANDOM BUFFS -- nobody knows. not even the hybrid. chaos.',
         obama:   '2x speed + 2x damage + 30% armor -- YES WE CAN. AND YES HE WILL.',
         trump:   '2.5x damage + 60% armor -- THE TREMENDOUS WALL PROTECTS HIM. BELIEVE ME.',
+        dio:     'ZA WARUDO -- time stopped. DIO wins. he doesnt need a domain. he has THE WORLD.',
+        // nyaa~ 20 new domain buffs because more is more and nobody can stop us uwu 💕
         // nyaa~ 20 new domain buffs because more is more and nobody can stop us uwu 💕
         chef:        '1.5x speed + 2x damage + 30% armor -- KITCHEN IS NOW A WARZONE',
         astronaut:   '50% damage resist + slow attacks -- ZERO G TANK MODE',
@@ -114,6 +119,7 @@ export class NPCManager {
         hybrid:  { dmg: 10, range: 3.0 },
         obama:   { dmg: 12, range: 4.5 }, // hope hurts apparently
         trump:   { dmg: 15, range: 3.5 }, // tremendous damage. bigly.
+        dio:     { dmg: 25, range: 4.5 }, // THE WORLD delivers TREMENDOUS hits. no refunds.
         // idk why this works. ngl kinda scared to touch it. -- edgy dev
         chef:        { dmg: 10, range: 3.0 },
         astronaut:   { dmg: 9,  range: 4.0 },
@@ -224,6 +230,14 @@ export class NPCManager {
             if (npc instanceof TrumpNPC && this.playerPos) {
                 npc.setPlayerRef(this.playerPos);
             }
+            // DIO needs player pos to hunt them down + throw knives at them
+            if (npc instanceof DioNPC && this.playerPos) {
+                npc.setPlayerRef(this.playerPos);
+                npc.tickKnifeHits(this.playerPos, (dmg) => {
+                    this.onPlayerHit?.(dmg);
+                    npc.markHostileToPlayer();
+                });
+            }
             // buff cat doing zoomies can damage buildings
             if (npc instanceof BuffCatNPC && this.worldGenerator) {
                 this.worldGenerator.damageBuildingNear(npc.getPosition(), 10);
@@ -256,7 +270,8 @@ export class NPCManager {
 
             // domain expansion tick -- only activate if a target is actually within this npc's pull radius
             // AND this npc is actually hostile to that target -- no random domain spam anymore
-            if (this.domainSystem) {
+            // DIO skipped -- ZA WARUDO is his domain. he doesnt need a glowing sphere.
+            if (this.domainSystem && npc.getType() !== 'dio') {
                 const defKey = npc.getType();
                 const def = DOMAIN_DEFS[defKey] ?? DOMAIN_DEFS['normal'];
                 const pullR = def.pullRadius;           // the real capture radius for this domain type
@@ -637,5 +652,26 @@ export class NPCManager {
         if (Math.random() < 0.10) trump.forceActivateDomain(14);
         this.addNPC(trump);
         this.scene.add(trump.getMesh());
+    }
+
+    private spawnDio(): void {
+        // only one DIO at a time. the universe cannot handle two.
+        if (this.npcs.some(n => n.getType() === 'dio')) return;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 35 + Math.random() * 45; // 35-80u away -- close enough to be scary immediately
+        const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
+        const dio = new DioNPC(pos);
+        dio.setMaxHp(500); // BOSS HP. this is not a drill.
+        if (this.bubbleCb) dio.setSpeakCallback(this.bubbleCb);
+        if (this.playerPos) dio.setPlayerRef(this.playerPos);
+        // wire ZA WARUDO callback up the chain to main.ts
+        dio.onZaWarudo = () => this.onDioZaWarudo?.();
+        this.addNPC(dio);
+        this.scene.add(dio.getMesh());
+        console.log('%c🧛 KONO DIO DA!!! THE VILLAIN HAS ARRIVED. 500HP. NO DOMAIN. ONLY TIME STOP.', 'color: gold; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px purple;');
+    }
+
+    public forceSpawnDio(): void {
+        this.spawnDio();
     }
 }
