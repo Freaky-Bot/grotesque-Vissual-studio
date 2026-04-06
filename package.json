@@ -7,8 +7,10 @@
     "dev": "vite",
     "prebuild": "node scripts/gen-patchnotes.mjs && node scripts/check-threejs-assign.mjs",
     "build": "vite build",
+    "build-only": "vite build",
     "preview": "vite preview",
-    "server": "node server.js"
+    "server": "node server.js",
+    "ship": "node scripts/ship.mjs"
   },
   "dependencies": {
     "three": "latest",

@@ -1,5 +1,10 @@
 [
   {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "c9a7419"
+  },
+  {
     "msg": "v2.6.0 feat: elmo's world domain expansion added nyaa~ plus solar power mode...elmo scales with the sun now. faster at noon, slower at night. THE EMO CHOSE DARKNESS. ELMO CHOSE THE SUN. uwu 🌟☀️",
     "date": "2026-04-05",
     "hash": "dbfeefd"
