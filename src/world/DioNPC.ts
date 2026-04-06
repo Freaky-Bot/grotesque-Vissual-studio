@@ -339,6 +339,7 @@ export class DioNPC extends BaseNPC {
 
         // DIO chases the player -- he's fixated. relentlessly.
         if (dist < this.AGGRO_RANGE && dist > 3.5) {
+            this.markHostileToPlayer(); // DIO is ALWAYS hostile. no knife required. he just hates you.
             const dir = this.playerRef.clone().sub(this.position).normalize();
             this.targetAngle = Math.atan2(dir.x, dir.z);
             const speed = this.CHASE_SPEED * this.domainSpeedMult;
@@ -390,9 +391,9 @@ export class DioNPC extends BaseNPC {
             this.knifeCooldown = 3 + Math.random() * 3;
         }
 
-        // ZA WARUDO -- time stop. fires on cooldown when hostile to player
+        // ZA WARUDO -- time stop. fires on cooldown when player is in range. DIO needs no excuse.
         this.zaWarudoCooldown -= deltaTime;
-        if (this.zaWarudoCooldown <= 0 && dist < this.AGGRO_RANGE && this.isHostileToPlayer()) {
+        if (this.zaWarudoCooldown <= 0 && dist < this.AGGRO_RANGE) {
             this.triggerZaWarudo();
             this.zaWarudoCooldown = 50 + Math.random() * 30; // once per 50-80s
         }
