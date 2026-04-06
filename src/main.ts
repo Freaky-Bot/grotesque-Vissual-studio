@@ -80,6 +80,14 @@ class CatGodWorld {
     private mudSlowTimer: number = 0; // seconds of slowness remaining from shrek mud
     private dioSpawnTimer: number = 180; // DIO spawns after 3 minutes. the wait makes him scarier.
 
+    // JOJO GAMEPLAY TIMERS -- the three holy techniques
+    private hamonTimer: number = 0;         // active hamon regen duration
+    private hamonCooldown: number = 0;      // seconds until hamon usable again
+    private nigerundayoTimer: number = 0;   // active nigerundayo sprint duration
+    private nigerundayoCooldown: number = 0; // cooldown before next sprint
+    private yourNextLineTimer: number = 60; // fires every 45-90s -- DIO makes a prediction
+    private yourNextLineWindow: number = 0; // 10s window where prediction can be "proven right"
+
     // inventory + combat state -- about time the player can fight back
     private inventory: InventorySystem = new InventorySystem();
     private playerRespawnTimer: number = 0; // counts down to respawn after death
@@ -243,6 +251,12 @@ class CatGodWorld {
             const actual = Math.ceil(dmg * this.inventory.getDamageTakenMult());
             this.sageCharacter.takeDamage(actual);
             this.chat.addMessage('event', `💢 Ouch! -${actual} HP`);
+            // your next line fulfilled -- DIO predicted you'd take damage
+            if (this.yourNextLineWindow > 0) {
+                this.yourNextLineWindow = 0;
+                this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 10);
+                this.chat.addMessage('event', '🔮 ...just as DIO predicted. (+10 HP for the prophecy)');
+            }
             // red vignette + screen shake on player hit -- now it FEELS like getting hit
             flashVignette(actual >= 30 ? 1 : 0.7);
             screenShake(actual >= 40);
@@ -252,6 +266,12 @@ class CatGodWorld {
 
         // npc dies: roll loot, double it if lucky charm equipped
         this.npcManager.onNpcKilled = (npcType, pos) => {
+            // your next line fulfilled -- DIO said you'd cause chaos
+            if (this.yourNextLineWindow > 0) {
+                this.yourNextLineWindow = 0;
+                this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 8);
+                this.chat.addMessage('event', `🔮 DIO\'s prediction came true!! +8 HP. he\'s unsettlingly pleased.`);
+            }
             // death particles BOOM -- satisfying lil explosion on kill
             this.spawnDeathParticles(pos);
             // kill feed entry -- NPC killed by anything (domain, fall, etc)
@@ -538,6 +558,37 @@ class CatGodWorld {
             if (e.key.toLowerCase() === 'r' && !this.chat.isInputOpen() && this.chaoticExtras) {
                 const rewoundPos = this.chaoticExtras.rewindTime();
                 if (rewoundPos) this.sageCharacter.teleportTo(rewoundPos);
+                return;
+            }
+
+            // H key = HAMON BREATHING!! sensei caesar would be proud
+            // HAMON BREATHING!! heals you while you breathe. 8s of 3hp/sec. 30s cooldown.
+            if (e.key.toLowerCase() === 'h' && !this.chat.isInputOpen()) {
+                if (this.hamonCooldown > 0) {
+                    this.chat.addMessage('event', `🌊 Hamon cooldown: ${Math.ceil(this.hamonCooldown)}s remaining... breathe deeper.`);
+                } else {
+                    this.hamonTimer = 8;
+                    this.hamonCooldown = 30;
+                    const line = this.jojoSystem.breatheHamon();
+                    this.chat.addMessage('event', `🌊 ${line}`);
+                    this.chat.addMessage('event', '🌊 HAMON active! +3 HP/sec for 8s');
+                    console.log(`%c🌊 ${line}`, 'color: #88ddff; font-size: 14px; font-weight: bold; text-shadow: 0 0 8px cyan;');
+                }
+                return;
+            }
+
+            // N key = NIGERUNDAYO!! the holy run away technique. 2.5x speed for 4s. 20s cd.
+            if (e.key.toLowerCase() === 'n' && !this.chat.isInputOpen()) {
+                if (this.nigerundayoCooldown > 0) {
+                    this.chat.addMessage('event', `🏃 NIGERUNDAYO cooldown: ${Math.ceil(this.nigerundayoCooldown)}s... what, you cant run THAT often`);
+                } else {
+                    this.nigerundayoTimer = 4;
+                    this.nigerundayoCooldown = 20;
+                    const msg = this.jojoSystem.nigerundayo('DANGER');
+                    this.chat.addMessage('event', `🏃 ${msg}`);
+                    this.chat.addMessage('event', '🏃 NIGERUNDAYO!! Speed x2.5 for 4s!!!');
+                    console.log('%cNIGERUNDAYO!!!! RUN RUUUUUN', 'color: #ff9933; font-size: 18px; font-weight: bold;');
+                }
                 return;
             }
 
@@ -1234,7 +1285,8 @@ class CatGodWorld {
             // apply fish speed buff (or mud slow) to sage character
             const fishMult = this.itemPickups.speedMultiplier;
             const mudMult = this.mudSlowTimer > 0 ? 0.35 : 1; // shrek mud slows to 35% speed lol
-            this.sageCharacter.setSpeedMultiplier(fishMult * mudMult);
+            const nigerMult = this.nigerundayoTimer > 0 ? 2.5 : 1; // NIGERUNDAYO legggoo
+            this.sageCharacter.setSpeedMultiplier(fishMult * mudMult * nigerMult);
             if (this.mudSlowTimer > 0) this.mudSlowTimer -= deltaTime;
             // tick domain debuff timers
             if (this.attackPenaltyTimer > 0) this.attackPenaltyTimer -= deltaTime;
@@ -1249,6 +1301,27 @@ class CatGodWorld {
                 this.bandageTimer -= deltaTime;
                 this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + this.bandageRate * deltaTime);
             }
+
+            // HAMON TICK -- ripple breathing heals naturally. like caesar taught.
+            if (this.hamonTimer > 0) {
+                this.hamonTimer -= deltaTime;
+                this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + 3 * deltaTime);
+            }
+            if (this.hamonCooldown > 0) this.hamonCooldown -= deltaTime;
+
+            // NIGERUNDAYO TICK -- the sprint expires. glory ends.
+            if (this.nigerundayoTimer > 0) this.nigerundayoTimer -= deltaTime;
+            if (this.nigerundayoCooldown > 0) this.nigerundayoCooldown -= deltaTime;
+
+            // YOUR NEXT LINE -- DIO predicts. DIO is always right. or is he?
+            this.yourNextLineTimer -= deltaTime;
+            if (this.yourNextLineTimer <= 0) {
+                const prediction = this.jojoSystem.predictNextAction();
+                this.chat.addMessage('event', `🔮 YOUR NEXT LINE IS... "${prediction}"`);
+                this.yourNextLineWindow = 12; // 12s to prove DIO right
+                this.yourNextLineTimer = 45 + Math.random() * 45; // fires every 45-90s
+            }
+            if (this.yourNextLineWindow > 0) this.yourNextLineWindow -= deltaTime;
             // wire jump multiplier from inventory passives every frame
             this.sageCharacter.setJumpMultiplier(this.inventory.getJumpMult());
             // confuse flag needs to reach SageCharacter so WASD gets inverted
@@ -1562,6 +1635,9 @@ class CatGodWorld {
             if (this.attackPenaltyTimer > 0)   effects.push({ icon: '🤖', label: `Locked ${Math.ceil(this.attackPenaltyTimer)}s` });
             if (this.mudSlowTimer > 0)         effects.push({ icon: '💩', label: `Mud ${Math.ceil(this.mudSlowTimer)}s` });
             if (this.hudHideTimer > 0)         effects.push({ icon: '⬛', label: `Void ${Math.ceil(this.hudHideTimer)}s` });
+            if (this.hamonTimer > 0)           effects.push({ icon: '🌊', label: `Hamon ${Math.ceil(this.hamonTimer)}s` });
+            if (this.nigerundayoTimer > 0)     effects.push({ icon: '🏃', label: `NIGERUNDAYO ${Math.ceil(this.nigerundayoTimer)}s` });
+            if (this.yourNextLineWindow > 0)   effects.push({ icon: '🔮', label: `DIO watching ${Math.ceil(this.yourNextLineWindow)}s` });
             if (this.sageCharacter.isDodging?.()) effects.push({ icon: '💨', label: 'Dodging' });
             updateStatusEffects(effects);
         } catch (_) {}
