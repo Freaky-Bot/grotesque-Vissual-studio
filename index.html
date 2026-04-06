@@ -421,30 +421,33 @@
         .pn-entry {
             display: flex;
             flex-direction: column;
-            gap: 1px;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            text-align: center;
+            gap: 2px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: left;
         }
         .pn-entry:last-child { border-bottom: none; }
         .pn-msg {
             font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: rgba(255,255,255,0.55);
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.75);
             line-height: 1.4;
+            letter-spacing: 0.1px;
         }
         .pn-meta {
             font-family: Arial, sans-serif;
-            font-size: 9px;
-            color: rgba(255,255,255,0.18);
+            font-size: 11px;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 0.3px;
         }
         .pn-loading {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 13px;
             color: rgba(255,255,255,0.2);
             font-style: italic;
             padding: 10px 0;
-            text-align: center;
+            text-align: left;
         }
         @keyframes pregame-float {
             0%, 100% { transform: translateY(0px); }
@@ -1280,7 +1283,7 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v2.4.2</div>
+    <div id="version-hud">v2.4.3</div>
 
     <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
     <div id="chaos-hud" style="
