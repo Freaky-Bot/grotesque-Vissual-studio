@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.4.2 fix: bump version to fix duplicate v2.4.1 tag nyaa~ dat was a lil oopsie meow meow~ uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "144a9d2"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "8b5af11"
+  },
+  {
     "msg": "v2.4.1 fix: version-hud z-index above pregame menu nyaa~ patch notes wider+shorter+padded so top item doesnt fade out meow meow~ uwu 🐱💕",
     "date": "2026-04-05",
     "hash": "d0b37b9"
@@ -188,15 +198,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "7632fd2"
-  },
-  {
-    "msg": "v2.0.1 fix: da black screen is gone nyaa~ purrr 💕 bigWorld.update was getting allNPCs as playerPos (oops meow), wrapped mega-systems in try-catch so crashes dont kill da render loop uwu 😸",
-    "date": "2026-04-05",
-    "hash": "eeddc92"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-06",
-    "hash": "a32f5b8"
   }
 ]
