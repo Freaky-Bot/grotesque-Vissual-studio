@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.4.0 feat: patch notes panel added nyaa~ click da smol button on da main menu and it shows real git commit messages fetched from patchnotes.json which is auto-generated from git log on every build uwu 📋🐱💕",
+    "date": "2026-04-05",
+    "hash": "f489422"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "c41dc02"
+  },
+  {
     "msg": "v2.3.2 fix: menu version now auto-syncs from version-hud on DOMContentLoaded nyaa~ only one hardcoded version string to maintain now so dis wont disappear again meow meow~ uwu 🐱💕",
     "date": "2026-04-05",
     "hash": "4aca691"
@@ -188,15 +198,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "e4bba5a"
-  },
-  {
-    "msg": "v1.4.3 fix: domains now use da proper hostility system uwu~ targetInRange only counts entities dis npc is actually hostile to, isHostile() replaces isInCombat() in tickDomain, player attacks and npc fights properly gate da domain roll meow 🐱💕",
-    "date": "2026-04-05",
-    "hash": "c61d767"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-06",
-    "hash": "a4aec00"
   }
 ]
