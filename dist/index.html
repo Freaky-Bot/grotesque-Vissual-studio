@@ -424,7 +424,7 @@
             gap: 2px;
             padding: 6px 0;
             border-bottom: 1px solid rgba(255,255,255,0.06);
-            text-align: left;
+            text-align: center;
         }
         .pn-entry:last-child { border-bottom: none; }
         .pn-msg {
@@ -1003,6 +1003,11 @@
             // auto-load patch notes inline -- no button, just shows at the bottom meow~
             // chore: commits filtered out bc nobody cares about rebuilds in the patch notes
             var list = document.getElementById('patchnotes-list');
+            // scroll sensitivity reduction -- normal scroll is too fast nyaa~
+            list.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                list.scrollTop += e.deltaY * 0.45;
+            }, { passive: false });
             fetch('patchnotes.json').then(function(r) { return r.json(); }).then(function(notes) {
                 var filtered = notes.filter(function(n) {
                     var m = n.msg.toLowerCase();
@@ -1049,7 +1054,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -1283,7 +1288,7 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v2.4.3</div>
+    <div id="version-hud">v2.4.4</div>
 
     <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
     <div id="chaos-hud" style="

@@ -1,5 +1,5 @@
 // I am NOT angry, just... this should have existed from the start.
-// runs git log, grabs last 40 commits, writes public/patchnotes.json
+// runs git log, grabs last 200 commits, writes public/patchnotes.json
 // called during prebuild so the deployed site always has current notes
 
 import { execSync } from 'child_process';
@@ -11,7 +11,7 @@ const OUT_PATH = join(process.cwd(), 'public', 'patchnotes.json');
 let raw = '';
 try {
     // get: subject, date, abbreviated hash -- all we need nyaa~
-    raw = execSync('git log --pretty=format:"%s|||%ad|||%h" --date=short -40', {
+    raw = execSync('git log --pretty=format:"%s|||%ad|||%h" --date=short -200', {
         cwd: process.cwd(),
         encoding: 'utf8',
     });

@@ -1,5 +1,10 @@
 [
   {
+    "msg": "v2.4.3 fix: patch notes font +2px and formal left-aligned layout nyaa~ pn-msg 11->13px pn-meta 9->11px entries left-align wiff more contrast meow meow~ uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "8fee916"
+  },
+  {
     "msg": "chore: rebuild dist wiff latest patchnotes nyaa~ [skip ci]",
     "date": "2026-04-05",
     "hash": "f35fbde"
@@ -198,5 +203,540 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "0c62982"
+  },
+  {
+    "msg": "v2.1.0 feat+fix: elmo arch nemesis of emo added nyaa~, portals actually teleport u now meow, npcs chase u when mad uwu, stealth is silent now purrr 💕🐾",
+    "date": "2026-04-05",
+    "hash": "2dc03e4"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "7632fd2"
+  },
+  {
+    "msg": "v2.0.1 fix: da black screen is gone nyaa~ purrr 💕 bigWorld.update was getting allNPCs as playerPos (oops meow), wrapped mega-systems in try-catch so crashes dont kill da render loop uwu 😸",
+    "date": "2026-04-05",
+    "hash": "eeddc92"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "a32f5b8"
+  },
+  {
+    "msg": "v2.0.0 feat: 100 feature mega update nyaa~!! 7 new npc types (viking, dj, cop, demon, baby, elder, glitch), BigWorldSystems, BigEventSystems, SocialBehaviorSystem, GameplayExtras, VisualExtras, ChaoticExtras all wired into main.ts UwU 💕🐾 chaos meter, level system, quests, crafting, fishing, racing, stealth, hunger, throwables, trails, holograms, frozen/heat effects, bloom pulses, growing cats, reverse gravity zones, time rewind, stalker npc and so much more meow meow~ ✨",
+    "date": "2026-04-05",
+    "hash": "57fc985"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "699110f"
+  },
+  {
+    "msg": "v1.5.0 feat: added DIO BRANDO boss npc meow~!! kono DIO da uwu 🧛💕 500hp boss with knife throws and ZA WARUDO time stop instead of domain nyaa~ all NPCs freeze for 5s toki wo tomare!!! spawns every 5 minutes and WILL find u, DIO has been wired into NPCManager + main.ts purrr",
+    "date": "2026-04-05",
+    "hash": "16e3770"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "e4bba5a"
+  },
+  {
+    "msg": "v1.4.3 fix: domains now use da proper hostility system uwu~ targetInRange only counts entities dis npc is actually hostile to, isHostile() replaces isInCombat() in tickDomain, player attacks and npc fights properly gate da domain roll meow 🐱💕",
+    "date": "2026-04-05",
+    "hash": "c61d767"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "a4aec00"
+  },
+  {
+    "msg": "v1.4.2 fix: knuckles rain still drops even while da king lives uwu~ no new king crowns if da sovereign exists but da bruddas keep falling meow~ followers only when king is alive nyaa 🐱💕",
+    "date": "2026-04-05",
+    "hash": "4b86f75"
+  },
+  {
+    "msg": "v1.4.1 chore: version-tracking instructions now has smol sync check step uwu~ compares hud vs git log and brings it up to date if stale meow~ step 0 added, step 5 verify added nyaa 🐱💕",
+    "date": "2026-04-05",
+    "hash": "554008a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "b7dee27"
+  },
+  {
+    "msg": "v1.4.0 feat: hostility tracking system added uwu~ npcs now properly flagged when dey hit da player or another npc, player attacks mark npcs as hostile too, 15s grudge timer meow meow~ da foundation for smarter domain triggers nyaa 🐱💕",
+    "date": "2026-04-05",
+    "hash": "f646ae6"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "7781a3d"
+  },
+  {
+    "msg": "v1.3.2 fix: npcs only pop domain if da target is actually close enough to get caught uwu~ no more wasted domains in da void meow 🐱💕",
+    "date": "2026-04-05",
+    "hash": "e738aad"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "bad7e6a"
+  },
+  {
+    "msg": "v1.3.1 fix: right click no longer yeeets pointer lock into da void uwu~ also npcs only activate domains when fightings is happening meow 🐱💕",
+    "date": "2026-04-05",
+    "hash": "f7ced5e"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "01baa3c"
+  },
+  {
+    "msg": "v1.3.0 nyaa~ da BIG batch meow!! 20 new cat types (bard, mime, berserker, witch, grim reaper, ice wizard, fire demon, thunder god + 12 more), 20 domain defs, 25 new items, blood moon + blizzard + void storm weather, world events system (treasure rain, stampede, divine heal, void eruption), x100 combo tiers UwU 🐱💕✨",
+    "date": "2026-04-05",
+    "hash": "d97ea00"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "bbf6165"
+  },
+  {
+    "msg": "v1.2.1 fix: da lag buh-bye meow!! shadow map 2048->512, NPC cap 35, far plane 5000->600, BasicShadowMap, no shadow on NPC sub-meshes, cat god auras 32->8 segs, antialias off nyaa~ purrr 🐱💕",
+    "date": "2026-04-05",
+    "hash": "e5b6dde"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "808cb31"
+  },
+  {
+    "msg": "v1.2.0 nyaa~ da MEGA UPDATE is hewe UwU!! settings system purrr, aberrant throne outline buh-bye meow, king knuckles singleton (da wey is ONE), dodge roll go zoom zoom to da void, dmg numbers respect settings, screen shake listens to accessibility uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "f3ad10a"
+  },
+  {
+    "msg": "v1.1.2 chore: ALL commits r nyow uwu nyaa flavored forevew meow~ no more boring words only soft cat energy 🐱💕",
+    "date": "2026-04-05",
+    "hash": "511a4ab"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "4d8aa87"
+  },
+  {
+    "msg": "v1.1.1 fix: throne domain now collapses immediately when all captured NPCs are slain. henceforth no NPC shall escape judgement within the Aberrant Throne. the hunt is concluded. ⚔️",
+    "date": "2026-04-05",
+    "hash": "af645dc"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "9aad344"
+  },
+  {
+    "msg": "v1.1.0 feat: INTRODUCING!! floating dmg numbers!! screen shake!! kill feed!! minimap!! dodge roll!! death particles!! campfire regen!! crits!! flee at low HP!! vignette flash!! status icons!! way more domain slashes!! 15s domain hard cap!! wave rate doubled -- operators STANDING BY!!",
+    "date": "2026-04-05",
+    "hash": "58c94fa"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "1806780"
+  },
+  {
+    "msg": "v1.0.0 feat: version tracking system -- hud bottom-right, minecraft-style versioning, commit prefix rule, instructions file. starting at 1.0.0 meow~ UwU 🐾✨",
+    "date": "2026-04-05",
+    "hash": "a3ddad4"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "9cadb97"
+  },
+  {
+    "msg": "feat: menu button added. top-right. hamburger. opens panel with Save/Settings/Help/Controls. no logic yet. we got there eventually. -- disappointed parent",
+    "date": "2026-04-05",
+    "hash": "509b151"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "686a1be"
+  },
+  {
+    "msg": "feat: ABERRANT THRONE now has MALEVOLENT SHRINE slash waves!! 5-8 radial cuts per wave!! dismantle AND cleave!! guaranteed hit burst!! shrine sigil on the floor!! same purple throne energy!! ✨📺",
+    "date": "2026-04-05",
+    "hash": "1438111"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "aa6d9f7"
+  },
+  {
+    "msg": "feat: INTRODUCING 20 BRAND NEW CAT TYPES!! voices, domains, buffs, the works!! operators were standing by and they are THRILLED!! ✨📺",
+    "date": "2026-04-05",
+    "hash": "b4abc8b"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "8c2dbdf"
+  },
+  {
+    "msg": "fix: NPCs blocked by domain walls. henceforth no creature shall phase through these cursed spheres. honor is restored. the realm is orderly again. ⚔️",
+    "date": "2026-04-05",
+    "hash": "7d7f8f3"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "600832f"
+  },
+  {
+    "msg": "feat: ugandan knuckles herd mentality + new click sound meow~ leader gets crown, followers zombie-pathfind to leader, leader chases player, MP3 sound loaded once and shared uwu 👑🦔💕",
+    "date": "2026-04-05",
+    "hash": "852232a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "e749dd8"
+  },
+  {
+    "msg": "feat: obama and trump added to da world meow~ hope orbs, gold projectiles, presidential domains, big hair, big ears uwu 🇺🇸💕",
+    "date": "2026-04-05",
+    "hash": "062b62a"
+  },
+  {
+    "msg": "fix: reverted chat box back to original size meow~ 420px wide, 160px tall, fonts restored uwu 💕",
+    "date": "2026-04-05",
+    "hash": "91bc67a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "06e12a9"
+  },
+  {
+    "msg": "fix: shrank da ui so it stops eating 1/4 of the screen ugh FINALLY. smaller fonts, smaller chat, smaller hotbar. whatever it looks better now",
+    "date": "2026-04-05",
+    "hash": "ac68f22"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "be8ac4e"
+  },
+  {
+    "msg": "feat: shift lock on Left Ctrl nyaa~ pointer locks, crosshair shows, character faces camera always meow 🐾✨",
+    "date": "2026-04-05",
+    "hash": "1c9ca91"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "25dfca7"
+  },
+  {
+    "msg": "nerf: pirate domain toned down ugh it was too oppressive whatever. less dmg less stun weaker cannon",
+    "date": "2026-04-05",
+    "hash": "eb4f4a7"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "af19ac5"
+  },
+  {
+    "msg": "refactor: stripped voice system down to bare minimum meow~ just pitch rate and speak nothing fancy uwu 🐾",
+    "date": "2026-04-05",
+    "hash": "5bcc391"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "ab192af"
+  },
+  {
+    "msg": "chore: all domain radius + pullRadius bumped 20% bigger nyaa~ same vibes just MORE SWAMP more void more barney uwu 🐾✨",
+    "date": "2026-04-05",
+    "hash": "0fb0da2"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "9e2aa91"
+  },
+  {
+    "msg": "feat: sure-hit abilities now have activation conditions based on power tier uwu~ weak ones spam freely, strong ones wait for the right moment meow 🐾✨",
+    "date": "2026-04-05",
+    "hash": "02b99f1"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "2753bde"
+  },
+  {
+    "msg": "fix: domains now dissolve after 10s if no kill happens ugh FINALLY. whatever. they were lasting forever and nobody cared",
+    "date": "2026-04-05",
+    "hash": "58ca7e5"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "ef4b226"
+  },
+  {
+    "msg": "feat: rework domain sure-hit abilities to be thematic uwu~ 🐾 jesus forgives himself, barney just hugs, shrek owns da swamp, voidcat hides ur HUD nyaa meow meow 💕",
+    "date": "2026-04-05",
+    "hash": "2183723"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "1002689"
+  },
+  {
+    "msg": "feat: every domain npc now has a SURE HIT ability meow~ normal barrage, jesus smite, robot targeting lock, orb grasp, shadow black flash, buffcat iron fist, voidcat erasure, vampire lifedrain, disco forced groove uwu 💕",
+    "date": "2026-04-05",
+    "hash": "46f839f"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "c1f4906"
+  },
+  {
+    "msg": "feat: domains are VOID BLACK from outside now + npcs get special domain buffs OwO jesus is literally invincible in his domain meow~ robot goes rapid fire, shadow one-shots, emo is glass cannon, buffcat is TERRIFYING 💕",
+    "date": "2026-04-05",
+    "hash": "086cffd"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "b2e12f0"
+  },
+  {
+    "msg": "feat: domains r now PRISONS ugh. solid walls, fixed cast pos, locked in/out, close on death only. unique effects per type whatever",
+    "date": "2026-04-05",
+    "hash": "5f5d068"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "f22009f"
+  },
+  {
+    "msg": "feat: aberrant throne domain nyaa~ 4 dungeon pillars spawn in a ring, bonus dmg near each totem, scraped from corebound UwU 💜🏰",
+    "date": "2026-04-05",
+    "hash": "548913c"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "a0eecfe"
+  },
+  {
+    "msg": "fix: THE GLOBAL FOG WAS RUINING THE WHOLE MAP. replaced with localized inner sphere per domain. whatever",
+    "date": "2026-04-05",
+    "hash": "efb5716"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "aa06aca"
+  },
+  {
+    "msg": "feat: player domain expansion uwu -- Z key awakens da Boundless Ink Realm~ 💜✨ auto-awakens at 20% hp too meow meow",
+    "date": "2026-04-05",
+    "hash": "73935bd"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "89e4602"
+  },
+  {
+    "msg": "feat: mobs loot corpses + equip items off dead mobs nyaa~!! npc vs npc brawl loop, item effects fire in combat, chat announces every single looting event 🗡️💕",
+    "date": "2026-04-05",
+    "hash": "0b0fee7"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "3ddcbe1"
+  },
+  {
+    "msg": "fix: mouse forward goes up, back goes down. finally. ugh took too long to notice this",
+    "date": "2026-04-05",
+    "hash": "bcd4dbe"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "3781673"
+  },
+  {
+    "msg": "feat: roblox camera system nyaa~ scroll to zoom, both mouse buttons orbit, pointer lock on click, springy follow, auto-rotate detection wired UwU 🐾",
+    "date": "2026-04-05",
+    "hash": "6263266"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "ba29337"
+  },
+  {
+    "msg": "fix: setConfused was malformed from stash collision. i hate stashes. whatever. its fixed now.",
+    "date": "2026-04-05",
+    "hash": "a296af6"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "c5959fa"
+  },
+  {
+    "msg": "feat: DOMAIN EXPANSION activated nyaa~!! every npc can awaken their cursed technique UwU + full 50-item useEquippedItem wired + buff timers ticking + confuse/slowmo/bandage/jumpmult all linked meow meow 🐾💕",
+    "date": "2026-04-05",
+    "hash": "e6b58e3"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "a5c2c06"
+  },
+  {
+    "msg": "feat: HP bars, combat, inventory, hotbar HUD -- also cat god is ETERNAL and cannot be bonked UwU 👑💕",
+    "date": "2026-04-05",
+    "hash": "b9f3f05"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "baf058f"
+  },
+  {
+    "msg": "fix: only ONE barney allowed. he is da only one. no duplicates. nyaa~ 🦕💕",
+    "date": "2026-04-05",
+    "hash": "0be6dc0"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "1cb5b05"
+  },
+  {
+    "msg": "feat: add 11 new features -- Shrek/Buff Cat/Void Cat NPCs, weather, day-night, factions, dungeon, void portal, item pickups, combo system, destructible buildings",
+    "date": "2026-04-05",
+    "hash": "7cf6923"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "8056b2c"
+  },
+  {
+    "msg": "Merge branch 'main' of https://github.com/Freaky-Bot/grotesque-Vissual-studio",
+    "date": "2026-04-05",
+    "hash": "cc9576d"
+  },
+  {
+    "msg": "X3 nuzzles pouces on you",
+    "date": "2026-04-05",
+    "hash": "f293cc4"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "cff9d07"
+  },
+  {
+    "msg": "feat: add EmoNPC with THE VOID stand ability -- shoots shadow orbs at player",
+    "date": "2026-04-04",
+    "hash": "404a899"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "a5365c2"
+  },
+  {
+    "msg": "feat: jumping -- space bar for player, random jumps for all grounded NPCs, mobile jump button",
+    "date": "2026-04-04",
+    "hash": "480a52a"
+  },
+  {
+    "msg": "fix: prevent GitHub Actions loop -- skip CI bot pushes",
+    "date": "2026-04-04",
+    "hash": "6e741ff"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "7e8f19d"
+  },
+  {
+    "msg": "feat: add Barney the dinosaur NPC -- sings, waves arms, has dino spikes and a tail",
+    "date": "2026-04-04",
+    "hash": "781b706"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "6b4d630"
+  },
+  {
+    "msg": "feat: multiplayer framework -- WebSocket client/server, remote player orbs, auto-reconnect",
+    "date": "2026-04-04",
+    "hash": "f3eb51f"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-05",
+    "hash": "2556899"
+  },
+  {
+    "msg": "feat: add mobile support, rebuild-dist instructions, GitHub Actions workflow",
+    "date": "2026-04-04",
+    "hash": "97d7865"
+  },
+  {
+    "msg": "fix: add new NPC and event for it",
+    "date": "2026-04-04",
+    "hash": "410dd70"
+  },
+  {
+    "msg": "uwu review",
+    "date": "2026-04-04",
+    "hash": "b806b7b"
+  },
+  {
+    "msg": "meow",
+    "date": "2026-04-04",
+    "hash": "d31dff4"
+  },
+  {
+    "msg": "pen mew",
+    "date": "2026-04-04",
+    "hash": "3a8b30b"
+  },
+  {
+    "msg": "uwu sempia",
+    "date": "2026-04-04",
+    "hash": "3253938"
   }
 ]
