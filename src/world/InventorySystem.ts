@@ -14,7 +14,13 @@ export type ItemType =
     // -- passives / equippables --
     | 'sword' | 'cat_charm' | 'flaming_sword' | 'giant_hammer'
     | 'void_armor' | 'cursed_ring' | 'shrek_ears' | 'cat_crown' | 'cheese_armor'
-    | 'moon_shard' | 'spring_shoes' | 'void_blade' | 'lucky_charm' | 'laser_pointer';
+    | 'moon_shard' | 'spring_shoes' | 'void_blade' | 'lucky_charm' | 'laser_pointer'
+    // nyaa~ 25 more items because the loot table was too small meow UwU 💕
+    | 'dragon_scale' | 'freeze_ray' | 'gravity_boots' | 'thunder_staff' | 'shadow_cloak'
+    | 'berserker_potion' | 'holy_grail' | 'void_grenade' | 'cat_flute' | 'ninja_stars'
+    | 'ice_shard' | 'resurrection_stone' | 'chaos_orb' | 'loot_magnet' | 'smoke_bomb'
+    | 'cursed_lute' | 'storm_gem' | 'reaper_scythe' | 'plague_vial' | 'mirror_shield'
+    | 'hacker_drive' | 'thunder_ring' | 'phantom_cloak' | 'arena_trophy' | 'prophecy_tome';
 
 export interface InventoryItem {
     type: ItemType;
@@ -77,6 +83,32 @@ export const ITEM_INFO: Record<ItemType, { name: string; icon: string; descripti
     void_blade:    { name: 'Void Blade',    icon: '🗡',  description: '+40 dmg +2 range (passive)'         },
     lucky_charm:   { name: 'Lucky Charm',   icon: '🍀', description: 'double loot chance (passive)'       },
     laser_pointer: { name: 'Laser Pointer', icon: '🔴', description: 'NPCs attack 50% less (passive)'     },
+    // INTRODUCING 25 NEW ITEMS!! act now!! operators standing by!!  -- infomercial dev
+    dragon_scale:    { name: 'Dragon Scale',    icon: '🐉', description: '-40% dmg taken (passive)'           },
+    freeze_ray:      { name: 'Freeze Ray',      icon: '🧊', description: 'freeze nearest NPC 5s (E)'         },
+    gravity_boots:   { name: 'Gravity Boots',   icon: '👢', description: 'walk up walls somehow (passive)'   },
+    thunder_staff:   { name: 'Thunder Staff',   icon: '⚡', description: '+30 dmg +3 range lightning (passive)'   },
+    shadow_cloak:    { name: 'Shadow Cloak',    icon: '🧥', description: 'invisible for 8s (E)'              },
+    berserker_potion:{ name: 'Berserker Potion',icon: '💢', description: 'x3 dmg x2 speed 6s (E)'           },
+    holy_grail:      { name: 'Holy Grail',      icon: '🌟', description: '+50 max HP permanently (passive)'  },
+    void_grenade:    { name: 'Void Grenade',    icon: '💣', description: '80 dmg AoE 12r (E)'               },
+    cat_flute:       { name: 'Cat Flute',       icon: '🎵', description: 'charm NPC 10s (E)'                 },
+    ninja_stars:     { name: 'Ninja Stars',     icon: '⭐', description: '15 dmg x3 targets (E)'              },
+    ice_shard:       { name: 'Ice Shard',       icon: '💠', description: '20 dmg + slow 4s (E)'             },
+    resurrection_stone:{ name: 'Rez Stone',     icon: '📿', description: 'res all nearby dead... wait (E)'  },
+    chaos_orb:       { name: 'Chaos Orb',       icon: '🔮', description: 'random chaos in 20r (E)'          },
+    loot_magnet:     { name: 'Loot Magnet',     icon: '🧲', description: 'x3 drop rate (passive)'           },
+    smoke_bomb:      { name: 'Smoke Bomb',      icon: '💨', description: 'NPCs lose target 8s (E)'          },
+    cursed_lute:     { name: 'Cursed Lute',     icon: '🏻', description: 'bard stun on hit (passive)'       },
+    storm_gem:       { name: 'Storm Gem',       icon: '⚡', description: '+25 dmg chain lightning (passive)'     },
+    reaper_scythe:   { name: 'Reaper Scythe',   icon: '☠', description: 'execute below 30% HP (passive)'     },
+    plague_vial:     { name: 'Plague Vial',     icon: '⚗', description: '5 dmg/s to all in 15r (E)'        },
+    mirror_shield:   { name: 'Mirror Shield',   icon: '🛡', description: 'reflect 50% dmg (passive)'         },
+    hacker_drive:    { name: 'Hacker Drive',    icon: '💾', description: 'disable NPC domain 12s (E)'       },
+    thunder_ring:    { name: 'Thunder Ring',    icon: '💍', description: 'zap attacker on hit (passive)'    },
+    phantom_cloak:   { name: 'Phantom Cloak',   icon: '👻', description: '6s complete invis (E)'            },
+    arena_trophy:    { name: 'Arena Trophy',    icon: '🏆', description: '+10 dmg per kill (passive)'        },
+    prophecy_tome:   { name: 'Prophecy Tome',   icon: '📚', description: 'see next domain before cast (E)'  },
 };
 
 // all item types as an array -- used for mystery box random picks
@@ -105,6 +137,27 @@ export const LOOT_TABLE: Record<string, (ItemType | null)[]> = {
     voidcat:  ['void_shard', 'time_crystal', 'void_armor', 'void_blade', null],
     hybrid:   ['fish', 'catnip', 'moon_shard', 'teleporter', null],
     default:  ['fish', 'cat_charm', 'cheese', null, null, null],
+    // 20 new types -- loot their stuff meow
+    bard:         ['cursed_lute', 'cat_flute', 'fish', 'catnip', null, null],
+    mime:         ['smoke_bomb', 'phantom_cloak', 'shadow_cloak', null, null],
+    berserker:    ['berserker_potion', 'giant_hammer', 'reaper_scythe', null, null],
+    witch:        ['chaos_orb', 'plague_vial', 'cursed_ring', 'mystery_box', null],
+    grim_reaper:  ['reaper_scythe', 'soul_gem', 'resurrection_stone', null, null],
+    ice_wizard:   ['freeze_ray', 'ice_shard', 'time_crystal', null, null],
+    fire_demon:   ['flaming_sword', 'berserker_potion', 'hot_sauce', null, null],
+    thunder_god:  ['thunder_staff', 'thunder_ring', 'storm_gem', 'lightning', null],
+    medic:        ['mega_potion', 'bandage', 'holy_grail', 'potion', null],
+    hacker:       ['hacker_drive', 'laser_pointer', 'shield', 'cat_charm', null],
+    barbarian:    ['giant_hammer', 'berserker_potion', 'dragon_scale', null, null],
+    jester:       ['chaos_orb', 'mystery_box', 'party_hat', 'cursed_egg', null],
+    fallen_angel: ['void_shard', 'soul_gem', 'shadow_cloak', 'void_armor', null],
+    robot_supreme:['plasma_cannon', 'hacker_drive', 'laser_pointer', 'shield', null],
+    cloud_surfer: ['gravity_boots', 'moon_shard', 'spring_shoes', 'fish', null],
+    plumber:      ['smoke_bomb', 'teleporter', 'warp_stone', 'cheese', null],
+    gladiator:    ['arena_trophy', 'mirror_shield', 'sword', 'cat_charm', null],
+    oracle:       ['prophecy_tome', 'time_crystal', 'chaos_orb', 'catnip', null],
+    monk:         ['holy_grail', 'bandage', 'star_piece', 'mega_potion', null],
+    pirate_ghost: ['void_grenade', 'cursed_ring', 'ninja_stars', 'fish', null],
 };
 
 // module-level set -- passives dont consume on use
@@ -112,6 +165,10 @@ const PASSIVES: Set<ItemType> = new Set([
     'sword', 'cat_charm', 'flaming_sword', 'giant_hammer', 'void_armor',
     'cursed_ring', 'shrek_ears', 'cat_crown', 'cheese_armor',
     'moon_shard', 'spring_shoes', 'void_blade', 'lucky_charm', 'laser_pointer',
+    // new passives nyaa~
+    'dragon_scale', 'gravity_boots', 'thunder_staff', 'holy_grail',
+    'loot_magnet', 'cursed_lute', 'storm_gem', 'reaper_scythe',
+    'mirror_shield', 'thunder_ring', 'arena_trophy',
 ]);
 
 export class InventorySystem {

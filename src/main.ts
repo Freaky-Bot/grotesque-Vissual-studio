@@ -27,6 +27,7 @@ import { VoiceSystem } from './world/VoiceSystem';
 import { BaseNPC } from './world/BaseNPC';
 import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
 import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
+import { WorldEventsSystem } from './world/WorldEventsSystem';
 
 // global UI helpers declared in index.html -- these scream at the player in dramatic ways
 declare function spawnDmgNumber(sx: number, sy: number, dmg: number, isCrit: boolean, color?: string): void;
@@ -67,6 +68,7 @@ class CatGodWorld {
     private voidPortal!: VoidPortal;
     private itemPickups!: ItemPickupSystem;
     private comboSystem!: ComboSystem;
+    private worldEvents!: WorldEventsSystem;
     private voice: VoiceSystem = new VoiceSystem();
     private sunLight!: THREE.DirectionalLight; // ref kept for day/night
     private ambientLightRef!: THREE.AmbientLight; // ref kept for day/night + weather
@@ -984,6 +986,42 @@ class CatGodWorld {
         };
         this.dayNight.onNightFall = () => this.chat.addMessage('event', '🌙 Night has fallen. The emos grow stronger.');
         this.dayNight.onDayBreak = () => this.chat.addMessage('event', '☀️ A new day begins!');
+
+        // world events -- random dramatic stuff every few minutes nyaa~
+        this.worldEvents = new WorldEventsSystem(this.scene);
+        this.worldEvents.onEventStart = (type, msg) => {
+            this.chat.addMessage('event', msg);
+            console.log(`%c🌎 WORLD EVENT: ${type}`, 'color: cyan; font-size: 14px');
+        };
+        this.worldEvents.onEventEnd = (type) => {
+            this.chat.addMessage('event', `💨 World event "${type}" ended.`);
+        };
+        this.worldEvents.onDivineIntervention = () => {
+            // full heal the player
+            this.sageCharacter.heal(999);
+            this.chat.addMessage('event', '✨ You have been fully healed by divine grace!');
+        };
+        this.worldEvents.onStampedeRequested = (count: number) => {
+            this.npcManager.forceSpawnRandom(count);
+        };
+        this.worldEvents.onVoidEruption = (damage: number, radius: number) => {
+            const pPos = this.sageCharacter.getPosition();
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(pPos) < radius) {
+                    npc.takeDamage(damage);
+                }
+            }
+            this.chat.addMessage('event', `🌀 Void eruption hit ${radius}u radius for ${damage} damage!`);
+        };
+        this.worldEvents.onMassDomainExpansion = () => {
+            const npcs = this.npcManager.getNPCs();
+            const targets = npcs.slice(0, Math.min(4, npcs.length));
+            targets.forEach(n => n.forceActivateDomain(8));
+        };
+        this.worldEvents.onTreasureLanded = (lootType: string) => {
+            const added = this.inventory.addItem(lootType as never);
+            if (added) this.chat.addMessage('event', `🎁 Treasure caught: ${lootType}!`);
+        };
     }
 
     private start(): void {
@@ -1068,6 +1106,7 @@ class CatGodWorld {
             this.voidPortal.update(effectiveDt, this.sageCharacter.getPosition());
             this.itemPickups.update(effectiveDt, this.sageCharacter.getPosition());
             this.comboSystem.update(effectiveDt);
+            this.worldEvents.update(effectiveDt, this.sageCharacter.getPosition());
 
             // faction badge on HUD
             const factionEl = document.getElementById('faction-hud');

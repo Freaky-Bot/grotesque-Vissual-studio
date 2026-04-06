@@ -64,9 +64,31 @@ export class ComboSystem {
         if (this.combo === 20) {
             console.log('%c🐱‍👤 LEGENDARY PURRFECT COMBO x20!!! THE VOID IS IMPRESSED', 'color: #ff00ff; font-size: 24px; font-weight: bold');
         }
+        // nyaa~ new milestone announcements, more is more, cats deserve fanfare UwU 💕
+        if (this.combo === 25) {
+            console.log('%c🎭 THEATRICAL CHAOS x25!! who allowed this??', 'color: #ff88ff; font-size: 22px; font-weight: bold');
+        }
+        if (this.combo === 30) {
+            console.log('%c🔥 INFERNAL COMBO x30!! the fire demon is watching and screaming', 'color: #ff4400; font-size: 24px; font-weight: bold');
+        }
+        if (this.combo === 50) {
+            console.log('%c🌟 TRANSCENDENT x50!! you have ascended beyond cat. you ARE cat.', 'color: #ffffff; font-size: 28px; font-weight: bold; text-shadow: 0 0 10px white');
+        }
+        if (this.combo === 75) {
+            console.log('%c🌈 DIMENSIONAL SHIFT x75!! reality is optional at this point', 'color: #00ffff; font-size: 26px; font-weight: bold');
+        }
+        if (this.combo === 100) {
+            console.log('%c🐱 x100 GOD TIER COMBO!! the cat god is speechless. first time ever.', 'color: #ffd700; font-size: 32px; font-weight: bold; text-shadow: 0 0 20px gold');
+            document.body.style.animation = 'none'; // idk just felt like it
+        }
     }
 
     private getComboLabel(): string {
+        if (this.combo >= 100) return '🐱 GOD TIER COMBO';
+        if (this.combo >= 75) return '🌈 DIMENSIONAL SHIFT';
+        if (this.combo >= 50) return '🌟 TRANSCENDENT';
+        if (this.combo >= 30) return '🔥 INFERNAL COMBO';
+        if (this.combo >= 25) return '🎭 THEATRICAL';
         if (this.combo >= 20) return '🐱‍👤 LEGENDARY PURRFECT';
         if (this.combo >= 10) return '😸 PURRFECT COMBO';
         if (this.combo >= 5) return '🐱 MEOW COMBO';
@@ -74,6 +96,11 @@ export class ComboSystem {
     }
 
     private getComboColor(): string {
+        if (this.combo >= 100) return '#ffd700';
+        if (this.combo >= 75) return '#00ffff';
+        if (this.combo >= 50) return '#ffffff';
+        if (this.combo >= 30) return '#ff4400';
+        if (this.combo >= 25) return '#ff88ff';
         if (this.combo >= 20) return '#ff00ff';
         if (this.combo >= 10) return '#ffd700';
         if (this.combo >= 5) return '#ff8800';

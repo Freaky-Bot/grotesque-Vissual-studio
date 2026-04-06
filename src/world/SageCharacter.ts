@@ -396,6 +396,11 @@ export class SageCharacter {
         this.hp = Math.max(0, this.hp - dmg);
     }
 
+    // I have been asked to add a heal method 3 times. fine. here it is. you're welcome.
+    public heal(amount: number): void {
+        this.hp = Math.min(this.maxHp, this.hp + amount);
+    }
+
     public isDead(): boolean {
         return this.hp <= 0;
     }

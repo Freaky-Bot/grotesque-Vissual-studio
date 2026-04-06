@@ -80,6 +80,27 @@ export class NPCManager {
         fairy:       'INVULNERABLE + 2x speed -- CUTE AND LITERALLY UNTOUCHABLE',
         caveman:     '5.5x damage -- GLASS CANNON WITH A ROCK. BIGGEST NUMBER.',
         alien:       '2x damage + 40% armor + 2.5x speed -- TECHNOLOGY BEYOND COMPREHENSION',
+        // da new 20 nyaa~ every single one built different UwU 💕
+        bard:        '2x heal + 1.5x speed + stun pulse -- THE SONG NEVER STOPS AND NEITHER DOES THE DAMAGE',
+        mime:        '4x damage + invisible walls stun -- TRAPPED AND CONFUSED AND DYING',
+        berserker:   '6x damage + no damage reduction -- GLASS CANNON RAGE INCARNATE',
+        witch:       '3x damage + 50% armor + slow curse -- HEXED AND THERE IS NO CURE',
+        grim_reaper: '5x damage + EXECUTE 35% threshold -- ALREADY ON THE LIST',
+        ice_wizard:  '1.5x damage + 3 stun pulses + 40% armor -- FROZEN SOLID FOREVER',
+        fire_demon:  '4x damage + no healing inside -- BURN AND SPECIFICALLY NO HEALS',
+        thunder_god: '2.5x damage + 2 stun pulses + 2x speed -- STORM CANNOT BE OUTRUN',
+        medic:       'SELF HEALS 20hp/sec + 1.5x damage -- IMPOSSIBLE TO KILL IN HERE',
+        hacker:      '2.5x speed + 3x attack speed + 2x damage -- ROOT ACCESS MEANS ROOT DAMAGE',
+        barbarian:   '5x damage + 30% armor -- CROM APPROVES. MAXIMUM.',
+        jester:      'RANDOM EVERYTHING -- could be 6x speed, could be 8x damage. chaos.',
+        fallen_angel: '3x damage + 50% armor + 1.5x speed -- REJECTED BY HEAVEN. UNSTOPPABLE.',
+        robot_supreme: '4x attack speed + 3x damage -- CALCULATED TERMINATION SEQUENCE',
+        cloud_surfer: '10hp/sec heal + 2x speed -- UNTOUCHABLE IN THE CLOUDS',
+        plumber:     '2x damage + instant speed + 30% armor -- EVERYWHERE AT ONCE',
+        gladiator:   '4x damage + 30% armor + 2x attack speed -- THE CROWD DEMANDS BLOOD',
+        oracle:      '2x damage + 2 stun pulses + 2x speed -- ALREADY KNEW YOUR EVERY MOVE',
+        monk:        '15hp/sec heal + 2x damage + IMMUNE stun -- INNER PEACE IS INVINCIBLE',
+        pirate_ghost: 'INVULNERABLE + 2x damage -- DEAD AND ALSO A PIRATE. WORST COMBO.',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -114,6 +135,27 @@ export class NPCManager {
         fairy:       { dmg: 7,  range: 6.0 }, // wand shot
         caveman:     { dmg: 20, range: 4.0 }, // club smash
         alien:       { dmg: 13, range: 6.0 }, // laser range
+        // INTRODUCING 20 more!! they all hit different!! incredible value!! -- infomercial dev
+        bard:        { dmg: 9,  range: 4.5 }, // lute projectile
+        mime:        { dmg: 14, range: 3.0 }, // invisible force
+        berserker:   { dmg: 24, range: 3.5 }, // MAXIMUM SWING
+        witch:       { dmg: 16, range: 5.5 }, // hex bolt range
+        grim_reaper: { dmg: 22, range: 5.0 }, // scythe sweep
+        ice_wizard:  { dmg: 11, range: 6.0 }, // ice bolt
+        fire_demon:  { dmg: 20, range: 4.0 }, // fire claw
+        thunder_god: { dmg: 18, range: 5.5 }, // lightning bolt
+        medic:       { dmg: 7,  range: 3.5 }, // syringe stab
+        hacker:      { dmg: 10, range: 6.0 }, // remote exploit
+        barbarian:   { dmg: 21, range: 3.5 }, // axe range
+        jester:      { dmg: 8,  range: 4.0 }, // juggling pin
+        fallen_angel:{ dmg: 17, range: 5.0 }, // dark lance
+        robot_supreme:{ dmg: 15, range: 5.5 }, // gatling range
+        cloud_surfer:{ dmg: 8,  range: 7.0 }, // cloud bolt, long
+        plumber:     { dmg: 11, range: 3.0 }, // wrench smash
+        gladiator:   { dmg: 19, range: 3.5 }, // sword range
+        oracle:      { dmg: 12, range: 5.0 }, // prophecy bolt
+        monk:        { dmg: 9,  range: 3.0 }, // slow heavy strike
+        pirate_ghost:{ dmg: 15, range: 5.0 }, // cursed shot
     };
 
     constructor(scene: THREE.Scene) {
@@ -400,7 +442,30 @@ export class NPCManager {
             CatType.LUCHADOR,   // LUCHA
             CatType.FAIRY,      // i grant: pain
             CatType.CAVEMAN,    // CLUB
-            CatType.ALIEN       // resistance is inefficient
+            CatType.ALIEN,      // resistance is inefficient
+            // meow meow 20 new types!! nyaa 💕 all added in one chaotic batch UwU
+            CatType.BARD,
+            CatType.MIME,
+            CatType.BERSERKER,
+            CatType.BERSERKER,  // extra berserker bc anger is everywhere
+            CatType.WITCH,
+            CatType.GRIM_REAPER,
+            CatType.ICE_WIZARD,
+            CatType.FIRE_DEMON,
+            CatType.THUNDER_GOD,
+            CatType.MEDIC,
+            CatType.HACKER,
+            CatType.BARBARIAN,
+            CatType.JESTER,
+            CatType.JESTER,     // two jesters bc chaos doubled is better
+            CatType.FALLEN_ANGEL,
+            CatType.ROBOT_SUPREME,
+            CatType.CLOUD_SURFER,
+            CatType.PLUMBER,
+            CatType.GLADIATOR,
+            CatType.ORACLE,
+            CatType.MONK,
+            CatType.PIRATE_GHOST,
         ];
 
         const randomType = catTypes[Math.floor(Math.random() * catTypes.length)];

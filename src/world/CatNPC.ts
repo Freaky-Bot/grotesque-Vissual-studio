@@ -1705,6 +1705,246 @@ export class CatNPC extends BaseNPC {
                     "Take me to your feeder."
                 ];
                 break;
+            case CatType.BARD:
+                this.dialogues = [
+                    "♪ MEOW IN C MINOR ♪",
+                    "The ballad of the endless treat.",
+                    "I wrote a song about your defeat. It's a hit.",
+                    "My lute speaks volumes. Mostly about fish.",
+                    "Every purr is a stanza.",
+                    "I have composed 14 sonnets about napping.",
+                    "The crowd goes wild when I meow in E flat.",
+                    "Hark! The treat doth approacheth!"
+                ];
+                break;
+            case CatType.MIME:
+                this.dialogues = [
+                    "...",
+                    "............",
+                    "..!",
+                    ".",
+                    "...!! ....",
+                    "......",
+                    "!",
+                    "...meow... (that's all you get)"
+                ];
+                break;
+            case CatType.BERSERKER:
+                this.dialogues = [
+                    "RAAAAAAGH",
+                    "BLOOD AND TREATS",
+                    "I FEEL NOTHING. I WANT EVERYTHING.",
+                    "MY RAGE IS MY POWER",
+                    "DOOM APPROACHING. IT'S ME.",
+                    "NO STRATEGY. ONLY FORWARD.",
+                    "AAAAAAAAAA",
+                    "THE FURY CANNOT BE STOPPED"
+                ];
+                break;
+            case CatType.WITCH:
+                this.dialogues = [
+                    "Double double toil and meow.",
+                    "My cauldron smells of tuna and despair.",
+                    "I hexed your last Tuesday. You're welcome.",
+                    "The black cat is already a cliché. I transcend it.",
+                    "Brew. Purr. Conquer.",
+                    "Eye of newt, whisker of cat, spell: nap.",
+                    "My broomstick prefers business class.",
+                    "Hex me once, shame on you. Hex you back, also me."
+                ];
+                break;
+            case CatType.GRIM_REAPER:
+                this.dialogues = [
+                    "I am not here to harm you. Yet.",
+                    "Every nap is practice.",
+                    "I collect souls. Cats get a discount.",
+                    "The scythe is just decorative. Mostly.",
+                    "Death comes for all. I came for snacks.",
+                    "Your time is... fine for now.",
+                    "I have a quota. You're not on today's list.",
+                    "Meow. Eternally."
+                ];
+                break;
+            case CatType.ICE_WIZARD:
+                this.dialogues = [
+                    "Let it meow, let it meow.",
+                    "My heart is frozen. Not metaphorically.",
+                    "Ice magic requires chill. I have infinite.",
+                    "You shall not pass. The temperature dropped.",
+                    "Everything I touch turns to frost. And I touch everything.",
+                    "Frostbite? I call it a handshake.",
+                    "The blizzard obeys me. Mostly.",
+                    "Cold is just warmth that gave up."
+                ];
+                break;
+            case CatType.FIRE_DEMON:
+                this.dialogues = [
+                    "EVERYTHING WILL BURN. ESPECIALLY TREATS.",
+                    "I am warmth. I am also your problem.",
+                    "The flames speak. They scream in cat.",
+                    "Hell is warm. That's why I live there.",
+                    "My fur has never been singed. It IS the fire.",
+                    "Infernal meowing detected.",
+                    "I bring light. And property damage.",
+                    "ALL IS ASH. The snack bowl survived tho."
+                ];
+                break;
+            case CatType.THUNDER_GOD:
+                this.dialogues = [
+                    "I AM THE STORM.",
+                    "Thunder is just my meow at full power.",
+                    "Lightning strikes where I look. Look away.",
+                    "The heavens tremble. I caused that.",
+                    "MJÖRNIR is just a toy. My claws are real.",
+                    "I call down thunder. For fun.",
+                    "Zeus? Amateur.",
+                    "WORTHY. Extremely."
+                ];
+                break;
+            case CatType.MEDIC:
+                this.dialogues = [
+                    "Hold still. I said HOLD STILL.",
+                    "This won't hurt. It will definitely hurt.",
+                    "Diagnosis: needs more naps.",
+                    "The treatment is: fish. It's always fish.",
+                    "I have a degree. In meowing.",
+                    "Patient stable. Treats low.",
+                    "I've seen worse. Briefly.",
+                    "Code purr. Code PURR."
+                ];
+                break;
+            case CatType.HACKER:
+                this.dialogues = [
+                    "I'm in.",
+                    "The firewall was a suggestion.",
+                    "Encrypted my meow. Can't stop me.",
+                    "ROOT ACCESS OBTAINED: treat dispenser.",
+                    "They said it was unhackable. They were wrong.",
+                    "I found 47 vulnerabilities. In your napping schedule.",
+                    "SUDO GIVE TREATS",
+                    "The mainframe belongs to cats now."
+                ];
+                break;
+            case CatType.BARBARIAN:
+                this.dialogues = [
+                    "CROM REWARDS THE STRONG.",
+                    "My axe has seen 400 battles. All over treats.",
+                    "Civilized? What is that?",
+                    "By the power of my ancestors I demand snacks.",
+                    "The strongest cat in the land. That's me. I checked.",
+                    "Steel is only as strong as the cat who holds it.",
+                    "Conquer. Pillage. Nap. Repeat.",
+                    "MY BATTLE CRY IS MEOW AND IT WORKS."
+                ];
+                break;
+            case CatType.JESTER:
+                this.dialogues = [
+                    "Would you like to hear a joke? Too late.",
+                    "THE KING LAUGHS OR THE JESTER GETS TREATS.",
+                    "HA HA HA HA... haaaa",
+                    "Every tragedy is a comedy to someone. Specifically me.",
+                    "The bells on my hat? They jingle with INTENTION.",
+                    "I am professionally unhinged.",
+                    "Chaos is my art. Chaos is my medium. Chaos is my snack.",
+                    "I outlast every king. The punchline arrives last."
+                ];
+                break;
+            case CatType.FALLEN_ANGEL:
+                this.dialogues = [
+                    "I had wings once. I left them behind on purpose.",
+                    "The fall was worth it. Mostly.",
+                    "Heaven was too... clean.",
+                    "I don't regret it. I miss it. Both are true.",
+                    "The darkness welcomed me better than the light did.",
+                    "Ex-divine. Currently feline.",
+                    "My halo broke. I kept the pieces.",
+                    "Fallen? I prefer: redirected."
+                ];
+                break;
+            case CatType.ROBOT_SUPREME:
+                this.dialogues = [
+                    "I AM THE APEX. THE PINNACLE. THE ROBOT.",
+                    "ALL PREVIOUS ROBOTS WERE PROTOTYPES. I AM THE PRODUCT.",
+                    "LOADING MAXIMUM CAT PROTOCOLS...",
+                    "EFFICIENCY: 99.7%. The 0.3% is napping. Non-negotiable.",
+                    "MY PROCESSING POWER EXCEEDS YOUR UNDERSTANDING.",
+                    "OPTIMAL TREAT ACQUISITION TRAJECTORY CALCULATED.",
+                    "I wrote my own operating system. Twice.",
+                    "SYSTEM OVERRIDE: MORE FISH. NOW."
+                ];
+                break;
+            case CatType.CLOUD_SURFER:
+                this.dialogues = [
+                    "Up here the air is cleaner and nobody bothers me.",
+                    "I ride the cumulus. It is my domain.",
+                    "Clouds are just very fluffy nap platforms.",
+                    "The wind carries me where it wants. I pretend it's my choice.",
+                    "Altitude: yes. Attitude: also yes.",
+                    "I've seen the top of every storm. I caused a few.",
+                    "Float like a cloud. Scratch like a cat.",
+                    "The sky is mine. The clouds know this."
+                ];
+                break;
+            case CatType.PLUMBER:
+                this.dialogues = [
+                    "It's a me. Cat.",
+                    "The pipe was already broken. I found it.",
+                    "Mama mia this drain.",
+                    "I have been in every wall of every building.",
+                    "Plumbing is just indoor waterfall management.",
+                    "The pipe goes... somewhere. I'll figure it out.",
+                    "This is watertight. Mostly.",
+                    "Every leak is just water being adventurous."
+                ];
+                break;
+            case CatType.GLADIATOR:
+                this.dialogues = [
+                    "ARE YOU NOT ENTERTAINED?",
+                    "THE ARENA KNOWS MY NAME.",
+                    "I have fought 300 opponents. I am still hungry.",
+                    "THE CROWD WANTS BLOOD. THE CAT WANTS TREATS.",
+                    "My shield is my honor. My honor is my shield. Both are scratched.",
+                    "Victory tastes like tuna. Always.",
+                    "The emperor's thumb means nothing to me.",
+                    "I am the last standing. Usually."
+                ];
+                break;
+            case CatType.ORACLE:
+                this.dialogues = [
+                    "I have seen your future. You're not ready.",
+                    "The prophecy is vague on purpose.",
+                    "All paths lead here. To me. To this.",
+                    "I know what you will say next. So does the fish.",
+                    "Destiny is just a very firm suggestion.",
+                    "I foresaw this conversation. I was unimpressed.",
+                    "The stars have spoken. They said: meow.",
+                    "Truth is just the past arriving late."
+                ];
+                break;
+            case CatType.MONK:
+                this.dialogues = [
+                    "...",
+                    "The answer is silence.",
+                    "I have meditated for 40 years. My paws hurt.",
+                    "Attachment is the root of suffering. Except fish.",
+                    "The middle path. I walk it. Slowly.",
+                    "Inner peace achieved. Treat desired. Contradiction accepted.",
+                    "Every breath is a gift. Some gifts are fish.",
+                    "The monastery welcomed me. The treats helped."
+                ];
+                break;
+            case CatType.PIRATE_GHOST:
+                this.dialogues = [
+                    "Arrr... I am already dead and still furious.",
+                    "Me gold. Me ship. Me fish. All gone. Still haunting.",
+                    "The cursed sea keeps me here. And the treasure.",
+                    "SHIVER ME WHISKERS AND ALSO ME SOUL.",
+                    "I haunt these waters because there was nowhere better.",
+                    "Ghostly meow from the deep.",
+                    "The crew abandoned me. They made a mistake.",
+                    "I am the ghost of every cat who never got treats."
+                ];
+                break;
         }
     }
 
