@@ -77,10 +77,8 @@ export class CameraController {
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
             }
-            // right click on canvas + not already locked = grab pointer
-            if (e.button === 2 && (e.target as HTMLElement).tagName === 'CANVAS' && !this.pointerLocked) {
-                document.body.requestPointerLock?.();
-            }
+            // pointer lock ONLY via left-ctrl shift-lock toggle, never right click
+            // right click pointer lock was glitching the whole page. not worth it.
         });
 
         document.addEventListener('mousemove', (e) => {

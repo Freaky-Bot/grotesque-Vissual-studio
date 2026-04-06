@@ -284,7 +284,9 @@ export abstract class BaseNPC {
 
     // domain expansion tick -- call from NPCManager every frame
     // returns true if domain just activated this tick (so NPCManager can open it)
-    public tickDomain(dt: number): boolean {
+    // tickDomain now requires combat context -- no more activating in the middle of nowhere
+    // nearbyThreatCount = number of alive entities within activation range (player + other npcs)
+    public tickDomain(dt: number, nearbyThreatCount: number = 0): boolean {
         // cool down after previous domain
         if (this.domainCooldown > 0) {
             this.domainCooldown -= dt;
@@ -301,12 +303,17 @@ export abstract class BaseNPC {
             return false; // already open, not "just activated"
         }
 
-        // roll for activation -- spiked chance when im on death's door ugh
+        // only roll when actually in combat -- need at least 1 threat nearby
+        // low hp is the only exception: desperation domain even if alone (its cinematic ok)
         if (this.domainCooldown <= 0 && this.isAlive_) {
             const hpPct = this.hp / Math.max(1, this.maxHp);
-            const chance = hpPct < 0.25 ? this.DOMAIN_CHANCE_LOW_HP : this.DOMAIN_CHANCE_BASE;
-            if (Math.random() < chance * dt) {
-                return this.forceActivateDomain(12); // default 12s
+            const inCombat = nearbyThreatCount > 0;
+            const desperate = hpPct < 0.25; // below 25% hp = domain regardless of company
+            if (inCombat || desperate) {
+                const chance = desperate ? this.DOMAIN_CHANCE_LOW_HP : this.DOMAIN_CHANCE_BASE;
+                if (Math.random() < chance * dt) {
+                    return this.forceActivateDomain(12);
+                }
             }
         }
         return false;

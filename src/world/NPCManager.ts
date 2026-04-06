@@ -253,9 +253,18 @@ export class NPCManager {
                 }
             }
 
-            // domain expansion tick -- might return true if it just awakened right now
+            // domain expansion tick -- count nearby threats so NPCs only activate mid-combat
             if (this.domainSystem) {
-                const justOpened = npc.tickDomain(deltaTime);
+                // count: player + any other alive NPC within 20 units = "in combat"
+                let threatCount = 0;
+                const npcPos = npc.getPosition();
+                if (this.playerPos && npcPos.distanceTo(this.playerPos) < 20) threatCount++;
+                for (const other of this.npcs) {
+                    if (other !== npc && other.isAlive() && npcPos.distanceTo(other.getPosition()) < 20) {
+                        threatCount++;
+                    }
+                }
+                const justOpened = npc.tickDomain(deltaTime, threatCount);
                 if (justOpened) {
                     // open the domain using the npc's type as the key
                     const defKey = npc.getType();
