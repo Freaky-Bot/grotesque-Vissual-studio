@@ -644,14 +644,14 @@ class CatGodWorld {
         } else if (used === 'void_shard') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 10) { npc.takeDamage(30); hits++; }
+                if (npc.getPosition().distanceTo(playerPos) < 10) { npc.takeDamage(30, true); hits++; }
             }
             this.chat.addMessage('event', `💜 Void Shard! Blasted ${hits} mobs (30 dmg)`);
 
         } else if (used === 'onion') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20); hits++; }
+                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20, true); hits++; }
             }
             this.chat.addMessage('event', `🧅 Onion! Shrek tribute! Hit ${hits} mobs (20 dmg)`);
 
@@ -662,7 +662,7 @@ class CatGodWorld {
         } else if (used === 'bomb') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 15) { npc.takeDamage(60); hits++; }
+                if (npc.getPosition().distanceTo(playerPos) < 15) { npc.takeDamage(60, true); hits++; }
             }
             this.chat.addMessage('event', `💣 BOMB! 60 dmg to ${hits} mobs in radius 15`);
 
@@ -672,14 +672,14 @@ class CatGodWorld {
                 .filter(n => n.isAlive())
                 .sort((a, b) => a.getPosition().distanceTo(playerPos) - b.getPosition().distanceTo(playerPos))
                 .slice(0, 5);
-            sorted.forEach(n => n.takeDamage(25));
+            sorted.forEach(n => n.takeDamage(25, true));
             this.chat.addMessage('event', `⚡ Lightning! Chained 25 dmg to ${sorted.length} targets`);
 
         } else if (used === 'holy_water') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
                 if (npc.getType() === 'emo' && npc.getPosition().distanceTo(playerPos) < 12) {
-                    npc.takeDamage(9999); // instant kill emos. they cannot handle holy water. its the irony.
+                    npc.takeDamage(9999, true); // instant kill emos. they cannot handle holy water. its the irony.
                     hits++;
                 }
             }
@@ -723,7 +723,7 @@ class CatGodWorld {
         } else if (used === 'boomerang') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20); hits++; }
+                if (npc.getPosition().distanceTo(playerPos) < 12) { npc.takeDamage(20, true); hits++; }
             }
             this.chat.addMessage('event', `🪃 Boomerang! 20 dmg to ${hits} mobs in range 12`);
 
@@ -749,7 +749,7 @@ class CatGodWorld {
         } else if (used === 'nuke') {
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                if (npc.getPosition().distanceTo(playerPos) < 25) { npc.takeDamage(100); hits++; }
+                if (npc.getPosition().distanceTo(playerPos) < 25) { npc.takeDamage(100, true); hits++; }
             }
             this.chat.addMessage('event', `☢️ NUKE!! 100 dmg to ${hits} mobs. oops.`);
 
@@ -760,7 +760,7 @@ class CatGodWorld {
                 const d = npc.getPosition().distanceTo(playerPos);
                 if (d < cDist) { cDist = d; closest = npc; }
             }
-            if (closest) { closest.takeDamage(40); this.chat.addMessage('event', `🔫 Plasma Cannon! 40 dmg to ${closest.getType()}`); }
+            if (closest) { closest.takeDamage(40, true); this.chat.addMessage('event', `🔫 Plasma Cannon! 40 dmg to ${closest.getType()}`); }
             else this.chat.addMessage('event', '🔫 Plasma Cannon: nobody in range 20. wasted.');
 
         } else if (used === 'mystery_box') {

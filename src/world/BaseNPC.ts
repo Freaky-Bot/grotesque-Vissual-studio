@@ -28,6 +28,17 @@ export abstract class BaseNPC {
     private npcInvincibleTimer: number = 0;
 
     // domain expansion fields -- the secret power within the soul. ugh this is so cool.
+    // combat tracker -- how long since this npc was actually fighting somebody
+    // reset on hit received AND on successful hit landed, so both sides count
+    private timeSinceCombat: number = Infinity;  // starts infinite so fresh-spawned npcs dont pop domain
+    private readonly COMBAT_WINDOW: number = 8;  // seconds of "recently in combat" after last hit/attack
+
+    // -- hostility tracking -- who hates who and for how long --
+    // henceforth this system doth record every grudge upon the battlefield ⚔️
+    private hostileToPlayerTimer: number = 0;  // countdown til de-aggro from player
+    private hostileToNpcTimer: number = 0;     // countdown til de-aggro from other npcs
+    private readonly HOSTILE_DURATION: number = 15; // seconds until they chill out and forget
+
     public domainActive: boolean = false;
     protected domainTimer: number = 0;      // counts down while domain is open
     private domainCooldown: number = 0;     // 60s lockout after each use
@@ -269,12 +280,14 @@ export abstract class BaseNPC {
         if (damage <= 0) return 0;
         if (this.stunTimer > 0) return 0; // stunned = cant attack, obviously
         this.attackTimer_ -= deltaTime;
+        this.timeSinceCombat += deltaTime; // tick up every frame
         // domain buff: attack interval mult (<1 = faster -- robot mode, robot goes brrrr)
         const cooldown = this.attackInterval_ * this.domainAttackIntervalMult;
         if (this.attackTimer_ <= 0) {
             const dist = this.position.distanceTo(playerPos);
             if (dist <= range) {
                 this.attackTimer_ = Math.max(0.1, cooldown); // never go below 0.1s so it doesnt nuke instantly
+                this.timeSinceCombat = 0; // landed a hit -- we are definitely in combat now
                 return damage * this.domainDamageMult; // domain buff multiplies damage. scary.
             }
             this.attackTimer_ = 0.2;
@@ -282,10 +295,43 @@ export abstract class BaseNPC {
         return 0;
     }
 
+    // true when this npc has been hit or hit someone within the last COMBAT_WINDOW seconds
+    public isInCombat(): boolean {
+        return this.timeSinceCombat < this.COMBAT_WINDOW;
+    }
+
+    // called externally (e.g. player attack, npc vs npc) to register that combat is happening
+    public markCombat(): void {
+        this.timeSinceCombat = 0;
+    }
+
+    // -- hostility management -- mark, query, and tick the grudge system --
+    // henceforth these methods doth flag enemies as hostile and track the timer ⚔️
+    public markHostileToPlayer(): void {
+        this.hostileToPlayerTimer = this.HOSTILE_DURATION;
+        this.timeSinceCombat = 0; // hostile = definitely in combat. no dispute.
+    }
+
+    public markHostileToNpc(): void {
+        this.hostileToNpcTimer = this.HOSTILE_DURATION;
+        this.timeSinceCombat = 0; // mutual beef activated
+    }
+
+    public isHostileToPlayer(): boolean { return this.hostileToPlayerTimer > 0; }
+    public isHostileToNpc(): boolean    { return this.hostileToNpcTimer > 0; }
+    // true if actively hostile to anything -- player OR other npcs
+    public isHostile(): boolean         { return this.hostileToPlayerTimer > 0 || this.hostileToNpcTimer > 0; }
+
+    // call every frame to decay hostility timers -- they DO eventually calm down (15s)
+    public tickHostility(dt: number): void {
+        if (this.hostileToPlayerTimer > 0) this.hostileToPlayerTimer = Math.max(0, this.hostileToPlayerTimer - dt);
+        if (this.hostileToNpcTimer > 0) this.hostileToNpcTimer = Math.max(0, this.hostileToNpcTimer - dt);
+    }
+
     // domain expansion tick -- call from NPCManager every frame
     // returns true if domain just activated this tick (so NPCManager can open it)
-    // tickDomain -- targetInRange = true means something is close enough to actually get caught
-    // no point expanding the domain if nobody's home. what a waste that would be.
+    // tickDomain -- targetInRange = true means something is close enough to get caught
+    // AND the npc must actually be in active combat (hit or been hit recently)
     public tickDomain(dt: number, targetInRange: boolean = false): boolean {
         // cool down after previous domain
         if (this.domainCooldown > 0) {
@@ -303,12 +349,14 @@ export abstract class BaseNPC {
             return false; // already open, not "just activated"
         }
 
-        // only activate if a target is actually in range to get caught
-        // desperate below 25% hp = last resort, fire even alone (its cinematic ok)
+        // two conditions to roll:
+        // 1. target in range AND actively in combat (hit someone or got hit recently)
+        // 2. OR desperate: below 25% hp -- fires regardless, its a last stand
         if (this.domainCooldown <= 0 && this.isAlive_) {
             const hpPct = this.hp / Math.max(1, this.maxHp);
             const desperate = hpPct < 0.25;
-            if (targetInRange || desperate) {
+            const readyToFight = targetInRange && this.isInCombat();
+            if (readyToFight || desperate) {
                 const chance = desperate ? this.DOMAIN_CHANCE_LOW_HP : this.DOMAIN_CHANCE_BASE;
                 if (Math.random() < chance * dt) {
                     return this.forceActivateDomain(12);
@@ -330,10 +378,13 @@ export abstract class BaseNPC {
     public isDomainActive(): boolean { return this.domainActive; }
 
     // override takeDamage to check npc shield/invincible before reducing hp
-    public takeDamage(dmg: number): void {
+    // fromPlayer = true marks this npc as hostile to the player -- set when player initiates the attack
+    public takeDamage(dmg: number, fromPlayer: boolean = false): void {
         if (this.npcInvincible) return;
         if (this.domainInvulnerable) return; // domain buff: some npcs literally cannot die inside their domain. suck it.
         if (this.npcShieldHits > 0) { this.npcShieldHits--; return; }
+        this.timeSinceCombat = 0; // got hit = in combat. obviously.
+        if (fromPlayer) this.markHostileToPlayer(); // player bonked us -- we remember this (15s grudge)
         // domain dmgReduction: positive = reduced dmg (tanky), negative = extra dmg (emo mode)
         const reducedDmg = dmg * (1 - this.domainDmgReduction);
         this.hp = Math.max(0, this.hp - reducedDmg);

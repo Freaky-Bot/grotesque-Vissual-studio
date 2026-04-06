@@ -231,6 +231,7 @@ export class NPCManager {
             // tick stun timer before updating -- stunned npcs cant move or attack
             npc.tickStun(deltaTime);
             npc.update(deltaTime);
+            npc.tickHostility(deltaTime); // decay the grudge -- 15s and they (mostly) chill out
 
             // DOMAIN WALL ENFORCEMENT: NPCs cant just moonwalk through active domain spheres
             // henceforth, no creature shall pass through these cursed walls without consequence ⚔️
@@ -288,7 +289,10 @@ export class NPCManager {
             if (this.playerPos && this.onPlayerHit) {
                 const stats = NPCManager.NPC_ATTACK_STATS[npc.getType()] ?? { dmg: 5, range: 3.5 };
                 const dmg = npc.tickAttack(this.playerPos, deltaTime, stats.range, stats.dmg);
-                if (dmg > 0) this.onPlayerHit(dmg);
+                if (dmg > 0) {
+                    this.onPlayerHit(dmg);
+                    npc.markHostileToPlayer(); // npc just smacked da player -- officially a beef
+                }
             }
         }
 
@@ -376,6 +380,8 @@ export class NPCManager {
             const dmg = this.NPC_FIGHT_DMG + Math.floor(Math.random() * 5);
             const wasAlive = nearest.isAlive();
             nearest.takeDamage(dmg);
+            attacker.markHostileToNpc(); // attacker is in beef mode -- flagged hostile to npcs
+            nearest.markHostileToNpc();  // target is mad too now. mutual hatred. noted.
 
             // if the target just died, attacker loots it -- roll from its loot table
             if (wasAlive && !nearest.isAlive()) {
