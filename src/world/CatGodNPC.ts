@@ -342,10 +342,10 @@ export class CatGodNPC {
         const buildWingPanel = (group: THREE.Group, side: number, isUpper: boolean): void => {
             const bW = isUpper ? 5.5 : 3.2;
             const bH = isUpper ? 3.5 : 2.2;
-            group.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(bW, bH, 2, 4), wingMat), {
-                position: new THREE.Vector3(side * bW * 0.48, 0, 0),
-                rotation: new THREE.Euler(0, side * 0.22, 0)
-            }));
+            const wingPanel = new THREE.Mesh(new THREE.PlaneGeometry(bW, bH, 2, 4), wingMat);
+            wingPanel.position.set(side * bW * 0.48, 0, 0);
+            wingPanel.rotation.set(0, side * 0.22, 0);
+            group.add(wingPanel);
             const edge = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, bH, 7), wingGoldMat as THREE.MeshPhongMaterial);
             edge.position.set(side * bW * 0.95, 0, 0);
             edge.rotation.z = side * 0.18;
