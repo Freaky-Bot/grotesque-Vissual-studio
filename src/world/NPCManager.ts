@@ -106,6 +106,14 @@ export class NPCManager {
         oracle:      '2x damage + 2 stun pulses + 2x speed -- ALREADY KNEW YOUR EVERY MOVE',
         monk:        '15hp/sec heal + 2x damage + IMMUNE stun -- INNER PEACE IS INVINCIBLE',
         pirate_ghost: 'INVULNERABLE + 2x damage -- DEAD AND ALSO A PIRATE. WORST COMBO.',
+        // chaos 7 domain buff descriptions
+        viking:      '5x speed + 3.5x damage -- BERSERKER CHARGE CANNOT BE STOPPED',
+        dj:          '2x speed + 2x attack speed + 1.5x damage -- THE BEAT DROPS ARE LETHAL',
+        cop:         '2.5x damage + 40% armor + 1.8x speed -- FULLY AUTHORIZED AND FULLY DANGEROUS',
+        demon:       '4x damage + 30% armor -- CORRUPTION DOMAIN. EVERYTHING INSIDE GETS TAINTED.',
+        baby:        '8x speed -- BABY TURBO MODE. FASTEST THING ALIVE. SOMEHOW.',
+        elder:       '6x damage + 80% armor + slow -- ANCIENT JUDGMENT. UNHURRIED. UNMERCIFUL.',
+        glitch:      'INVULNERABLE + 3x damage -- UNTRACEABLE. THE KILL COMES FROM NOWHERE.',
     };
 
     // how hard each npc type hits + at what range. barney = 0 bc he loves u
@@ -162,6 +170,14 @@ export class NPCManager {
         oracle:      { dmg: 12, range: 5.0 }, // prophecy bolt
         monk:        { dmg: 9,  range: 3.0 }, // slow heavy strike
         pirate_ghost:{ dmg: 15, range: 5.0 }, // cursed shot
+        // chaos 7 -- arrived with attitude
+        viking:      { dmg: 20, range: 3.5 }, // axe chop
+        dj:          { dmg: 9,  range: 5.0 }, // sound wave blast
+        cop:         { dmg: 14, range: 4.0 }, // authority
+        demon:       { dmg: 22, range: 4.5 }, // corruption claw
+        baby:        { dmg: 4,  range: 2.0 }, // tiny bite. adorable. still hurts.
+        elder:       { dmg: 28, range: 3.5 }, // ancient strike. slow but devastating.
+        glitch:      { dmg: 16, range: 999  }, // range is infinite bc it teleports next to u. sorry.
     };
 
     constructor(scene: THREE.Scene) {
@@ -512,6 +528,16 @@ export class NPCManager {
             CatType.ORACLE,
             CatType.MONK,
             CatType.PIRATE_GHOST,
+            // chaos 7 -- all in the pool now
+            CatType.VIKING,
+            CatType.VIKING,   // extra viking bc the raids are frequent
+            CatType.DJ,
+            CatType.COP,
+            CatType.DEMON,
+            CatType.BABY,
+            CatType.BABY,     // extra baby bc babies multiply
+            CatType.ELDER,
+            CatType.GLITCH,
         ];
 
         const randomType = catTypes[Math.floor(Math.random() * catTypes.length)];

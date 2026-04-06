@@ -109,9 +109,16 @@ export abstract class BaseNPC {
             case 'fairy':       this.domainInvulnerable = true; this.domainSpeedMult = 2.0; break;
             case 'caveman':     this.domainDamageMult = 5.5; this.domainSpeedMult = 0.7; break; // glass cannon. biggest damage.
             case 'alien':       this.domainDamageMult = 2.0; this.domainDmgReduction = 0.4; this.domainSpeedMult = 2.5; break;
+            // the chaos 7 domain buffs -- each one built different
+            case 'viking':     this.domainSpeedMult = 5.0; this.domainDamageMult = 3.5; break; // BERSERKER CHARGE. unstoppable.
+            case 'dj':         this.domainSpeedMult = 2.0; this.domainDamageMult = 1.5; this.domainAttackIntervalMult = 0.4; break; // rapid beat drops
+            case 'cop':        this.domainDamageMult = 2.5; this.domainDmgReduction = 0.4; this.domainSpeedMult = 1.8; break; // authorized to use full force
+            case 'demon':      this.domainDamageMult = 4.0; this.domainDmgReduction = 0.3; this.domainInvulnerable = false; break; // corruption made manifest
+            case 'baby':       this.domainSpeedMult = 8.0; this.domainDamageMult = 1.2; break; // BABY TURBO. just goes so fast. scary.
+            case 'elder':      this.domainSpeedMult = 0.3; this.domainDamageMult = 6.0; this.domainDmgReduction = 0.8; break; // slow but literally unkillable and one-shots
+            case 'glitch':     this.domainDamageMult = 3.0; this.domainInvulnerable = true; break; // cant kill what u cant track
         }
     }
-
     // wipe all buff fields back to neutral -- call this when the domain collapses
     public clearDomainBuff(): void {
         this.domainSpeedMult = 1;

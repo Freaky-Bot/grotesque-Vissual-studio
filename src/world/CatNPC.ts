@@ -54,6 +54,14 @@ export enum CatType {
     ORACLE = 'oracle',
     MONK = 'monk',
     PIRATE_GHOST = 'pirate_ghost',
+    // the chaos 7 -- user demanded these. we comply. unconditionally.
+    VIKING = 'viking',
+    DJ = 'dj',
+    COP = 'cop',
+    DEMON = 'demon',
+    BABY = 'baby',
+    ELDER = 'elder',
+    GLITCH = 'glitch',
 }
 
 export class CatNPC extends BaseNPC {
@@ -155,6 +163,14 @@ export class CatNPC extends BaseNPC {
             case CatType.ORACLE:       return this.createOracleCat(group);
             case CatType.MONK:         return this.createMonkCat(group);
             case CatType.PIRATE_GHOST: return this.createPirateGhostCat(group);
+            // the chaos 7 -- arrived
+            case CatType.VIKING:  return this.createVikingCat(group);
+            case CatType.DJ:      return this.createDJCat(group);
+            case CatType.COP:     return this.createCopCat(group);
+            case CatType.DEMON:   return this.createDemonCat(group);
+            case CatType.BABY:    return this.createBabyCat(group);
+            case CatType.ELDER:   return this.createElderCat(group);
+            case CatType.GLITCH:  return this.createGlitchCat(group);
         }
 
         return group;
@@ -1343,6 +1359,176 @@ export class CatNPC extends BaseNPC {
         return group;
     }
 
+    // ===== DA CHAOS 7 -- nobody asked, we added anyway, no regrets UwU =====
+
+    private createVikingCat(group: THREE.Group): THREE.Group {
+        // big blue beefy viking. tiny axe. huge energy. charges buildings and doesnt apologize.
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.9), new THREE.MeshStandardMaterial({ color: 0x4488cc }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.65, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
+        head.position.y = 1.2; group.add(head);
+        // horned helmet -- the whole vibe
+        const helmetBase = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.65, 0.4, 12), new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 }));
+        helmetBase.position.y = 1.85; group.add(helmetBase);
+        const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.7, 8), new THREE.MeshStandardMaterial({ color: 0xe0d0a0 }));
+        hornL.position.set(-0.7, 1.95, 0); hornL.rotation.z = -0.6; group.add(hornL);
+        const hornR = hornL.clone(); hornR.position.set(0.7, 1.95, 0); hornR.rotation.z = 0.6; group.add(hornR);
+        // tiny axe -- it hits hard trust me
+        const axeHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+        axeHandle.position.set(0.9, 0.6, 0.3); axeHandle.rotation.z = 0.3; group.add(axeHandle);
+        const axeHead = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.15), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 }));
+        axeHead.position.set(1.2, 0.95, 0.3); group.add(axeHead);
+        // eyes -- the fury
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+        const eL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeM); eL.position.set(-0.22, 1.35, 0.58); group.add(eL);
+        const eR = eL.clone(); eR.position.set(0.22, 1.35, 0.58); group.add(eR);
+        return group;
+    }
+
+    private createDJCat(group: THREE.Group): THREE.Group {
+        // neon vibes, spinning music disc, headphones, pure party energy
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), new THREE.MeshStandardMaterial({ color: 0x220044 }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 14, 14), new THREE.MeshStandardMaterial({ color: 0x330055 }));
+        head.position.y = 1.1; group.add(head);
+        // big headphones -- the signature look
+        const hpBar = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.08, 8, 12, Math.PI), new THREE.MeshStandardMaterial({ color: 0x00ffff }));
+        hpBar.position.set(0, 1.7, 0); hpBar.rotation.z = Math.PI; group.add(hpBar);
+        const earL = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.25, 10), new THREE.MeshStandardMaterial({ color: 0xff00ff }));
+        earL.position.set(-0.7, 1.1, 0); earL.rotation.z = Math.PI / 2; group.add(earL);
+        const earR = earL.clone(); earR.position.set(0.7, 1.1, 0); group.add(earR);
+        // spinning vinyl -- lil disc above them
+        const vinyl = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.06, 16), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }));
+        vinyl.position.y = 2.4; group.add(vinyl);
+        const vinylLabel = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.07, 12), new THREE.MeshStandardMaterial({ color: 0xff0099 }));
+        vinylLabel.position.y = 2.45; group.add(vinylLabel);
+        // neon glow aura
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(1.4, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.08 }));
+        group.add(glow);
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const eL2 = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), eyeM); eL2.position.set(-0.2, 1.25, 0.55); group.add(eL2);
+        const eR2 = eL2.clone(); eR2.position.set(0.2, 1.25, 0.55); group.add(eR2);
+        return group;
+    }
+
+    private createCopCat(group: THREE.Group): THREE.Group {
+        // badge, blue uniform, tiny donut, extremely serious about rule violations
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), new THREE.MeshStandardMaterial({ color: 0x1a3a6e }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffd4a8 }));
+        head.position.y = 1.1; group.add(head);
+        // cop hat -- flat top
+        const capBase = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.3, 14), new THREE.MeshStandardMaterial({ color: 0x0d2244 }));
+        capBase.position.y = 1.75; group.add(capBase);
+        const capBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.08, 14), new THREE.MeshStandardMaterial({ color: 0x0d2244 }));
+        capBrim.position.y = 1.6; group.add(capBrim);
+        // badge -- shiny
+        const badge = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.08), new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9 }));
+        badge.position.set(0, 0.4, 0.45); group.add(badge);
+        // tiny donut (very important)
+        const donut = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.07, 8, 10), new THREE.MeshStandardMaterial({ color: 0xf4a460 }));
+        donut.position.set(0.7, 0.0, 0.3); donut.rotation.x = 0.5; group.add(donut);
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0x222255 });
+        const eL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeM); eL.position.set(-0.22, 1.25, 0.55); group.add(eL);
+        const eR = eL.clone(); eR.position.set(0.22, 1.25, 0.55); group.add(eR);
+        return group;
+    }
+
+    private createDemonCat(group: THREE.Group): THREE.Group {
+        // dark red, bat wings, glowing red eyes, corrupts everything it touches
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), new THREE.MeshStandardMaterial({ color: 0x220000, roughness: 0.8 }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 14, 14), new THREE.MeshStandardMaterial({ color: 0x330000 }));
+        head.position.y = 1.15; group.add(head);
+        // bat wings -- giant flappy triangles
+        const wingShape = new THREE.ConeGeometry(0.1, 1.8, 4);
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x440000, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const wingL = new THREE.Mesh(new THREE.BufferGeometry(), wingMat);
+        // wing made from a flat triangle -- positions array manually because YOLO
+        const wL = new THREE.Mesh(new THREE.ConeGeometry(0.05, 2.0, 3), wingMat);
+        wL.position.set(-1.3, 0.8, -0.2); wL.rotation.set(0, 0, -1.1); group.add(wL);
+        const wR = wL.clone(); wR.position.set(1.3, 0.8, -0.2); wR.rotation.set(0, 0, 1.1); group.add(wR);
+        // horns -- lil spikes on head
+        const hornMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
+        const hornL2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.6, 6), hornMat);
+        hornL2.position.set(-0.35, 1.72, 0); group.add(hornL2);
+        const hornR2 = hornL2.clone(); hornR2.position.set(0.35, 1.72, 0); group.add(hornR2);
+        // demonic glow
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(1.35, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.10 }));
+        group.add(glow);
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const eL2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeM); eL2.position.set(-0.22, 1.30, 0.57); group.add(eL2);
+        const eR2 = eL2.clone(); eR2.position.set(0.22, 1.30, 0.57); group.add(eR2);
+        return group;
+    }
+
+    private createBabyCat(group: THREE.Group): THREE.Group {
+        // tiny. adorable. utterly uncontrollable. moves at mach speed for no reason.
+        group.scale.set(0.45, 0.45, 0.45); // smol. legally required to be smol.
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.7, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffccdd }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.72, 14, 14), new THREE.MeshStandardMaterial({ color: 0xffccdd }));
+        head.position.y = 0.9; group.add(head);
+        // BIG eyes because baby
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0x003366 });
+        const eL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), eyeM); eL.position.set(-0.28, 0.98, 0.62); group.add(eL);
+        const eR = eL.clone(); eR.position.set(0.28, 0.98, 0.62); group.add(eR);
+        // lil tiny ears
+        const earMat = new THREE.MeshStandardMaterial({ color: 0xffc0cb });
+        const earL = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 6), earMat); earL.position.set(-0.45, 1.55, 0); group.add(earL);
+        const earR = earL.clone(); earR.position.set(0.45, 1.55, 0); group.add(earR);
+        // wiggly tail
+        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.04, 1.0, 8), new THREE.MeshStandardMaterial({ color: 0xffccdd }));
+        tail.position.set(0, 0.1, -0.7); tail.rotation.x = 0.8; group.add(tail);
+        return group;
+    }
+
+    private createElderCat(group: THREE.Group): THREE.Group {
+        // ancient. grey. wise. moves at 0.001 mph. has seen things.
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.4, 0.75), new THREE.MeshStandardMaterial({ color: 0x888880, roughness: 1.0 }));
+        group.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.58, 14, 14), new THREE.MeshStandardMaterial({ color: 0x999990 }));
+        head.position.y = 1.05; group.add(head);
+        // ancient robes -- draped thing below body
+        const robes = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x776655, roughness: 1.0 }));
+        robes.rotation.x = Math.PI; robes.position.y = -0.55; group.add(robes);
+        // staff -- the wise elder needs a stick
+        const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.8, 8), new THREE.MeshStandardMaterial({ color: 0x8b6914 }));
+        staff.position.set(-0.8, 0.5, 0); group.add(staff);
+        const staffOrb = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), new THREE.MeshBasicMaterial({ color: 0xaaffaa, transparent: true, opacity: 0.8 }));
+        staffOrb.position.set(-0.8, 1.95, 0); group.add(staffOrb);
+        // ancient markings -- golden symbols on the body
+        const marking = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.04, 6, 10), new THREE.MeshBasicMaterial({ color: 0xccaa44 }));
+        marking.position.set(0, 0.3, 0.42); group.add(marking);
+        // wise eyes -- glowing faint green
+        const eyeM = new THREE.MeshBasicMaterial({ color: 0xaaffaa });
+        const eL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), eyeM); eL.position.set(-0.2, 1.18, 0.54); group.add(eL);
+        const eR = eL.clone(); eR.position.set(0.2, 1.18, 0.54); group.add(eR);
+        return group;
+    }
+
+    private createGlitchCat(group: THREE.Group): THREE.Group {
+        // corrupted mesh chaos. random color flicker. barely holding itself together.
+        // just a normal cat but WRONG
+        this.createNormalCat(group);
+        // override the first mesh with glitch colors
+        group.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.material) {
+                // randomly corrupt the color -- this is a feature not a bug
+                (child.material as THREE.MeshStandardMaterial).color?.setHex(
+                    Math.random() < 0.5 ? 0x00ff00 : (Math.random() < 0.5 ? 0xff00ff : 0x00ffff)
+                );
+                if ((child.material as THREE.MeshStandardMaterial).emissive) {
+                    (child.material as THREE.MeshStandardMaterial).emissive.setHex(0x001100);
+                }
+            }
+        });
+        // add a glitch aura that shouldnt exist
+        const glitchAura = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 1.8), new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.06, wireframe: true }));
+        group.add(glitchAura);
+        return group;
+    }
+
     private setDialogues(): void {
         switch (this.catType) {
             case CatType.NORMAL:
@@ -1945,6 +2131,91 @@ export class CatNPC extends BaseNPC {
                     "I am the ghost of every cat who never got treats."
                 ];
                 break;
+            // the chaos 7. u wanted them. they are here. they have opinions.
+            case CatType.VIKING:
+                this.dialogues = [
+                    "SKOL!! I mean... MEOW!!",
+                    "I charge buildings for sport.",
+                    "The axe is real. The horns are real. The fury is REAL.",
+                    "Valhalla smells like fish. Good.",
+                    "I have raided seventeen treat bowls this morning.",
+                    "GLORY IN BATTLE!! Also warmth by fire!!",
+                    "My ancestors watch. They are proud. Also eating fish.",
+                    "The longship is in the shop. I walk. I still conquer."
+                ];
+                break;
+            case CatType.DJ:
+                this.dialogues = [
+                    "DROP THE BASS. DROP THE WHOLE OCEAN.",
+                    "This track goes hard. Like your enemies.",
+                    "Everybody is dancing. They had no choice.",
+                    "The vinyl doesn't stop. THE VINYL NEVER STOPS.",
+                    "BPM: 666. Still a banger.",
+                    "I play what the void requests.",
+                    "Four on the floor. Eight paws. Do the math.",
+                    "The crowd: all cats. The energy: unhinged."
+                ];
+                break;
+            case CatType.COP:
+                this.dialogues = [
+                    "STOP RIGHT THERE. I saw that.",
+                    "License and registration for your treats.",
+                    "Your behavior has been noted.",
+                    "I have been watching. All of you.",
+                    "Donut: secured. Order: maintained. Barely.",
+                    "Sir this is a Wendy's. I am still the law here.",
+                    "Every cat here is a suspect. Including me.",
+                    "The badge means I can eat more donuts."
+                ];
+                break;
+            case CatType.DEMON:
+                this.dialogues = [
+                    "I corrupt what I touch. Touch accepted.",
+                    "The darkness is warm. This is my home.",
+                    "Your soul? Interesting. Let me see it.",
+                    "VOID IS MY VACATION DESTINATION.",
+                    "I converted 3 cats to the dark side today. Personal best.",
+                    "Corruption is just personality enhancement.",
+                    "The wings are functional. They are also terrifying. Good.",
+                    "Hell held auditions. I got the lead role."
+                ];
+                break;
+            case CatType.BABY:
+                this.dialogues = [
+                    "goo",
+                    "mew!!!",
+                    "MEEOOOWW (very small)",
+                    "da da da fish?",
+                    "why fast. i just am fast.",
+                    "boing",
+                    "everything is LOUD and BRIGHT and AMAZING",
+                    "mew mew mew mew mew mew"
+                ];
+                break;
+            case CatType.ELDER:
+                this.dialogues = [
+                    "I have seen 900 sunrises. They are all the same.",
+                    "The prophecy speaks of... treats. It always does.",
+                    "In my day, the void was smaller.",
+                    "I remember when this world had only 3 cat types.",
+                    "The young move fast. I have seen where fast leads.",
+                    "Sit. Listen. There is wisdom here. Or napping.",
+                    "All paths lead to the great fish bowl above.",
+                    "The ancient scrolls say: this too shall pass. Unless it's a Tuesday."
+                ];
+                break;
+            case CatType.GLITCH:
+                this.dialogues = [
+                    "E̷R̸R̷O̸R̴:̴ ̴C̵A̷T̸.EXE̵",
+                    "wh̵e̷r̵e̸ ̶a̷m̸ ̸i̷ ̴i̶ ̷w̵a̴s̵ ̸j̸u̸s̷t̶",
+                    "SEGFAULT IN MODULE: EXISTENCE",
+                    "I̸ ̵t̷e̵l̶e̸p̷o̵r̴t̸ ̵t̴h̷e̸r̵e̶f̷o̶r̸e̵ ̶I̷ ̵a̴m̸",
+                    "my mesh has 7 vertices. this is fine.",
+                    "NULL POINTER EXCEPTION: found cat",
+                    "reality.exe stopped responding",
+                    "I̷ ̸d̵o̴n̵'̵t̷ ̶k̸n̷o̴w̸ ̵w̷h̸e̷r̸e̵ ̷I̸'̷m̸ ̴g̷o̶i̶n̵g̴"
+                ];
+                break;
         }
     }
 
@@ -2001,6 +2272,75 @@ export class CatNPC extends BaseNPC {
             if (Math.random() < 0.02) {
                 this.mesh.rotation.y += (Math.random() - 0.5) * 0.3;
             }
+        }
+
+        // chaos 7 special behaviors -- each one a unique tragedy
+
+        // DJ: spin the vinyl disc + pulse the glow
+        if (this.catType === CatType.DJ) {
+            this.mesh.children.forEach((c, i) => {
+                if (i >= 4 && i <= 5) c.rotation.y += 0.08; // spin the vinyl
+            });
+        }
+
+        // Baby: randomly change direction VERY often + move extra fast
+        if (this.catType === CatType.BABY) {
+            if (Math.random() < 0.15) this.targetAngle = Math.random() * Math.PI * 2; // constant direction changes
+            this.mesh.position.y = 0.8 + Math.abs(Math.sin(time * 8)) * 0.4; // bouncy
+        }
+
+        // Elder: barely moves, staff bobs slowly
+        if (this.catType === CatType.ELDER) {
+            this.speed = 0.8; // ancient knees
+        }
+
+        // Glitch: random teleport + corrupt colors periodically
+        if (this.catType === CatType.GLITCH) {
+            if (Math.random() < 0.008) {
+                // TELEPORT -- just yeet to a random nearby position
+                this.position.x += (Math.random() - 0.5) * 30;
+                this.position.z += (Math.random() - 0.5) * 30;
+                this.position.x = Math.max(-200, Math.min(200, this.position.x));
+                this.position.z = Math.max(-200, Math.min(200, this.position.z));
+            }
+            // corrupt mesh colors randomly
+            if (Math.random() < 0.05) {
+                this.mesh.traverse((child) => {
+                    if (child instanceof THREE.Mesh && child.material && Math.random() < 0.3) {
+                        const colors = [0x00ff00, 0xff00ff, 0x00ffff, 0xff0000, 0xffff00];
+                        (child.material as any).color?.setHex(colors[Math.floor(Math.random() * colors.length)]);
+                    }
+                });
+            }
+            // flicker visibility -- is it real? is it a ghost? yes.
+            if (Math.random() < 0.03) {
+                this.mesh.visible = !this.mesh.visible;
+            } else {
+                this.mesh.visible = true;
+            }
+        }
+
+        // Demon: wings pulse + glow flicker
+        if (this.catType === CatType.DEMON) {
+            this.mesh.children.forEach((c, i) => {
+                if (c instanceof THREE.Mesh) {
+                    const mat = c.material as THREE.MeshStandardMaterial;
+                    if (mat?.emissive) mat.emissive.setHex(Math.random() < 0.1 ? 0xff2200 : 0x220000);
+                }
+            });
+        }
+
+        // Viking: charge toward random direction occasionally, very forceful
+        if (this.catType === CatType.VIKING) {
+            if (Math.random() < 0.005) {
+                this.speed = 8; // CHARGE
+                setTimeout(() => { this.speed = 3.5; }, 1000); // back to normal
+            }
+        }
+
+        // Cop: slightly faster than normal, patrols deterministically
+        if (this.catType === CatType.COP) {
+            this.mesh.position.y = 1.5 + Math.sin(time * 1.5) * 0.06; // patrol bob
         }
     }
 

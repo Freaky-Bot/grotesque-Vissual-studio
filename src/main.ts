@@ -28,6 +28,11 @@ import { BaseNPC } from './world/BaseNPC';
 import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
 import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
 import { WorldEventsSystem } from './world/WorldEventsSystem';
+import { BigWorldSystems } from './world/BigWorldSystems';
+import { BigEventSystems } from './world/BigEventSystems';
+import { SocialBehaviorSystem } from './world/SocialBehaviorSystem';
+import { QuestSystem, LevelSystem, CraftingSystem, FishingSystem, CatRacingSystem, StealthSystem, NPCHungerSystem, ThrowableSystem } from './world/GameplayExtras';
+import { TrailEffectSystem, HologramEffect, FrozenEffect, HeatEffect, BloomPulse, ChaoticExtras } from './world/VisualExtras';
 
 // global UI helpers declared in index.html -- these scream at the player in dramatic ways
 declare function spawnDmgNumber(sx: number, sy: number, dmg: number, isCrit: boolean, color?: string): void;
@@ -78,6 +83,25 @@ class CatGodWorld {
     // inventory + combat state -- about time the player can fight back
     private inventory: InventorySystem = new InventorySystem();
     private playerRespawnTimer: number = 0; // counts down to respawn after death
+
+    // --- ALL THE 100-FEATURE MEGA SYSTEMS -- just shoved in here, yolo --
+    private bigWorld!: BigWorldSystems;
+    private bigEvents!: BigEventSystems;
+    private socialBehavior!: SocialBehaviorSystem;
+    private questSystem!: QuestSystem;
+    private levelSystem!: LevelSystem;
+    private craftingSystem!: CraftingSystem;
+    private fishingSystem!: FishingSystem;
+    private racingSystem!: CatRacingSystem;
+    private stealthSystem!: StealthSystem;
+    private hungerSystem!: NPCHungerSystem;
+    private throwables!: ThrowableSystem;
+    private trailFx!: TrailEffectSystem;
+    private hologramFx!: HologramEffect;
+    private frozenFx!: FrozenEffect;
+    private heatFx!: HeatEffect;
+    private bloomPulse!: BloomPulse;
+    private chaoticExtras!: ChaoticExtras;
 
     // active buff/debuff timers -- every wild item effect gets a timer lol
     private invincibleTimer: number = 0;     // star_piece
@@ -500,6 +524,21 @@ class CatGodWorld {
             // F key cycles factions -- FIGHT FOR YOUR SIDE
             if (e.key.toLowerCase() === 'f') {
                 this.factionSystem.cyclePlayerFaction();
+            }
+
+            // G key = throw item -- yeet that thing at a nearby cat
+            if (e.key.toLowerCase() === 'g' && !this.chat.isInputOpen() && this.throwables?.heldItem) {
+                const pos = this.sageCharacter.getPosition();
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.sageCharacter.getRotationY());
+                this.throwables.throw(pos, forward);
+                return;
+            }
+
+            // R key = time rewind if available from chaotic extras
+            if (e.key.toLowerCase() === 'r' && !this.chat.isInputOpen() && this.chaoticExtras) {
+                const rewoundPos = this.chaoticExtras.rewindTime();
+                if (rewoundPos) this.sageCharacter.teleportTo(rewoundPos);
+                return;
             }
 
             // Z key = domain expansion. just like the anime. except the player is the cat
@@ -1047,6 +1086,123 @@ class CatGodWorld {
             const added = this.inventory.addItem(lootType as never);
             if (added) this.chat.addMessage('event', `🎁 Treasure caught: ${lootType}!`);
         };
+
+        // ====== 100-FEATURE MEGA INIT -- all the big systems ======
+        this.bigWorld = new BigWorldSystems(this.scene);
+        this.bigWorld.onMeteorImpact = (pos) => {
+            screenShake(true);
+            this.chat.addMessage('event', `☄️ METEOR IMPACT at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})!! Run!!`);
+            // kill any NPCs in blast radius
+            for (const npc of this.npcManager.getNPCs()) {
+                if (npc.getPosition().distanceTo(pos) < 12) npc.takeDamage(80);
+            }
+        };
+        this.bigWorld.onVolcanoErupt = () => { this.chat.addMessage('event', '🌋 VOLCANO ERUPTS!! Lava incoming!!'); };
+        this.bigWorld.onBlackHolePull = (pos) => { this.chat.addMessage('event', `🕳️ BLACK HOLE at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})`); };
+        this.bigWorld.onPortalTeleport = () => { this.chat.addMessage('event', `🌀 Teleported via city portal!`); };
+        this.bigWorld.onCatWorshipStatue = (type) => { this.chat.addMessage('event', `🗿 ${type} is worshipping the giant cat statue!`); };
+
+        this.bigEvents = new BigEventSystems(this.scene);
+        this.bigEvents.onCivilWarStart = () => { this.chat.addMessage('event', '⚔️ CAT CIVIL WAR BREAKS OUT!! Sides chosen!!'); };
+        this.bigEvents.onGiantCatSpawn = () => { this.chat.addMessage('event', '😱 A GIANT CAT BOSS has appeared!! 800HP!!'); };
+        this.bigEvents.onGiantCatDeath = () => { this.chat.addMessage('event', '💀 Giant Cat Boss defeated!! Chaos fades...'); this.levelSystem.addXP(500); };
+        this.bigEvents.onVoidInvasionStart = () => { this.chat.addMessage('event', '🌑 VOID INVASION BEGINS!! 3 waves incoming!!'); };
+        this.bigEvents.onFishRain = (count) => { this.chat.addMessage('event', `🐟 FISH RAIN!! ${count} fish falling from the sky!!`); };
+        this.bigEvents.onArenaStart = () => { this.chat.addMessage('event', '🏟️ ARENA MODE!! 5 rounds for glory!!'); };
+        this.bigEvents.onPlagueStart = () => { this.chat.addMessage('event', '🤢 A PLAGUE breaks out among the cats!!'); };
+        this.bigEvents.onStampedeStart = () => { this.chat.addMessage('event', '🐎 STAMPEDE!! All cats running in one direction!!'); };
+        this.bigEvents.onRebellionStart = () => { this.chat.addMessage('event', '😤 NPC REBELLION!! All cats are coming for you!!'); };
+        this.bigEvents.onLightningStrike = (pos) => { this.bloomPulse?.pulse(pos, 0xffff00); };
+        this.bigEvents.onFishCollect = () => { this.questSystem.progressQuest('collect_fish'); this.levelSystem.addXP(15); };
+
+        this.socialBehavior = new SocialBehaviorSystem(this.scene);
+        this.socialBehavior.onGangFormed = (name) => { this.chat.addMessage('event', `🐱 Gang formed: "${name}"!`); };
+        this.socialBehavior.onLovePair = (a, b) => { this.chat.addMessage('event', `💕 ${a} and ${b} are in love~`); };
+        this.socialBehavior.onCatBandFormed = () => { this.chat.addMessage('event', `🎸 A cat band formed!! They're playing!!`); };
+        this.socialBehavior.onElectionResult = (winner) => { this.chat.addMessage('event', `🗳️ ELECTION RESULT: ${winner} wins the cat election!!`); };
+        this.socialBehavior.onFuneral = (type) => { this.chat.addMessage('event', `⚰️ Funeral held for ${type}... RIP`); };
+        this.socialBehavior.onGossip = (msg) => { this.chat.addMessage('event', `🗣️ ${msg}`); };
+        this.socialBehavior.onComplaint = (msg) => { this.chat.addMessage('event', `😤 ${msg}`); };
+
+        // sync weather into social behavior
+        this.weatherSystem.onWeatherChange = (w) => {
+            this.chat.addMessage('event', `⛅ Weather: ${w.toUpperCase()}`);
+            this.socialBehavior.setWeather(w);
+        };
+
+        this.questSystem = new QuestSystem();
+        this.questSystem.onQuestOffered = (q) => { this.chat.addMessage('event', `📋 QUEST: ${q.title} -- ${q.description}`); };
+        this.questSystem.onQuestComplete = (q) => { this.chat.addMessage('event', `✅ QUEST COMPLETE: ${q.title}!! Reward: ${q.reward}!`); this.levelSystem.addXP(200); };
+        this.questSystem.onQuestFailed = (q) => { this.chat.addMessage('event', `❌ Quest failed: ${q.title}. Time ran out.`); };
+
+        this.levelSystem = new LevelSystem();
+        this.levelSystem.onLevelUp = (lvl, bonus) => {
+            this.chat.addMessage('event', `⬆️ LEVEL UP! Now Level ${lvl}! Bonus: ${bonus}`);
+            this.bloomPulse?.pulse(this.sageCharacter.getPosition(), 0x00ffff);
+            screenShake(false);
+        };
+
+        this.craftingSystem = new CraftingSystem();
+        this.craftingSystem.onCraftSuccess = (result, name) => { this.chat.addMessage('event', `🔨 CRAFTED: ${name}!`); };
+        this.craftingSystem.onPickupItem = (type) => { this.chat.addMessage('event', `🧪 Picked up: ${type}`); };
+
+        this.fishingSystem = new FishingSystem(this.scene);
+        this.fishingSystem.onFishCaught = (fish) => {
+            this.chat.addMessage('event', `🎣 Caught: ${fish}!!`);
+            this.craftingSystem.pickupItem('fish');
+            this.questSystem.progressQuest('collect_fish');
+            this.levelSystem.addXP(20);
+        };
+        this.fishingSystem.onFishEscaped = () => { this.chat.addMessage('event', `🎣 Fish escaped! ugh.`); };
+
+        this.racingSystem = new CatRacingSystem();
+        this.racingSystem.onRaceStart = (racers) => { this.chat.addMessage('event', `🏁 CAT RACE STARTS! Racers: ${racers.join(', ')}`); };
+        this.racingSystem.onRaceFinish = (winner, playerWon, reward) => {
+            this.chat.addMessage('event', playerWon ? `🏆 YOUR RACER WON!! Reward: ${reward} XP!` : `🏁 Race winner: ${winner}. Better luck next time.`);
+            if (playerWon) this.levelSystem.addXP(reward);
+        };
+
+        this.stealthSystem = new StealthSystem();
+        this.stealthSystem.onDetected = (type) => { this.chat.addMessage('event', `👁️ Detected by ${type}!`); };
+
+        this.hungerSystem = new NPCHungerSystem(this.scene);
+        this.hungerSystem.onNPCStarving = (type) => { this.chat.addMessage('event', `😿 A ${type} is starving and seeking food!`); };
+        this.hungerSystem.onNPCEatFood = (type) => { this.chat.addMessage('event', `😺 ${type} found food and ate it!`); };
+
+        this.throwables = new ThrowableSystem(this.scene);
+        this.throwables.onHitNPC = (npc, dmg, type) => {
+            this.chat.addMessage('event', `💥 Hit ${npc.getType()} with ${type} for ${dmg} dmg!`);
+            this.levelSystem.addXP(10);
+            this.questSystem.progressQuest('kill_npcs', npc.isAlive() ? 0 : 1);
+        };
+        this.throwables.onPickup = (type) => { this.chat.addMessage('event', `✋ Picked up ${type}! Press G to throw.`); };
+
+        // wire npc death into social funeral system
+        const origNpcKilled = this.npcManager.onNpcKilled;
+        this.npcManager.onNpcKilled = (npcType, pos) => {
+            origNpcKilled?.(npcType, pos);
+            this.socialBehavior.holdFuneral(npcType, pos);
+            this.levelSystem.addXP(30);
+            this.questSystem.progressQuest('kill_npcs');
+        };
+
+        // visual extras init -- all the shiny stuff
+        this.trailFx = new TrailEffectSystem(this.scene);
+        this.hologramFx = new HologramEffect(this.scene);
+        this.frozenFx = new FrozenEffect(this.scene);
+        this.heatFx = new HeatEffect(this.scene);
+        this.bloomPulse = new BloomPulse(this.scene);
+        this.chaoticExtras = new ChaoticExtras(this.scene);
+        this.chaoticExtras.onGrowingCatExplode = (pos) => {
+            this.bloomPulse.pulse(pos, 0xff6600);
+            screenShake(true);
+            this.chat.addMessage('event', `💥 A growing cat EXPLODED at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})!!`);
+        };
+        this.chaoticExtras.onTimeRewind = (_snapshots) => { this.chat.addMessage('event', `⏪ Time rewind! Returned 1 second.`); };
+        this.chaoticExtras.onReverseGravityZone = (pos) => { this.chat.addMessage('event', `☁️ Reverse gravity zone spawned at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})!`); };
+        this.chaoticExtras.onNPCCloned = (npc) => { this.chat.addMessage('event', `🪞 ${npc.getType()} was CLONED!!`); };
+        this.chaoticExtras.onStalkerDetected = (type) => { this.chat.addMessage('event', `👁️‍🗨️ The ${type} is getting very close...`); };
+        // ====================================================
     }
 
     private start(): void {
@@ -1132,6 +1288,31 @@ class CatGodWorld {
             this.itemPickups.update(effectiveDt, this.sageCharacter.getPosition());
             this.comboSystem.update(effectiveDt);
             this.worldEvents.update(effectiveDt, this.sageCharacter.getPosition());
+
+            // ====== 100-FEATURE MEGA UPDATE LOOP -- all new chaos systems ======
+            const playerPos = this.sageCharacter.getPosition();
+            const allNPCs = this.npcManager.getNPCs();
+            this.bigWorld.update(effectiveDt, allNPCs, playerPos);
+            this.bigEvents.update(effectiveDt, allNPCs, playerPos);
+            this.socialBehavior.update(effectiveDt, allNPCs);
+            this.questSystem.update(effectiveDt);
+            this.fishingSystem.update(effectiveDt);
+            this.racingSystem.update(effectiveDt);
+            this.stealthSystem.checkDetection(playerPos, allNPCs);
+            this.hungerSystem.update(effectiveDt, allNPCs);
+            this.throwables.update(effectiveDt, allNPCs, playerPos);
+            this.trailFx.update(effectiveDt);
+            this.hologramFx.update(effectiveDt);
+            this.frozenFx.update(effectiveDt);
+            this.heatFx.update(effectiveDt);
+            this.bloomPulse.update(effectiveDt);
+            this.chaoticExtras.update(effectiveDt, allNPCs, playerPos);
+            this.chaoticExtras.recordPlayerPos(playerPos);
+            // reverse gravity zone check -- flip Y velocity if inside zone
+            if (this.chaoticExtras.isInReverseGravityZone(playerPos)) {
+                this.sageCharacter.applyForce?.(new THREE.Vector3(0, 25 * effectiveDt, 0));
+            }
+            // =====================================================================
 
             // faction badge on HUD
             const factionEl = document.getElementById('faction-hud');
@@ -1447,6 +1628,52 @@ class CatGodWorld {
                 domainEl.style.color = cd > 0 ? '#888888' : '#8844ff';
             }
         }
+
+        // chaos meter -- show the chaos level from bigEvents
+        try {
+            const chaosBar = document.getElementById('chaos-bar');
+            if (chaosBar && this.bigEvents) chaosBar.style.width = `${this.bigEvents.getChaosLevel()}%`;
+        } catch (_) {}
+
+        // level + xp bar update
+        try {
+            const lvlLabel = document.getElementById('level-label');
+            const xpBar = document.getElementById('xp-bar');
+            if (lvlLabel && this.levelSystem) lvlLabel.textContent = `LVL ${this.levelSystem.getLevel()}`;
+            if (xpBar && this.levelSystem) xpBar.style.width = `${this.levelSystem.getXPPercent() * 100}%`;
+        } catch (_) {}
+
+        // quest hud update
+        try {
+            const questHud = document.getElementById('quest-hud');
+            const questTitle = document.getElementById('quest-title');
+            const questProg = document.getElementById('quest-progress');
+            const questTimer = document.getElementById('quest-timer');
+            const q = this.questSystem?.getActiveQuest();
+            if (questHud && q) {
+                questHud.style.display = 'block';
+                if (questTitle) questTitle.textContent = `📋 ${q.title}`;
+                if (questProg) questProg.textContent = `${q.progress}/${q.goalAmount}`;
+                if (questTimer) questTimer.textContent = `${Math.ceil(q.timeLimit)}s left`;
+            } else if (questHud) {
+                questHud.style.display = 'none';
+            }
+        } catch (_) {}
+
+        // held item display
+        try {
+            const heldHud = document.getElementById('held-item-hud');
+            const heldName = document.getElementById('held-item-name');
+            const heldItem = this.throwables?.getHeldItem();
+            if (heldHud && heldName) {
+                if (heldItem) {
+                    heldHud.style.display = 'block';
+                    heldName.textContent = heldItem;
+                } else {
+                    heldHud.style.display = 'none';
+                }
+            }
+        } catch (_) {}
     }
 }
 

@@ -816,7 +816,7 @@
             font-size: 14px !important;
         }
     </style>
-  <script type="module" crossorigin src="./assets/index-C4_7bs3i.js"></script>
+  <script type="module" crossorigin src="./assets/index-DZoAfKbR.js"></script>
 </head>
 <body>
     <div id="ui">
@@ -841,7 +841,7 @@
         </div>
         <div id="chat-hint">ENTER to open/send · ESC to close</div>
     </div>
-
+
 
     <!-- hp panel top right -- finally the player has health lol -->
     <div id="hp-panel">
@@ -1075,7 +1075,62 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v1.5.0</div>
+    <div id="version-hud">v2.0.0</div>
+
+    <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
+    <div id="chaos-hud" style="
+        position: fixed; bottom: 60px; right: 10px;
+        width: 110px; font-family: Arial, sans-serif; font-size: 10px;
+        color: rgba(255,200,0,0.9); pointer-events: none; z-index: 105; user-select: none;
+    ">
+        <div style="margin-bottom: 2px;">☄️ CHAOS</div>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,150,0,0.5); height: 6px; border-radius: 3px; overflow: hidden;">
+            <div id="chaos-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ff6600, #ff0000); transition: width 0.3s;"></div>
+        </div>
+    </div>
+
+    <!-- level + xp hud -- top right, tracks your ascent to godhood -->
+    <div id="level-hud" style="
+        position: fixed; top: 10px; right: 10px;
+        font-family: Arial, sans-serif; font-size: 11px; color: rgba(255,255,255,0.9);
+        pointer-events: none; z-index: 105; user-select: none; text-align: right;
+    ">
+        <div id="level-label" style="font-weight: bold; margin-bottom: 2px;">LVL 1</div>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(100,200,255,0.5); height: 5px; width: 80px; border-radius: 3px; overflow: hidden; margin-left: auto;">
+            <div id="xp-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #00aaff, #00ffcc); transition: width 0.4s;"></div>
+        </div>
+    </div>
+
+    <!-- active quest hud -- shows current quest progress bc quests!! WOW!! -->
+    <div id="quest-hud" style="
+        display: none;
+        position: fixed; bottom: 90px; left: 10px;
+        background: rgba(0,0,0,0.55); border: 1px solid rgba(255,220,0,0.4);
+        border-radius: 6px; padding: 6px 10px; font-family: Arial, sans-serif;
+        font-size: 10px; color: rgba(255,230,100,0.95); pointer-events: none; z-index: 105;
+    ">
+        <div id="quest-title" style="font-weight: bold; margin-bottom: 2px;">📋 Quest</div>
+        <div id="quest-progress"></div>
+        <div id="quest-timer" style="color:rgba(255,100,100,0.8); font-size: 9px;"></div>
+    </div>
+
+    <!-- held item indicator -- show what throwable ur holding. TIRED OF MYSTERY ITEMS?? NOT ANYMORE!! -->
+    <div id="held-item-hud" style="
+        display: none;
+        position: fixed; bottom: 130px; right: 10px;
+        background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 5px; padding: 5px 9px; font-family: Arial, sans-serif;
+        font-size: 10px; color: rgba(255,255,255,0.9); pointer-events: none; z-index: 105;
+    ">
+        ✋ Holding: <span id="held-item-name">-</span> (G to throw)
+    </div>
+
+    <!-- active events panel -- top-center, shows ongoing chaos events -->
+    <div id="active-events-panel" style="
+        position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+        display: flex; flex-direction: column; gap: 3px; align-items: center;
+        pointer-events: none; z-index: 106;
+    "></div>
 
     <!-- damage vignette -- red pulse on player hit. they don't want you to feel safe. -->
     <div id="damage-vignette"></div>
