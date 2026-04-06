@@ -147,6 +147,31 @@ class CatGodWorld {
         // Create the cat god NPC
         this.catGod = new CatGodNPC(this.scene);
 
+        // SMITE -- cat god zaps the nearest hostile NPC it can find. divine justice.
+        this.catGod.onSmiteNPC = (fromPos, range) => {
+            const npcs = this.npcManager.getNPCs();
+            let closest: import('./world/BaseNPC').BaseNPC | null = null;
+            let closestDist = range;
+            for (const npc of npcs) {
+                if (!npc.isAlive_) continue;
+                const d = npc.position.distanceTo(fromPos);
+                if (d < closestDist && npc.isHostile()) { closest = npc; closestDist = d; }
+            }
+            if (closest) {
+                this.catGod.fireSmiteBeam(closest.position.clone());
+                closest.takeDamage(9999); // god does not do chip damage
+                this.chat.addMessage('event', `⚡ The Cat God has SMITTEN ${closest.getType()}. rip.`);
+            }
+        };
+
+        // HEAL -- cat god blesses the player when they are near
+        this.catGod.onHealPlayer = (amount) => {
+            this.sageCharacter.hp = Math.min(this.sageCharacter.maxHp, this.sageCharacter.hp + amount);
+            this.chat.addMessage('event', `✨ The Cat God healed you for +${amount} HP. uwu blessed.`);
+            const bar = document.getElementById('hp-bar-fill');
+            if (bar) bar.style.width = `${(this.sageCharacter.hp / this.sageCharacter.maxHp) * 100}%`;
+        };
+
         // Create the Sage character
         this.sageCharacter = new SageCharacter(this.scene);
 
