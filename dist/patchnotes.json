@@ -1,5 +1,10 @@
 [
   {
+    "msg": "v2.4.3 fix: patch notes font +2px and formal left-aligned layout nyaa~ pn-msg 11->13px pn-meta 9->11px entries left-align wiff more contrast meow meow~ uwu 🐱💕",
+    "date": "2026-04-05",
+    "hash": "8fee916"
+  },
+  {
     "msg": "chore: rebuild dist wiff latest patchnotes nyaa~ [skip ci]",
     "date": "2026-04-05",
     "hash": "f35fbde"
@@ -193,10 +198,5 @@
     "msg": "v2.2.0 feat: jojo gameplay wired nyaa~!! HAMON breathing (H) heals +3hp/s for 8s uwu, NIGERUNDAYO sprint (N) gives 2.5x speed for 4s meow meow, YOUR NEXT LINE fires every 45-90s and DIO predicts ur fate purrr~!! hamonCooldown 30s, nigerundayoCooldown 20s, prediction window 12s with +10hp if comes true 💕🐾",
     "date": "2026-04-05",
     "hash": "4620c20"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-06",
-    "hash": "0c62982"
   }
 ]
