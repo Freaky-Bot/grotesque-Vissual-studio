@@ -304,7 +304,7 @@
             font-size: 10px;
             font-family: Arial, sans-serif;
             pointer-events: none;
-            z-index: 105;
+            z-index: 10001; /* above pregame menu nyaa~ */
             user-select: none;
             letter-spacing: 0.3px;
         }
@@ -389,8 +389,8 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: min(520px, 90vw);
-            max-height: 38vh;
+            width: min(720px, 94vw);
+            max-height: 26vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -411,11 +411,12 @@
             display: flex;
             flex-direction: column;
             gap: 1px;
-            padding: 0 4px 20px;
+            /* padding-top pushes first item below the fade zone so it doesnt get eaten nyaa~ */
+            padding: 16px 8px 24px;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,200,0,0.2) transparent;
-            mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%);
         }
         .pn-entry {
             display: flex;

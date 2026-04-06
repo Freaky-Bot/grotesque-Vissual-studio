@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.4.1 fix: patch notes now inline scrollable list at bottom of menu nyaa~ no more popup modal meow~ chore commits filtered out so only real changes show uwu 🐱📋💕",
+    "date": "2026-04-05",
+    "hash": "b86f875"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "c261ee4"
+  },
+  {
     "msg": "v2.4.0 feat: patch notes panel added nyaa~ click da smol button on da main menu and it shows real git commit messages fetched from patchnotes.json which is auto-generated from git log on every build uwu 📋🐱💕",
     "date": "2026-04-05",
     "hash": "f489422"
@@ -188,15 +198,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-06",
     "hash": "699110f"
-  },
-  {
-    "msg": "v1.5.0 feat: added DIO BRANDO boss npc meow~!! kono DIO da uwu 🧛💕 500hp boss with knife throws and ZA WARUDO time stop instead of domain nyaa~ all NPCs freeze for 5s toki wo tomare!!! spawns every 5 minutes and WILL find u, DIO has been wired into NPCManager + main.ts purrr",
-    "date": "2026-04-05",
-    "hash": "16e3770"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-06",
-    "hash": "e4bba5a"
   }
 ]
