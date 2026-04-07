@@ -1,5 +1,10 @@
 [
   {
+    "msg": "v3.13.1 chore: sync HUD to v3.13.1 meow",
+    "date": "2026-04-06",
+    "hash": "219a408"
+  },
+  {
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-07",
     "hash": "890d24f"
@@ -993,10 +998,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-05",
     "hash": "6b4d630"
-  },
-  {
-    "msg": "feat: multiplayer framework -- WebSocket client/server, remote player orbs, auto-reconnect",
-    "date": "2026-04-04",
-    "hash": "f3eb51f"
   }
 ]
