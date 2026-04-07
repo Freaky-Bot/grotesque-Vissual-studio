@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.15.2 fix: switched build to IIFE format so proxy sites dont crash on import.meta anymore. stripped type=module from dist script tags. kokoro auto-falls back to Web Speech if it cant load. the game works EVERYWHERE now. even on weird proxy sites that strip module attrs. adapted. survived. mrrrow.",
+    "date": "2026-04-07",
+    "hash": "c9aef4d"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "54909db"
+  },
+  {
     "msg": "v3.15.1 fix: da black screen AGAIN. kokoro-js was crashing the whole page on load bc ONNX runtime uses import.meta at module level. switched to lazy dynamic import() so it only loads when voice system actually needs it. main bundle went from 3.4MB to 1.2MB too. not like anyone noticed. whatever. mrrrow.",
     "date": "2026-04-07",
     "hash": "3fda6d6"
@@ -988,15 +998,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-05",
     "hash": "8056b2c"
-  },
-  {
-    "msg": "Merge branch 'main' of https://github.com/Freaky-Bot/grotesque-Vissual-studio",
-    "date": "2026-04-05",
-    "hash": "cc9576d"
-  },
-  {
-    "msg": "X3 nuzzles pouces on you",
-    "date": "2026-04-05",
-    "hash": "f293cc4"
   }
 ]
