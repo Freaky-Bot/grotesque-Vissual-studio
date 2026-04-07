@@ -97,6 +97,14 @@ export class AmbientChaos {
     private factionA: BaseNPC[] = [];
     private factionB: BaseNPC[] = [];
 
+    // npc empowerment -- every 2 min, 3 random npcs grow 1.5x and glow purple. they evolved.
+    private empowerTimer: number = 120 + Math.random() * 60;
+
+    // phantom fist -- every 60-90s, a giant ghost fist punches through the world.
+    private phantomFistTimer: number = 60 + Math.random() * 45;
+    private phantomFistMesh: THREE.Group | null = null;
+    private phantomFistData: { pos: THREE.Vector3; dir: THREE.Vector3; phase: 'punch' | 'withdraw'; timer: number } | null = null;
+
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this._buildStalker();
@@ -230,6 +238,8 @@ export class AmbientChaos {
         this._updateBloodMoon(dt);
         this._updateGhostInvasion(dt);
         this._updateCivilWar(dt);
+        this._updateNPCEmpowerment(dt);
+        this._updatePhantomFist(dt);
     }
 
     // ---- UFO ----

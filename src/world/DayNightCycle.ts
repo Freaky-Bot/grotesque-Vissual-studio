@@ -7,6 +7,7 @@ import * as THREE from 'three';
 export class DayNightCycle {
     private time: number = 0.25; // 0=midnight 0.25=sunrise 0.5=noon 0.75=sunset
     private readonly dayLength: number = 120; // seconds per full day
+    private speedMultiplier: number = 1; // can be cranked up by wildcard chaos
 
     private sunLight: THREE.DirectionalLight;
     private ambientLight: THREE.AmbientLight;
@@ -15,6 +16,11 @@ export class DayNightCycle {
 
     public onNightFall: (() => void) | null = null;
     public onDayBreak: (() => void) | null = null;
+
+    // RAPID TIME wildcard -- set to 20 to make time fly immediately. set back to 1 when done.
+    public setSpeedMultiplier(mult: number): void {
+        this.speedMultiplier = mult;
+    }
 
     constructor(scene: THREE.Scene, sunLight: THREE.DirectionalLight, ambientLight: THREE.AmbientLight) {
         this.scene = scene;
@@ -26,7 +32,7 @@ export class DayNightCycle {
     public update(deltaTime: number): void {
         const wasNightBefore = this.wasNight;
 
-        this.time += deltaTime / this.dayLength;
+        this.time += (deltaTime * this.speedMultiplier) / this.dayLength;
         if (this.time >= 1) this.time -= 1; // wrap around
 
         this.wasNight = this.isNight();

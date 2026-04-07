@@ -574,6 +574,10 @@ class CatGodWorld {
         this.wildCards.onSetConfused = (c) => {
             this.sageCharacter.setConfused(c);
         };
+        // rapid time -- accelerate day/night cycle speed
+        this.wildCards.onSetDayNightSpeed = (mult) => {
+            this.dayNight.setSpeedMultiplier(mult);
+        };
 
         // AMBIENT CHAOS -- the world just does stuff without being asked. UFOs, portals, rain, stalker, etc.
         this.ambientChaos = new AmbientChaos(this.scene);
@@ -830,6 +834,12 @@ class CatGodWorld {
             // 0 = MATRIX RAIN -- 8 seconds of falling katakana numbers. very cinematic.
             if (e.key === '0' && !this.chat.isInputOpen()) {
                 this.wildCards.activateMatrixRain();
+                return;
+            }
+
+            // 9 = RAPID TIME -- day/night cycle goes x20 for 20 seconds.
+            if (e.key === '9' && !this.chat.isInputOpen()) {
+                this.wildCards.activateRapidTime();
                 return;
             }
         });

@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.9.0 feat: fog of war (-), inverted controls (=), screen flip (\\), matrix rain (0). all terrible ideas. all implemented. the keyboard is running out of keys and so am i. meow.",
+    "date": "2026-04-06",
+    "hash": "9fcb39a"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "e566886"
+  },
+  {
     "msg": "v3.8.0 feat: blood moon (sky turns red npcs glow evil 60s), ghost invasion (8-13 spectral NPCs haunt the world), npc civil war (orange vs blue 45s battle). manual keys: backtick=bloodmoon ;=civil war '=ghosts. passive versions auto-trigger too. its a lot. meow.",
     "date": "2026-04-06",
     "hash": "5ef26f2"

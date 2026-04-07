@@ -96,6 +96,9 @@ export class WildCards {
     private matrixRainContainer: HTMLDivElement | null = null;
     private matrixRainCleanup: (() => void) | null = null;
 
+    // rapid time -- 9 key. day/night cycle goes x20 for 20 seconds. the sky blurs.
+    private rapidTimeTimer: number = 0;
+
     // callbacks wired from main.ts -- keep it loosely coupled bc we're civilized
     public onChat: ((msg: string) => void) | null = null;
     public onShake: ((heavy: boolean) => void) | null = null;
@@ -105,6 +108,7 @@ export class WildCards {
     public onDeathParticles: ((pos: THREE.Vector3) => void) | null = null;
     public onSetFog: ((enabled: boolean) => void) | null = null;
     public onSetConfused: ((confused: boolean) => void) | null = null;
+    public onSetDayNightSpeed: ((mult: number) => void) | null = null;
     public onTeleportPlayer: ((x: number, z: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
@@ -650,6 +654,7 @@ export class WildCards {
         this._updateFog(dt);
         this._updateInvertControls(dt);
         this._updateScreenFlip(dt);
+        this._updateRapidTime(dt);
     }
 
     // ============================================================
@@ -1325,7 +1330,28 @@ export class WildCards {
 
         this.onChat?.('💚 MATRIX RAIN!! the numbers are FALLING!! green!! katakana!! u are in the MATRIX!! for 8 seconds!! nyaa~!!');
     }
+    // ============================================================
+    // RAPID TIME -- 9 KEY
+    // the day/night cycle goes x20 speed for 20 seconds.
+    // the sky flickers between day and night rapidly. ominous.
+    // ============================================================
+    public activateRapidTime(): void {
+        this.rapidTimeTimer = 20;
+        this.onSetDayNightSpeed?.(20);
+        this.onChat?.('⏩ RAPID TIME!! the day/night cycle is running at 20x speed!! the sky is flickering!! time has lost meaning!!');
+        this.doFlash('brightness(1.8) contrast(1.5)', 300);
+    }
 
+    private _updateRapidTime(dt: number): void {
+        if (this.rapidTimeTimer <= 0) return;
+        this.rapidTimeTimer -= dt;
+        if (this.rapidTimeTimer <= 0) {
+            this.onSetDayNightSpeed?.(1);
+            this.onChat?.('⏩ time returns to normal speed. u are back in the present. the present is upsetting.');
+        }
+    }
+
+    // 
     // small helper so we dont have to write the full document.body dance every time
     private doFlash(filter: string, ms: number): void {        if (this.onFlash) {
             this.onFlash(filter, ms);
