@@ -33,6 +33,7 @@ import { BigEventSystems } from './world/BigEventSystems';
 import { SocialBehaviorSystem } from './world/SocialBehaviorSystem';
 import { QuestSystem, LevelSystem, CraftingSystem, FishingSystem, CatRacingSystem, StealthSystem, NPCHungerSystem, ThrowableSystem } from './world/GameplayExtras';
 import { TrailEffectSystem, HologramEffect, FrozenEffect, HeatEffect, BloomPulse, ChaoticExtras } from './world/VisualExtras';
+import { WildCards } from './world/WildCards';
 
 // global UI helpers declared in index.html -- these scream at the player in dramatic ways
 declare function spawnDmgNumber(sx: number, sy: number, dmg: number, isCrit: boolean, color?: string): void;
@@ -111,6 +112,10 @@ class CatGodWorld {
     private heatFx!: HeatEffect;
     private bloomPulse!: BloomPulse;
     private chaoticExtras!: ChaoticExtras;
+
+    // THE WILDCARD CHAOS ENGINE -- meteors, black holes, nukes, purge, giant mode, lightning, etc.
+    // T=meteor  B=blackhole  K=nuke  Q=purge  V=gravity  X=sizes  L=lightning  U=giant
+    private wildCards!: WildCards;
 
     // active buff/debuff timers -- every wild item effect gets a timer lol
     private invincibleTimer: number = 0;     // star_piece
@@ -533,6 +538,18 @@ class CatGodWorld {
 
         this.comboSystem = new ComboSystem();
 
+        // WILDCARD CHAOS ENGINE -- wire it up right before start() so it exists for the whole game
+        this.wildCards = new WildCards(this.scene);
+        this.wildCards.getNPCs = () => this.npcManager.getNPCs();
+        this.wildCards.getPlayerPos = () => this.sageCharacter.getPosition();
+        this.wildCards.onChat = (msg) => this.chat.addMessage('event', msg);
+        this.wildCards.onShake = (heavy) => screenShake(heavy);
+        this.wildCards.onFlash = (filter, ms) => {
+            document.body.style.filter = filter;
+            setTimeout(() => { document.body.style.filter = ''; }, ms);
+        };
+        this.wildCards.onDeathParticles = (pos) => this.spawnDeathParticles(pos);
+
         // Start the world
         this.start();
     }
@@ -631,6 +648,58 @@ class CatGodWorld {
                     const cd = Math.ceil(this.sageCharacter.getDomainCooldown());
                     this.chat.addMessage('event', cd > 0 ? `⏳ Domain cooldown: ${cd}s remaining` : '⚡ Domain already active!');
                 }
+                return;
+            }
+
+            // ============================================================
+            // WILDCARD CHAOS KEYS -- no cooldowns (mostly). pure chaos.
+            // ============================================================
+
+            // T = METEOR STORM -- terror from above. 12 seconds of space rocks.
+            if (e.key.toLowerCase() === 't' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerMeteorStorm();
+                return;
+            }
+
+            // B = BLACK HOLE -- consume everything nearby.
+            if (e.key.toLowerCase() === 'b' && !this.chat.isInputOpen()) {
+                this.wildCards.spawnBlackHole();
+                return;
+            }
+
+            // K = NUKE -- kaboom. all npcs within 70 units. 90s cooldown.
+            if (e.key.toLowerCase() === 'k' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerNuke();
+                return;
+            }
+
+            // Q = THE PURGE -- 15s of npcs fighting each other. all crime legal.
+            if (e.key.toLowerCase() === 'q' && !this.chat.isInputOpen()) {
+                this.wildCards.startPurge();
+                return;
+            }
+
+            // V = GRAVITY FLIP -- launch all npcs into the air.
+            if (e.key.toLowerCase() === 'v' && !this.chat.isInputOpen()) {
+                this.wildCards.activateGravityFlip();
+                return;
+            }
+
+            // X = SIZE SCRAMBLE -- every npc becomes a random size.
+            if (e.key.toLowerCase() === 'x' && !this.chat.isInputOpen()) {
+                this.wildCards.scrambleSizes();
+                return;
+            }
+
+            // L = LIGHTNING RAIN -- 15 bolts strike random npcs.
+            if (e.key.toLowerCase() === 'l' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerLightningRain();
+                return;
+            }
+
+            // U = GIANT MODE -- player grows to 3.5x for 15 seconds.
+            if (e.key.toLowerCase() === 'u' && !this.chat.isInputOpen()) {
+                this.wildCards.activateGiantMode(this.sageCharacter.getMesh());
                 return;
             }
         });
@@ -1512,6 +1581,11 @@ class CatGodWorld {
 
             // death particle bursts -- they scatter and fade. poetic ending for every npc.
             this.updateDeathParticles(effectiveDt);
+
+            // WILDCARD CHAOS ENGINE -- meteors fly, black holes pull, purge proceeds, giant mode ticks
+            try {
+                this.wildCards.update(effectiveDt, this.sageCharacter.getMesh());
+            } catch (_) { /* chaos engine never crashes the main loop */ }
 
             // campfire proximity regen -- walk near fire = +2 HP/s. cozy little heal zone.
             let nearCampfire = false;
