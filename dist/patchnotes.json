@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.13.2 fix: added missing setDayIntensity method to NPCManager. it was calling a function that literally didnt exist. every frame. forever. the black screen was just the void staring back. meow.",
+    "date": "2026-04-06",
+    "hash": "f8b9960"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "56233e1"
+  },
+  {
     "msg": "v3.13.1 chore: sync HUD to v3.13.1 meow",
     "date": "2026-04-06",
     "hash": "219a408"
@@ -988,15 +998,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-05",
     "hash": "7e8f19d"
-  },
-  {
-    "msg": "feat: add Barney the dinosaur NPC -- sings, waves arms, has dino spikes and a tail",
-    "date": "2026-04-04",
-    "hash": "781b706"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-05",
-    "hash": "6b4d630"
   }
 ]
