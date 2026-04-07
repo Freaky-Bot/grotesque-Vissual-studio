@@ -2,7 +2,7 @@
   {
     "msg": "v3.14.0 feat: NEURAL VOICES ARE HERE!! replaced dat boring robot speech with Kokoro TTS nyaa~ 80MB model loads in background then REAL voices come out!! every npc has their own neural voice now!! af_heart for da cute cats, am_fenrir for da void boys, bm_george for da divine ones!! Web Speech API still works as fallback while model loads UwU we literally evolved 🐱💕✨",
     "date": "2026-04-07",
-    "hash": "7e3d8b6"
+    "hash": "d0230fa"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
