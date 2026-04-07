@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.2.0 feat: advanced geometry EVERYWHERE meow~ LatheGeometry, TubeGeometry, ExtrudeGeometry, CSG, TorusKnotGeometry, ShapeGeometry on ALL da NPCs + WorldGenerator. every single mesh upgraded. no exceptions. purrr 🐱✨",
+    "date": "2026-04-06",
+    "hash": "16371c8"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "2722246"
+  },
+  {
     "msg": "v3.1.0 feat: LatheGeo cat bodies, ExtrudeGeo ears+wings, TubeGeo tails, CSG astronaut helmet, TorusKnotGeo wizard+oracle+fairy wands, ShapeGeo star+badge, BufferGeo glitch chaos. every geometry type deployed. mrrrow.",
     "date": "2026-04-06",
     "hash": "afa1672"
