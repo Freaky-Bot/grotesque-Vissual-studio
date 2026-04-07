@@ -19,6 +19,7 @@ export class NPCManager {
     private spawnTimer: number = 0;
     private spawnInterval: number = 5; // Spawn new NPCs every 5 seconds -- FASTER NOW~ fill da world nyaa~ UwU
     private MAX_NPCS: number = 80;  // INCREASED from 30 to 80 -- MOREEE CATSSSS~ 💕💕💕
+    private dayIntensity: number = 1; // how sunny it is. elmo cares about this. nobody else does. whatever.
 
     // what each npc type gets when its domain opens -- shown in the chat so the player knows what hit them
     private static readonly DOMAIN_BUFF_DESCS: Record<string, string> = {
@@ -188,6 +189,9 @@ export class NPCManager {
         // also wire up any npcs already existing (hybrid offspring etc get added via addNPC)
         for (const npc of this.npcs) npc.setSpeakCallback(fn);
     }
+
+    // elmo needs to know if the sun is up. its his whole thing. meow.
+    public setDayIntensity(v: number): void { this.dayIntensity = v; }
 
     // how many chaos entities before we start saying no -- performance guard (NOW DOUBLED~ UwU~ 💕)
     private readonly MAX_NPCS = 80;
