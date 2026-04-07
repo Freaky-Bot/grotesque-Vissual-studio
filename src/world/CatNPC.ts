@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 export enum CatType {
@@ -190,9 +191,17 @@ export class CatNPC extends BaseNPC {
         const noseMat = new THREE.MeshBasicMaterial({ color: 0xff88aa });
         const whiskerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-        // BODY - tapered torso. cylinder so it actually looks like a torso and not a minecraft block.
-        // this alone is already better than what we had. embarrassing that it took this long.
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.4, 1.4, 10), bodyMat);
+        // BODY - LatheGeometry with actual feline body profile. revolving a curve around Y axis.
+        // cylinder was always a lie. NOW it has curves. organic, genuine, cat-shaped curves. finally.
+        const bodyProfile = [
+            new THREE.Vector2(0.38, -0.7),   // hip base
+            new THREE.Vector2(0.46, -0.35),  // lower belly
+            new THREE.Vector2(0.52, 0.0),    // belly bulge -- the widest point. glorious.
+            new THREE.Vector2(0.45, 0.35),   // chest
+            new THREE.Vector2(0.30, 0.62),   // shoulder
+            new THREE.Vector2(0.22, 0.7),    // neck base
+        ];
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyProfile, 14), bodyMat);
         body.castShadow = true;
         body.receiveShadow = true;
         group.add(body); // children[0] = body -- color-mutation cats that do children[0] still work
@@ -203,27 +212,41 @@ export class CatNPC extends BaseNPC {
         head.castShadow = true;
         group.add(head);
 
-        // THE EARS. OH MY GOD. FINALLY. THE EARS.
-        // this is literally the most impactful change in this entire file's history. cats have ears.
-        const earGeo = new THREE.ConeGeometry(0.22, 0.44, 5);
-        const innerEarGeo = new THREE.ConeGeometry(0.11, 0.27, 5);
+        // THE EARS. NOW WITH EXTRUDEGEOMETRY. an actual triangular ear shape with real depth.
+        // cones were fine for v3.0.0. extruded triangles are BETTER. the upgrade is non-negotiable.
+        const earShape = new THREE.Shape();
+        earShape.moveTo(-0.2, 0);
+        earShape.lineTo( 0.2, 0);
+        earShape.lineTo( 0, 0.44);
+        earShape.closePath();
+
+        const innerEarShape = new THREE.Shape();
+        innerEarShape.moveTo(-0.12, 0.07);
+        innerEarShape.lineTo( 0.12, 0.07);
+        innerEarShape.lineTo( 0,    0.36);
+        innerEarShape.closePath();
+
+        const earExSettings   = { depth: 0.12, bevelEnabled: true,  bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 };
+        const iEarExSettings  = { depth: 0.04, bevelEnabled: false };
+        const earGeo     = new THREE.ExtrudeGeometry(earShape,      earExSettings);
+        const innerEarGeo = new THREE.ExtrudeGeometry(innerEarShape, iEarExSettings);
 
         const earL = new THREE.Mesh(earGeo, bodyMat);
-        earL.position.set(-0.3, 1.58, 0.05);
+        earL.position.set(-0.38, 1.38, -0.06);
         earL.rotation.z = -0.2;
         group.add(earL);
-        const earR = earL.clone();
-        earR.position.set(0.3, 1.58, 0.05);
+        const earR = new THREE.Mesh(earGeo, bodyMat);
+        earR.position.set( 0.38, 1.38, -0.06);
         earR.rotation.z = 0.2;
         group.add(earR);
 
-        // inner ears -- the pink triangles inside. THE DETAIL. incredible.
+        // inner ears -- extruded pink triangle. sits flush in front face of ear. very detailed.
         const iEarL = new THREE.Mesh(innerEarGeo, innerEarMat);
-        iEarL.position.set(-0.3, 1.59, 0.1);
+        iEarL.position.set(-0.38, 1.38, 0.04);
         iEarL.rotation.z = -0.2;
         group.add(iEarL);
-        const iEarR = iEarL.clone();
-        iEarR.position.set(0.3, 1.59, 0.1);
+        const iEarR = new THREE.Mesh(innerEarGeo, innerEarMat);
+        iEarR.position.set( 0.38, 1.38, 0.04);
         iEarR.rotation.z = 0.2;
         group.add(iEarR);
 
@@ -280,12 +303,17 @@ export class CatNPC extends BaseNPC {
             group.add(paw);
         }
 
-        // TAIL -- curved torus arc. NOT a rotated cone. we are past that.
-        // the old tail was a crime against geometry. this is justice.
-        const tailGeo = new THREE.TorusGeometry(0.44, 0.09, 7, 16, Math.PI * 0.75);
+        // TAIL -- smooth S-curve tube via TubeGeometry + CatmullRomCurve3. biological accuracy achieved.
+        // the torus arc was already an upgrade from the cone. this is the final form. meow.
+        const tailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3( 0.10, -0.20, -0.52),
+            new THREE.Vector3( 0.35,  0.05, -0.78),
+            new THREE.Vector3( 0.55,  0.38, -0.75),
+            new THREE.Vector3( 0.42,  0.65, -0.54),
+            new THREE.Vector3( 0.22,  0.74, -0.38),
+        ]);
+        const tailGeo = new THREE.TubeGeometry(tailCurve, 14, 0.075, 8, false);
         const tail = new THREE.Mesh(tailGeo, bodyMat);
-        tail.position.set(0.1, -0.18, -0.54);
-        tail.rotation.set(-1.57, 0, 0.85);
         group.add(tail);
 
         return group;
@@ -418,24 +446,33 @@ export class CatNPC extends BaseNPC {
     private createAngelCat(group: THREE.Group): THREE.Group {
         this.createNormalCat(group);
 
-        // Add wings
-        const wingGeometry = new THREE.ConeGeometry(1, 0.5, 4);
-        const wingMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        // ANGEL WINGS -- ExtrudeGeometry. proper feathered wing outline. not cones.
+        // cones were never wings. we all knew it. we lived with it. not anymore.
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(0,    0   );   // wing root
+        wingShape.lineTo(0.1,  0.65);   // upper leading edge
+        wingShape.lineTo(0.6,  1.15);   // wing top
+        wingShape.lineTo(1.05, 0.85);   // outer tip
+        wingShape.lineTo(0.95, 0.35);   // lower outer
+        wingShape.lineTo(0.55, 0.08);   // lower trailing
+        wingShape.lineTo(0,    0   );
+        const wingGeo = new THREE.ExtrudeGeometry(wingShape,
+            { depth: 0.07, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 2 });
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0xf0f0ff, roughness: 0.3 });
 
-        const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-        leftWing.position.set(-0.8, 1, 0);
-        leftWing.rotation.z = Math.PI / 4;
+        const leftWing = new THREE.Mesh(wingGeo, wingMat);
+        leftWing.position.set(-0.52, 0.65, -0.22);
+        leftWing.rotation.set(0.1, 0.75, 0.5);
         group.add(leftWing);
 
-        const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-        rightWing.position.set(0.8, 1, 0);
-        rightWing.rotation.z = -Math.PI / 4;
+        const rightWing = new THREE.Mesh(wingGeo, wingMat);
+        rightWing.scale.x = -1;  // mirror horizontally
+        rightWing.position.set(0.52, 0.65, -0.22);
+        rightWing.rotation.set(0.1, -0.75, -0.5);
         group.add(rightWing);
 
         // Halo
-        const haloGeometry = new THREE.TorusGeometry(1, 0.15, 16, 100);
-        const haloMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+        const halo = new THREE.Mesh(new THREE.TorusGeometry(1, 0.15, 16, 100), new THREE.MeshBasicMaterial({ color: 0xffff00 }));
         halo.position.y = 2;
         halo.rotation.x = Math.PI / 3;
         group.add(halo);
@@ -467,27 +504,41 @@ export class CatNPC extends BaseNPC {
     private createWizardCat(group: THREE.Group): THREE.Group {
         this.createNormalCat(group);
 
-        // Wizard hat
-        const hatGeometry = new THREE.ConeGeometry(0.8, 1.2, 8);
-        const hatMaterial = new THREE.MeshStandardMaterial({ color: 0x4400ff });
-        const hat = new THREE.Mesh(hatGeometry, hatMaterial);
-        hat.position.y = 2;
+        // WIZARD HAT -- LatheGeometry. revolve a hat profile around Y axis. PROPER silhouette.
+        // the old cone was never a wizard hat. this new one actually has a brim and a tapered peak.
+        const hatMat = new THREE.MeshStandardMaterial({ color: 0x4400ff });
+        const hatProfile = [
+            new THREE.Vector2(0.90, 0.00),  // brim outer edge
+            new THREE.Vector2(0.90, 0.09),  // brim top
+            new THREE.Vector2(0.50, 0.16),  // brim inner slope
+            new THREE.Vector2(0.43, 0.24),  // hat body base
+            new THREE.Vector2(0.38, 0.62),  // lower shaft
+            new THREE.Vector2(0.27, 1.02),  // mid shaft
+            new THREE.Vector2(0.15, 1.30),  // upper shaft
+            new THREE.Vector2(0.03, 1.42),  // tip
+        ];
+        const hat = new THREE.Mesh(new THREE.LatheGeometry(hatProfile, 14), hatMat);
+        hat.position.y = 1.55;
         group.add(hat);
+        // decorative band around base of hat
+        const hatBand = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.08, 14), new THREE.MeshBasicMaterial({ color: 0xffdd44 }));
+        hatBand.position.y = 1.78;
+        group.add(hatBand);
 
         // Magic staff
-        const staffStickGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
-        const staffMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-        const staffStick = new THREE.Mesh(staffStickGeometry, staffMaterial);
+        const staffStick = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({ color: 0x8b4513 }));
         staffStick.position.set(0.8, 1, 0);
         staffStick.rotation.z = Math.PI / 4;
         group.add(staffStick);
 
-        // Staff orb
-        const staffOrbGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-        const orbMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
-        const staffOrb = new THREE.Mesh(staffOrbGeometry, orbMaterial);
-        staffOrb.position.set(1.2, 2.2, 0);
-        group.add(staffOrb);
+        // STAFF ORB -- TorusKnotGeometry! not a boring sphere anymore.
+        // a sphere was never going to cut it. this is a KNOT OF ARCANE POWER. obviously.
+        const knotOrb = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.22, 0.07, 52, 8),
+            new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0x440044, emissiveIntensity: 0.5, metalness: 0.2 })
+        );
+        knotOrb.position.set(1.2, 2.2, 0);
+        group.add(knotOrb);
 
         return group;
     }
@@ -575,14 +626,41 @@ export class CatNPC extends BaseNPC {
 
     private createAstronautCat(group: THREE.Group): THREE.Group {
         // ONE SMALL MEOW FOR CAT, ONE GIANT MEOW FOR CATKIND!!
+        // NOW WITH CSG!! we literally carve the visor opening OUT of the helmet sphere.
+        // this is the reason three-csg-ts was installed. this moment. this cat. right here.
         this.createNormalCat(group);
-        const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.85, 14, 14), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.3, roughness: 0.2, transparent: true, opacity: 0.85 }));
-        helmet.position.y = 1.05;
-        group.add(helmet);
-        const visor = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 0.4 }));
-        visor.position.set(0, 1.2, 0.3);
-        visor.scale.set(0.7, 0.6, 0.5);
-        group.add(visor);
+
+        // helmet sphere -- CSG operand A
+        const helmetSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(0.85, 20, 16),
+            new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.3, roughness: 0.2 })
+        );
+        helmetSphere.position.y = 1.05;
+        helmetSphere.updateMatrixWorld();
+
+        // visor cutter -- CSG operand B (will be subtracted from helmet)
+        const visorCutter = new THREE.Mesh(
+            new THREE.SphereGeometry(0.72, 16, 14),
+            new THREE.MeshStandardMaterial({ color: 0xffffff })
+        );
+        visorCutter.position.set(0, 1.28, 0.3);
+        visorCutter.scale.set(0.62, 0.52, 0.48);
+        visorCutter.updateMatrixWorld();
+
+        // THE CSG OPERATION. boolean subtract. the visor hole is REAL geometry now.
+        const helmetWithWindow = CSG.subtract(helmetSphere, visorCutter);
+        helmetWithWindow.material = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.3, roughness: 0.2 });
+        group.add(helmetWithWindow);
+
+        // golden visor fill -- sits in the carved window
+        const visorFill = new THREE.Mesh(
+            new THREE.SphereGeometry(0.68, 14, 12),
+            new THREE.MeshStandardMaterial({ color: 0xffdd44, transparent: true, opacity: 0.55, metalness: 0.2 })
+        );
+        visorFill.position.set(0, 1.28, 0.3);
+        visorFill.scale.set(0.54, 0.46, 0.44);
+        group.add(visorFill);
+
         return group;
     }
 
@@ -595,8 +673,19 @@ export class CatNPC extends BaseNPC {
         const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 0.7, 10), new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
         crown.position.y = 2.0;
         group.add(crown);
-        const star = new THREE.Mesh(new THREE.SphereGeometry(0.12, 5, 5), new THREE.MeshBasicMaterial({ color: 0xFFD700 }));
-        star.position.set(0, 0.4, 0.42);
+        // STAR BADGE -- ShapeGeometry. actual 5-pointed star shape. not a sphere.
+        // a sphere star is a crime. this is a real star. with points. we did it.
+        const starShape = new THREE.Shape();
+        const starOuter = 0.15, starInner = 0.065;
+        for (let i = 0; i < 10; i++) {
+            const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+            const r = i % 2 === 0 ? starOuter : starInner;
+            if (i === 0) starShape.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+            else         starShape.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        }
+        starShape.closePath();
+        const star = new THREE.Mesh(new THREE.ShapeGeometry(starShape), new THREE.MeshBasicMaterial({ color: 0xFFD700, side: THREE.DoubleSide }));
+        star.position.set(0, 0.4, 0.44);
         group.add(star);
         return group;
     }
@@ -973,22 +1062,44 @@ export class CatNPC extends BaseNPC {
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), mat);
         head.position.y = 0.8;
         group.add(head);
-        for (const [xSign, rotZ] of [[-1, 0.7], [1, -0.7]] as [number, number][]) {
-            const wingGeo = new THREE.ConeGeometry(0.5, 0.7, 4);
-            const wing = new THREE.Mesh(wingGeo, new THREE.MeshStandardMaterial({ color: 0xddaaff, transparent: true, opacity: 0.65 }));
-            wing.rotation.z = rotZ;
-            wing.position.set(xSign * 0.65, 0.5, -0.1);
-            group.add(wing);
+
+        // FAIRY WINGS -- ExtrudeGeometry bezier teardrop shape. translucent. gorgeous.
+        // the old cone "wings" were a crime. these are WINGS with CURVES.
+        const fairyWingShape = new THREE.Shape();
+        fairyWingShape.moveTo(0, 0);
+        fairyWingShape.bezierCurveTo(0.18, 0.55,  0.65, 0.80, 0.72, 0.50);
+        fairyWingShape.bezierCurveTo(0.78, 0.20,  0.55, -0.12, 0, 0);
+        const wGeo = new THREE.ExtrudeGeometry(fairyWingShape, { depth: 0.02, bevelEnabled: false });
+        const wMat = new THREE.MeshStandardMaterial({ color: 0xddaaff, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+        for (const [xSign, rotY, rotZ] of [[-1, 0.4, 0.55], [1, -0.4, -0.55]] as [number, number, number][]) {
+            // upper wing
+            const wUp = new THREE.Mesh(wGeo, wMat);
+            wUp.position.set(xSign * 0.55, 0.55, -0.1);
+            wUp.rotation.set(0, rotY, rotZ);
+            if (xSign === 1) wUp.scale.x = -1;
+            group.add(wUp);
+            // lower wing (smaller)
+            const wLow = new THREE.Mesh(wGeo, wMat);
+            wLow.scale.set(xSign * 0.7, 0.65, 1);
+            wLow.position.set(xSign * 0.5, 0.18, -0.12);
+            wLow.rotation.set(0, rotY, rotZ - 0.3);
+            group.add(wLow);
         }
+
         const glow = new THREE.Mesh(new THREE.SphereGeometry(0.9, 10, 10), new THREE.MeshBasicMaterial({ color: 0xffaaff, transparent: true, opacity: 0.12 }));
         group.add(glow);
         const wand = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0xffdd44 }));
         wand.position.set(0.55, 0.5, 0.2);
         wand.rotation.z = 0.5;
         group.add(wand);
-        const star = new THREE.Mesh(new THREE.SphereGeometry(0.14, 5, 5), new THREE.MeshBasicMaterial({ color: 0xffffaa }));
-        star.position.set(0.9, 0.95, 0.2);
-        group.add(star);
+        // WAND TIP -- TorusKnotGeometry. the fairy's wand has a magical knot on the end.
+        // this is overkill for a tiny wand tip. that is exactly why we did it.
+        const wandKnot = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.11, 0.035, 36, 6, 2, 3),
+            new THREE.MeshBasicMaterial({ color: 0xffffaa })
+        );
+        wandKnot.position.set(0.88, 0.94, 0.2);
+        group.add(wandKnot);
         return group;
     }
 
@@ -1125,13 +1236,26 @@ export class CatNPC extends BaseNPC {
     private createWitchCat(group: THREE.Group): THREE.Group {
         // the witch hat was always the plan. this was never going to be a normal cat.
         this.createNormalCat(group);
+        // WITCH HAT -- LatheGeometry. dramatic wide brim AND a proper tapered peak. all in one revolve.
+        // the old brim+cone combo was two objects lying badly. this is ONE beautiful revolution of a curve.
         const hatMat = new THREE.MeshStandardMaterial({ color: 0x1a001a });
-        const brim = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.1, 12), hatMat);
-        brim.position.y = 1.55; group.add(brim);
-        const peak = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.4, 8), hatMat);
-        peak.position.y = 2.3; group.add(peak);
-        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.56, 0.1, 12), new THREE.MeshBasicMaterial({ color: 0xaa44ff }));
-        band.position.y = 1.7; group.add(band);
+        const witchHatProfile = [
+            new THREE.Vector2(1.05, 0.00),  // brim outer edge
+            new THREE.Vector2(1.05, 0.11),  // brim thickness
+            new THREE.Vector2(0.62, 0.20),  // brim inner transition
+            new THREE.Vector2(0.52, 0.30),  // hat body begins here
+            new THREE.Vector2(0.46, 0.70),  // lower shaft
+            new THREE.Vector2(0.32, 1.08),  // mid shaft
+            new THREE.Vector2(0.18, 1.38),  // upper shaft
+            new THREE.Vector2(0.04, 1.52),  // tip
+        ];
+        const hat = new THREE.Mesh(new THREE.LatheGeometry(witchHatProfile, 12), hatMat);
+        hat.position.y = 1.55;
+        group.add(hat);
+        // purple enchantment band
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.09, 12), new THREE.MeshBasicMaterial({ color: 0xaa44ff }));
+        band.position.y = 1.86; group.add(band);
+        // cauldron companion
         const cauldron = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.4, 10), new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.7 }));
         cauldron.position.set(-0.85, 0.1, 0); group.add(cauldron);
         const brew = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.08, 10), new THREE.MeshBasicMaterial({ color: 0x00ff66, transparent: true, opacity: 0.8 }));
@@ -1153,8 +1277,20 @@ export class CatNPC extends BaseNPC {
         const eyeR = eyeL.clone(); eyeR.position.set(0.22, 1.28, 0.5); group.add(eyeR);
         const scytheHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x3a2010 }));
         scytheHandle.position.set(0.9, 0.6, 0); scytheHandle.rotation.z = 0.25; group.add(scytheHandle);
-        const bladeCurve = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.08, 5, 14, Math.PI), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 1.0 }));
-        bladeCurve.position.set(1.45, 1.8, 0); bladeCurve.rotation.z = -0.6; group.add(bladeCurve);
+        // SCYTHE BLADE -- TubeGeometry along CatmullRomCurve3. proper sweeping death-blade curve.
+        // the torus arc was okay. a parametric tube is the correct answer. death deserves accuracy.
+        const scytheCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(1.30, 1.58, 0),
+            new THREE.Vector3(1.55, 1.82, 0),
+            new THREE.Vector3(1.72, 2.05, 0),
+            new THREE.Vector3(1.54, 2.22, 0),
+            new THREE.Vector3(1.22, 2.20, 0),
+        ]);
+        const scytheBlade = new THREE.Mesh(
+            new THREE.TubeGeometry(scytheCurve, 10, 0.065, 5, false),
+            new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 1.0, roughness: 0.05 })
+        );
+        group.add(scytheBlade);
         return group;
     }
 
@@ -1292,12 +1428,34 @@ export class CatNPC extends BaseNPC {
     private createFallenAngelCat(group: THREE.Group): THREE.Group {
         // used to be an angel. made some choices. dark wings. dark ears. dark everything.
         this.buildCatBase(group, 0x222233, 0x4444aa, 0x110022);
-        for (const [xSign, rotZ] of [[-1, 0.85], [1, -0.85]] as [number, number][]) {
-            const wing = new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0x1a0022, transparent: true, opacity: 0.85 }));
-            wing.rotation.z = rotZ; wing.position.set(xSign * 1.0, 1.2, -0.3); group.add(wing);
-            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.4, 3), new THREE.MeshStandardMaterial({ color: 0x440055 }));
-            tip.position.set(xSign * 1.6, 1.5, -0.3); tip.rotation.z = xSign * 0.3; group.add(tip);
-        }
+
+        // DARK WINGS -- ExtrudeGeometry with jagged fallen-angel shape. angular. corrupted. perfect.
+        // the old cones were forgivable once. they are not forgivable now.
+        const darkWingShape = new THREE.Shape();
+        darkWingShape.moveTo(0,    0   );   // shoulder root
+        darkWingShape.lineTo(-0.15, 0.75);  // upper inner edge
+        darkWingShape.lineTo(0.25,  1.25);  // upper tip
+        darkWingShape.lineTo(0.88,  1.02);  // outer upper
+        darkWingShape.lineTo(1.18,  0.58);  // outer mid
+        darkWingShape.lineTo(0.92,  0.18);  // jagged lower notch
+        darkWingShape.lineTo(1.12, -0.05);  // lower spike out
+        darkWingShape.lineTo(0.52,  0.02);  // back toward root
+        darkWingShape.lineTo(0,     0   );
+
+        const darkWingMat = new THREE.MeshStandardMaterial({ color: 0x1a0022, transparent: true, opacity: 0.88, side: THREE.DoubleSide });
+        const wingGeo = new THREE.ExtrudeGeometry(darkWingShape, { depth: 0.05, bevelEnabled: false });
+
+        const wL = new THREE.Mesh(wingGeo, darkWingMat);
+        wL.position.set(-0.5, 0.68, -0.30);
+        wL.rotation.set(0.08, 0.62, 0.72);
+        group.add(wL);
+
+        const wR = new THREE.Mesh(wingGeo, darkWingMat);
+        wR.scale.x = -1;
+        wR.position.set( 0.5, 0.68, -0.30);
+        wR.rotation.set(0.08, -0.62, -0.72);
+        group.add(wR);
+
         const halo = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.1, 8, 24), new THREE.MeshBasicMaterial({ color: 0x330033 }));
         halo.position.y = 1.9; halo.rotation.x = Math.PI / 2.5; halo.rotation.z = 0.5; group.add(halo);
         return group;
@@ -1401,6 +1559,16 @@ export class CatNPC extends BaseNPC {
         headpiece.position.y = 1.7; headpiece.rotation.x = Math.PI / 2; group.add(headpiece);
         const gem = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff00ff }));
         gem.position.set(0, 1.7, 0.66); group.add(gem);
+
+        // PROPHETIC KNOT -- TorusKnotGeometry! the oracle does not carry boring accessories.
+        // the oracle sees all. the knot is the shape of all possible futures. it is also very pretty.
+        const propheticKnot = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.18, 0.055, 60, 8, 2, 3),
+            new THREE.MeshStandardMaterial({ color: 0xcc00ff, emissive: 0x440066, emissiveIntensity: 0.6, metalness: 0.3 })
+        );
+        propheticKnot.position.set(0.82, 0.52, 0.2);
+        group.add(propheticKnot);
+
         return group;
     }
 
@@ -1508,7 +1676,17 @@ export class CatNPC extends BaseNPC {
         const capBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.08, 14), new THREE.MeshStandardMaterial({ color: 0x0d2244 }));
         capBrim.position.y = 1.6; group.add(capBrim);
         // badge -- shiny
-        const badge = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.08), new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9 }));
+        // BADGE -- ShapeGeometry shield outline. badges are not boxes. boxes are boxes.
+        // this is a shield-shaped badge. the department of cat law demands it.
+        const badgeShape = new THREE.Shape();
+        badgeShape.moveTo( 0,     0.32);  // top center
+        badgeShape.lineTo( 0.20,  0.27);  // top right
+        badgeShape.lineTo( 0.22,  0.08);  // right
+        badgeShape.lineTo( 0,    -0.12);  // bottom point
+        badgeShape.lineTo(-0.22,  0.08);  // left
+        badgeShape.lineTo(-0.20,  0.27);  // top left
+        badgeShape.closePath();
+        const badge = new THREE.Mesh(new THREE.ShapeGeometry(badgeShape), new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, side: THREE.DoubleSide }));
         badge.position.set(0, 0.4, 0.45); group.add(badge);
         // tiny donut (very important)
         const donut = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.07, 8, 10), new THREE.MeshStandardMaterial({ color: 0xf4a460 }));
@@ -1537,12 +1715,26 @@ export class CatNPC extends BaseNPC {
         group.add(body);
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 14, 14), new THREE.MeshStandardMaterial({ color: 0x330000 }));
         head.position.y = 1.15; group.add(head);
-        // bat wings -- giant flappy triangles
-        const wingMat = new THREE.MeshStandardMaterial({ color: 0x440000, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        // wing made from a flat triangle -- positions array manually because YOLO
-        const wL = new THREE.Mesh(new THREE.ConeGeometry(0.05, 2.0, 3), wingMat);
-        wL.position.set(-1.3, 0.8, -0.2); wL.rotation.set(0, 0, -1.1); group.add(wL);
-        const wR = wL.clone(); wR.position.set(1.3, 0.8, -0.2); wR.rotation.set(0, 0, 1.1); group.add(wR);
+        // BAT WINGS -- ExtrudeGeometry. proper bat wing silhouette with membrane fingers.
+        // the old cones were two triangles pretending to be wings. this is actual bat wing topology.
+        const batWingShape = new THREE.Shape();
+        batWingShape.moveTo(0,    0   );   // shoulder root
+        batWingShape.lineTo(0,    0.5 );   // upper arm
+        batWingShape.lineTo(0.5,  1.0 );   // finger 1 (tallest)
+        batWingShape.lineTo(0.82, 0.72);   // finger 2
+        batWingShape.lineTo(1.1,  0.5 );   // finger 3
+        batWingShape.lineTo(1.22, 0.1 );   // finger 4 (outermost)
+        batWingShape.lineTo(0.88, -0.18);  // membrane trailing edge
+        batWingShape.lineTo(0.48, -0.13);  // membrane base
+        batWingShape.lineTo(0,     0  );
+        const batWingMat = new THREE.MeshStandardMaterial({ color: 0x440000, side: THREE.DoubleSide, transparent: true, opacity: 0.90 });
+        const batWingGeo = new THREE.ExtrudeGeometry(batWingShape, { depth: 0.04, bevelEnabled: false });
+
+        const wL = new THREE.Mesh(batWingGeo, batWingMat);
+        wL.scale.x = -1;
+        wL.position.set(-0.52, 0.58, -0.18); wL.rotation.set(0, 0.5, 0.32); group.add(wL);
+        const wR = new THREE.Mesh(batWingGeo, batWingMat);
+        wR.position.set( 0.52, 0.58, -0.18); wR.rotation.set(0, -0.5, -0.32); group.add(wR);
         // horns -- lil spikes on head
         const hornMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
         const hornL2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.6, 6), hornMat);
@@ -1628,9 +1820,21 @@ export class CatNPC extends BaseNPC {
                 }
             }
         });
-        // add a glitch aura that shouldnt exist
-        const glitchAura = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 1.8), new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.06, wireframe: true }));
-        group.add(glitchAura);
+        // GLITCH OVERLAY -- raw BufferGeometry with randomly displaced vertices. actual chaos geometry.
+        // the wireframe box was a lie. this is real vertex-level corruption. THIS is a glitch cat.
+        const glitchGeo = new THREE.BufferGeometry();
+        const vertCount = 54; // 18 triangles of raw chaos
+        const glitchVerts = new Float32Array(vertCount * 3);
+        for (let i = 0; i < vertCount * 3; i++) {
+            glitchVerts[i] = (Math.random() - 0.5) * 2.4;
+        }
+        glitchGeo.setAttribute('position', new THREE.BufferAttribute(glitchVerts, 3));
+        const glitchIdxs: number[] = [];
+        for (let i = 0; i < vertCount - 2; i += 3) glitchIdxs.push(i, i + 1, i + 2);
+        glitchGeo.setIndex(glitchIdxs);
+        glitchGeo.computeVertexNormals();
+        const glitchMesh = new THREE.Mesh(glitchGeo, new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.45 }));
+        group.add(glitchMesh);
         return group;
     }
 
