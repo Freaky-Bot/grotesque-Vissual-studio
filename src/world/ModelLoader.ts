@@ -236,6 +236,7 @@ export const MODEL_NAMES: Record<string, string> = {
     'demon':         'cat-demon.glb',
     'glitch':        'cat-glitch.glb',
     // special NPCs
+    'emo':           'emo.glb',
     'catgod':        'catgod.glb',
     'voidcat':       'voidcat.glb',
     'shrek':         'shrek.glb',
