@@ -2,7 +2,7 @@
   {
     "msg": "v3.15.0 feat: proximity voice on chat bubbles!! npcs only talk when ur NEAR them now meow. volume fades with distance like real sound does. 60 unit hearing range. every bubble triggers voice with the npc's own neural voice. if ur too far away u hear nothing. silence. fitting. mrrrow.",
     "date": "2026-04-07",
-    "hash": "2632a60"
+    "hash": "1f3e661"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
