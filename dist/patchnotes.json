@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.7.0 feat: three new wildcard keys -- M mind control (nearest npc becomes ur psychic puppet), [ boss spawn (5x giant red npc), ] wormhole (teleport player to random location). plus SageCharacter.teleportTo added. tbh M is the most unhinged one. meow.",
+    "date": "2026-04-06",
+    "hash": "d0a5235"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "2d4cbc7"
+  },
+  {
     "msg": "v3.6.0 feat: passive ambient chaos engine added -- UFOs abducting npcs, random portals teleporting everything, cats raining from the sky, stalker shadow watching from the darkness, cursed moon empowering npcs at night, floor is lava events. nobody pressed anything. the world is just like this. meow.",
     "date": "2026-04-06",
     "hash": "45324ea"
