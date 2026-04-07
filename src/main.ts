@@ -27,7 +27,6 @@ import { ComboSystem } from './world/ComboSystem';
 import { VoiceSystem } from './world/VoiceSystem';
 import { BaseNPC } from './world/BaseNPC';
 import { InventorySystem, ITEM_INFO, ALL_ITEM_TYPES } from './world/InventorySystem';
-import { DOMAIN_DEFS } from './world/DomainExpansionSystem';
 import { WorldEventsSystem } from './world/WorldEventsSystem';
 import { BigWorldSystems } from './world/BigWorldSystems';
 import { BigEventSystems } from './world/BigEventSystems';
@@ -156,12 +155,12 @@ class CatGodWorld {
             let closest: import('./world/BaseNPC').BaseNPC | null = null;
             let closestDist = range;
             for (const npc of npcs) {
-                if (!npc.isAlive_) continue;
-                const d = npc.position.distanceTo(fromPos);
+                if (!npc.isAlive()) continue;
+                const d = npc.getPosition().distanceTo(fromPos);
                 if (d < closestDist && npc.isHostile()) { closest = npc; closestDist = d; }
             }
             if (closest) {
-                this.catGod.fireSmiteBeam(closest.position.clone());
+                this.catGod.fireSmiteBeam(closest.getPosition().clone());
                 closest.takeDamage(9999); // god does not do chip damage
                 this.chat.addMessage('event', `⚡ The Cat God has SMITTEN ${closest.getType()}. rip.`);
             }
@@ -366,7 +365,7 @@ class CatGodWorld {
                 // throne collapses after wiping everything inside -- the hunt is done
                 this.chat.addMessage('event', '☠️ ALL CLEARED. Aberrant Throne collapses. 90s cooldown.');
             };
-            ds.onDomainEffect = (effect, center, _radius) => {
+            ds.onDomainEffect = (effect, _center, _radius) => {
                 if (effect === 'normal') {
                     this.npcManager.forceSpawnRandom(1);
                     this.chat.addMessage('event', '🐱 THE MEOWING BRINGS FORTH MORE CATS');
@@ -377,7 +376,7 @@ class CatGodWorld {
                     this.mudSlowTimer = Math.max(this.mudSlowTimer, 4);
                     this.chat.addMessage('event', '🥞 SHREK\'S SWAMP: You are ankle-deep in mud.');
                 } else if (effect === 'disco') {
-                    this.sageCharacter.stun?.(1.5);
+                    (this.sageCharacter as any).stun?.(1.5);
                     this.chat.addMessage('event', '🪩 DISCO DOMAIN: You cannot resist the groove.');
                 } else if (effect === 'emo') {
                     document.body.style.filter = 'saturate(0.05) brightness(0.7)';
@@ -875,7 +874,6 @@ class CatGodWorld {
             // push all NPCs away from player -- set their target angle to face away
             let hits = 0;
             for (const npc of this.npcManager.getNPCs()) {
-                const diff = npc.getPosition().clone().sub(playerPos).normalize();
                 // we can't set targetAngle directly from here (protected) but stun + nudge in the future
                 // for now, deal small dmg and stun briefly -- close enough to "pushing" lol
                 npc.stun(1.5);
@@ -1178,9 +1176,9 @@ class CatGodWorld {
             }
         };
         this.bigWorld.onVolcanoErupt = () => { this.chat.addMessage('event', '🌋 VOLCANO ERUPTS!! Lava incoming!!'); };
-        this.bigWorld.onBlackHolePull = (pos) => { this.chat.addMessage('event', `🕳️ BLACK HOLE at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})`); };
+        this.bigWorld.onBlackHolePull = (pos, _strength) => { this.chat.addMessage('event', `🕳️ BLACK HOLE at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)})`); return null; };
         this.bigWorld.onPortalTeleport = () => { this.chat.addMessage('event', `🌀 Teleported via city portal!`); };
-        this.bigWorld.onCatWorshipStatue = (type) => { this.chat.addMessage('event', `🗿 ${type} is worshipping the giant cat statue!`); };
+        this.bigWorld.onCatWorshipStatue = () => { this.chat.addMessage('event', `🗿 An NPC is worshipping the giant cat statue!`); };
 
         this.bigEvents = new BigEventSystems(this.scene);
         this.bigEvents.onCivilWarStart = () => { this.chat.addMessage('event', '⚔️ CAT CIVIL WAR BREAKS OUT!! Sides chosen!!'); };
@@ -1223,7 +1221,7 @@ class CatGodWorld {
         };
 
         this.craftingSystem = new CraftingSystem();
-        this.craftingSystem.onCraftSuccess = (result, name) => { this.chat.addMessage('event', `🔨 CRAFTED: ${name}!`); };
+        this.craftingSystem.onCraftSuccess = (_result, name) => { this.chat.addMessage('event', `🔨 CRAFTED: ${name}!`); };
         this.craftingSystem.onPickupItem = (type) => { this.chat.addMessage('event', `🧪 Picked up: ${type}`); };
 
         this.fishingSystem = new FishingSystem(this.scene);
@@ -1416,7 +1414,7 @@ class CatGodWorld {
             this.chaoticExtras.recordPlayerPos(playerPos);
             // reverse gravity zone check -- flip Y velocity if inside zone
             if (this.chaoticExtras.isInReverseGravityZone(playerPos)) {
-                this.sageCharacter.applyForce?.(new THREE.Vector3(0, 25 * effectiveDt, 0));
+                (this.sageCharacter as any).applyForce?.(new THREE.Vector3(0, 25 * effectiveDt, 0));
             }
             // =====================================================================
 
@@ -1671,7 +1669,7 @@ class CatGodWorld {
             if (this.hamonTimer > 0)           effects.push({ icon: '🌊', label: `Hamon ${Math.ceil(this.hamonTimer)}s` });
             if (this.nigerundayoTimer > 0)     effects.push({ icon: '🏃', label: `NIGERUNDAYO ${Math.ceil(this.nigerundayoTimer)}s` });
             if (this.yourNextLineWindow > 0)   effects.push({ icon: '🔮', label: `DIO watching ${Math.ceil(this.yourNextLineWindow)}s` });
-            if (this.sageCharacter.isDodging?.()) effects.push({ icon: '💨', label: 'Dodging' });
+            if ((this.sageCharacter as any).isDodging?.()) effects.push({ icon: '💨', label: 'Dodging' });
             updateStatusEffects(effects);
         } catch (_) {}
         const hpEl = document.getElementById('hp-panel') as HTMLElement | null;

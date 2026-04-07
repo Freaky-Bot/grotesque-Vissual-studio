@@ -11,13 +11,11 @@ export class CatGodNPC {
 
     private targetAngle: number = 0;
     private playerPosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-    private aiState: 'idle' | 'curious' | 'dominant' | 'smiting' | 'healing' = 'idle';
     private aiTimer: number = 0;
     private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
 
     // GLB swap fields -- the cat god finally gets a real model, as a treat
     private glbMixer: THREE.AnimationMixer | null = null;
-    private glbLoaded: boolean = false;
 
     // these arms deserve their own names. they have been through a lot.
     private leftArm: THREE.Group = new THREE.Group();
@@ -73,7 +71,6 @@ export class CatGodNPC {
         while (this.mesh.children.length > 0) this.mesh.remove(this.mesh.children[0]);
         const mixer = applyModel(this.mesh, loaded, 14.0); // cat god is BIG. appropriately divine scale.
         if (mixer) this.glbMixer = mixer;
-        this.glbLoaded = true;
     }
 
     public takeDamage(_dmg: number): void {}
@@ -512,9 +509,9 @@ export class CatGodNPC {
     }
 
     private updateAI(deltaTime: number, dist: number): void {
-        if (dist < 9) { this.aiState = 'dominant'; this.moveAwayFromPlayer(deltaTime, 2.8); }
-        else if (dist < 32) { this.aiState = 'curious'; this.moveTowardPlayer(deltaTime, 1.4); }
-        else { this.aiState = 'idle'; this.randomWalk(deltaTime, 1.6); }
+        if (dist < 9) { this.moveAwayFromPlayer(deltaTime, 2.8); }
+        else if (dist < 32) { this.moveTowardPlayer(deltaTime, 1.4); }
+        else { this.randomWalk(deltaTime, 1.6); }
     }
 
     private animateWings(time: number): void {

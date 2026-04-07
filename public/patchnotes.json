@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.8.1 fix: wired GLB loading into remaining 8 NPCs. barney waving his arms into a GLB now. buff cat zoomies guard added. ugandan_knuckles key mismatch fixed. dio finally has a model. the cat god loads its own divinity asynchronously. ngl this took a while. mrrrow.",
+    "date": "2026-04-06",
+    "hash": "6506240"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "b767000"
+  },
+  {
     "msg": "v2.8.0 feat: 3D model pipeline is LIVE nyaa~ 17 GLB models generated for every NPC MEOW MEOW MEOW~ catgod has WINGS and a HALO!! barney is HUGE!! elmo has GIANT EYES!! dio has a CAPE!! buff cat has VEINS!! everyone has real PBR geometry now UwU GLTFLoader wired into BaseNPC with graceful fallback. nobody asked for this level of engineering. here it is anyway. PURRRRR 💕✨🐾",
     "date": "2026-04-06",
     "hash": "a6d0571"

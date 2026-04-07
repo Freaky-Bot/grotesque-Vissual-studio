@@ -1444,9 +1444,7 @@ export class CatNPC extends BaseNPC {
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 14, 14), new THREE.MeshStandardMaterial({ color: 0x330000 }));
         head.position.y = 1.15; group.add(head);
         // bat wings -- giant flappy triangles
-        const wingShape = new THREE.ConeGeometry(0.1, 1.8, 4);
         const wingMat = new THREE.MeshStandardMaterial({ color: 0x440000, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const wingL = new THREE.Mesh(new THREE.BufferGeometry(), wingMat);
         // wing made from a flat triangle -- positions array manually because YOLO
         const wL = new THREE.Mesh(new THREE.ConeGeometry(0.05, 2.0, 3), wingMat);
         wL.position.set(-1.3, 0.8, -0.2); wL.rotation.set(0, 0, -1.1); group.add(wL);
@@ -2326,7 +2324,7 @@ export class CatNPC extends BaseNPC {
 
         // Demon: wings pulse + glow flicker
         if (this.catType === CatType.DEMON) {
-            this.mesh.children.forEach((c, i) => {
+            this.mesh.children.forEach((c, _i) => {
                 if (c instanceof THREE.Mesh) {
                     const mat = c.material as THREE.MeshStandardMaterial;
                     if (mat?.emissive) mat.emissive.setHex(Math.random() < 0.1 ? 0xff2200 : 0x220000);

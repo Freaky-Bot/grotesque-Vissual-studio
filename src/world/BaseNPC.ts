@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ItemType, InventorySystem, ITEM_INFO } from './InventorySystem';
+import { ItemType, ITEM_INFO } from './InventorySystem';
 import { loadModel, applyModel, playAnimation, MODEL_NAMES } from './ModelLoader';
 
 export abstract class BaseNPC {
@@ -458,7 +458,7 @@ export abstract class BaseNPC {
 
     // tick item -- returns a descriptor of what effect happened this frame (if any), for NPCManager to act on
     // 'heal' | 'bomb' | 'speed' | 'shield' | 'invincible' | null
-    public tickNpcItem(dt: number, nearbyNpcs: BaseNPC[], playerPos: THREE.Vector3 | null): 'heal' | 'bomb' | 'speed' | 'shield' | 'invincible' | 'stun_all' | null {
+    public tickNpcItem(dt: number, _nearbyNpcs: BaseNPC[], _playerPos: THREE.Vector3 | null): 'heal' | 'bomb' | 'speed' | 'shield' | 'invincible' | 'stun_all' | null {
         if (this.npcInvincibleTimer > 0) {
             this.npcInvincibleTimer -= dt;
             if (this.npcInvincibleTimer <= 0) this.npcInvincible = false;
