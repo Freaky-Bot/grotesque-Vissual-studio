@@ -64,21 +64,21 @@ export class VoidCatNPC extends BaseNPC {
             new THREE.Vector2(0.38, 2.5),
             new THREE.Vector2(0.08, 2.6),
         ];
-        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 12), voidMat);
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 24), voidMat);
         body.position.y = 0.85;
         body.castShadow = true;
         g.add(body);
 
         // inner void core: BackSide sphere creating that "hollow inside" look
         const innerCore = new THREE.Mesh(
-            new THREE.SphereGeometry(0.5, 8, 8),
+            new THREE.SphereGeometry(0.5, 14, 12),
             new THREE.MeshPhongMaterial({ color: 0x440066, emissive: 0x330055, emissiveIntensity: 2.0, transparent: true, opacity: 0.45, side: THREE.BackSide })
         );
         innerCore.position.y = 1.8;
         g.add(innerCore);
 
         // NECK: short connector keeping head attached to body
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.35, 7), voidMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.35, 12), voidMat);
         neck.position.y = 3.22;
         g.add(neck);
 
@@ -90,10 +90,10 @@ export class VoidCatNPC extends BaseNPC {
         headMesh.updateMatrix();
         let head: THREE.Mesh;
         try {
-            const lHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), voidMat);
+            const lHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), voidMat);
             lHole.position.set(-0.24, 3.78, 0.58);
             lHole.updateMatrix();
-            const rHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), voidMat);
+            const rHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), voidMat);
             rHole.position.set(0.24, 3.78, 0.58);
             rHole.updateMatrix();
             const csgHead = CSG.fromMesh(headMesh);
@@ -108,7 +108,7 @@ export class VoidCatNPC extends BaseNPC {
         // EYES: TorusGeometry rings -- hollow void circles
         // rings feel more void-like than filled spheres. this is correct lore.
         for (const [ex, ey, ez] of [[-0.24, 3.8, 0.58], [0.24, 3.8, 0.58]] as [number,number,number][]) {
-            const eyeRing = new THREE.Mesh(new THREE.TorusGeometry(0.088, 0.026, 6, 16), eyeRingMat);
+            const eyeRing = new THREE.Mesh(new THREE.TorusGeometry(0.088, 0.026, 10, 16), eyeRingMat);
             eyeRing.position.set(ex, ey, ez);
             eyeRing.rotation.x = 0.2;
             g.add(eyeRing);
@@ -119,7 +119,7 @@ export class VoidCatNPC extends BaseNPC {
         }
 
         // MUZZLE: small forward protrusion
-        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), voidMat);
+        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), voidMat);
         muzzle.scale.set(1, 0.65, 0.72);
         muzzle.position.set(0, 3.6, 0.55);
         g.add(muzzle);
@@ -173,7 +173,7 @@ export class VoidCatNPC extends BaseNPC {
             new THREE.Vector3(-1.22, 3.1, -0.62),
             new THREE.Vector3(-0.92, 3.52, -0.2),
         ]);
-        g.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 16, 0.072, 6, false), voidMat));
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 16, 0.072, 10, false), voidMat));
         // glowing tail tip
         const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), tailTipMat);
         tailTip.position.set(-0.92, 3.52, -0.2);
@@ -181,7 +181,7 @@ export class VoidCatNPC extends BaseNPC {
 
         // AURA: pulsing outer shell (this.auraMesh referenced in update loop for opacity pulse)
         this.auraMesh = new THREE.Mesh(
-            new THREE.SphereGeometry(2.0, 10, 8),
+            new THREE.SphereGeometry(2.0, 16, 12),
             new THREE.MeshPhongMaterial({ color: 0x1a0033, emissive: 0x110022, emissiveIntensity: 0.7, transparent: true, opacity: 0.13 })
         );
         this.auraMesh.position.y = 2.0;
@@ -190,7 +190,7 @@ export class VoidCatNPC extends BaseNPC {
         // orbital shadow rings -- tilted TorusGeometry rings of darkness
         for (const [r, tiltX, tiltZ] of [[1.62, Math.PI/2.8, 0.3], [2.08, Math.PI/3.5, -0.5]] as [number,number,number][]) {
             const ring = new THREE.Mesh(
-                new THREE.TorusGeometry(r, 0.022, 6, 36),
+                new THREE.TorusGeometry(r, 0.022, 10, 36),
                 new THREE.MeshBasicMaterial({ color: 0x110022, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
             );
             ring.rotation.x = tiltX; ring.rotation.z = tiltZ; ring.position.y = 2.0;

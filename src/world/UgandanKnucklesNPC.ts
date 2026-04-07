@@ -126,7 +126,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
         const redGemMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
 
         // crown ring base
-        const ringGeo = new THREE.TorusGeometry(0.55, 0.1, 8, 20);
+        const ringGeo = new THREE.TorusGeometry(0.55, 0.1, 12, 20);
         const ring = new THREE.Mesh(ringGeo, goldMat);
         ring.rotation.x = Math.PI / 2;
         g.add(ring);
@@ -170,14 +170,14 @@ export class UgandanKnucklesNPC extends BaseNPC {
         const skinMat     = new THREE.MeshPhongMaterial({ color: 0xcc3333 });
 
         // BODY: tiny stubby body compared to the giant head
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.85, 8), redMat);
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.85, 16), redMat);
         body.position.y = 0.42; g.add(body);
 
         // LEGS: short stubby red legs
         for (const side of [-1, 1]) {
-            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.72, 8), redMat);
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.72, 16), redMat);
             leg.position.set(side * 0.22, -0.25, 0); leg.castShadow = true; g.add(leg);
-            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), darkRedMat);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), darkRedMat);
             foot.scale.set(1.8, 0.6, 1.1); foot.position.set(side * 0.22, -0.72, 0.12); g.add(foot);
         }
 
@@ -185,7 +185,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
         for (const side of [-1, 1]) {
             const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.45, 6), redMat);
             arm.rotation.z = side * 1.1; arm.position.set(side * 0.52, 0.62, 0); g.add(arm);
-            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), redMat);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), redMat);
             hand.position.set(side * 0.78, 0.28, 0); g.add(hand);
             // knuckle duster spikes
             for (let k = 0; k < 3; k++) {
@@ -208,7 +208,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
             new THREE.Vector2(0.48, 2.12),
             new THREE.Vector2(0, 2.18),
         ];
-        const head = new THREE.Mesh(new THREE.LatheGeometry(headPoints, 10), redMat);
+        const head = new THREE.Mesh(new THREE.LatheGeometry(headPoints, 24), redMat);
         head.position.y = 0.85; head.castShadow = true; g.add(head);
 
         // THE FAMOUS MOUTH: massive gaping mouth with spit flying
@@ -245,7 +245,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
 
         // spit particles (static blobs coming from mouth)
         for (let s = 0; s < 4; s++) {
-            const spit = new THREE.Mesh(new THREE.SphereGeometry(0.04 + s * 0.02, 5, 4), whiteMat);
+            const spit = new THREE.Mesh(new THREE.SphereGeometry(0.04 + s * 0.02, 14, 11), whiteMat);
             spit.position.set(
                 (Math.random() - 0.5) * 0.5,
                 1.22 - s * 0.12,
@@ -256,7 +256,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
 
         // ears: small knobs on the side
         for (const ex of [-1.05, 1.05]) {
-            const ear = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), darkRedMat);
+            const ear = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), darkRedMat);
             ear.scale.set(0.55, 0.8, 0.65); ear.position.set(ex, 1.75, 0.05); g.add(ear);
         }
 

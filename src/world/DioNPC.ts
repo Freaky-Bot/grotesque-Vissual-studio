@@ -91,11 +91,11 @@ export class DioNPC extends BaseNPC {
 
         // LEGS: tall lean vampire legs in purple
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 1.45, 8), purpleMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 1.45, 16), purpleMat);
             thigh.position.set(side * 0.3, 0.75, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 1.25, 8), purpleMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 1.25, 16), purpleMat);
             shin.position.set(side * 0.3, -0.62, 0); shin.castShadow = true; g.add(shin);
-            const boot = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 8), goldMat);
+            const boot = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 16), goldMat);
             boot.position.set(side * 0.3, -1.42, 0); g.add(boot);
             const sole = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.1, 0.78), darkGoldMat);
             sole.position.set(side * 0.3, -1.78, 0.1); g.add(sole);
@@ -113,18 +113,18 @@ export class DioNPC extends BaseNPC {
             new THREE.Vector2(0.85, 2.42),
             new THREE.Vector2(0.72, 2.55),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), goldMat);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 24), goldMat);
         torso.position.y = 1.55; torso.castShadow = true; g.add(torso);
 
         // heart motif buttons on chest
         for (let i = 0; i < 4; i++) {
-            const btn = new THREE.Mesh(new THREE.SphereGeometry(0.072, 7, 6), heartMat);
+            const btn = new THREE.Mesh(new THREE.SphereGeometry(0.072, 12, 10), heartMat);
             btn.position.set(0, 2.48 + i * 0.38, 0.7); g.add(btn);
         }
 
         // shoulder armor pieces (pauldrons)
         for (const side of [-1, 1]) {
-            const paul = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), goldMat);
+            const paul = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), goldMat);
             paul.scale.set(0.78, 0.58, 0.72); paul.position.set(side * 1.08, 3.88, 0); g.add(paul);
             // pointed spike on top of pauldron
             const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.52, 6), goldMat);
@@ -133,22 +133,22 @@ export class DioNPC extends BaseNPC {
 
         // ARMS: imposing lean arms
         for (const side of [-1, 1]) {
-            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 1.18, 8), goldMat);
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 1.18, 16), goldMat);
             upper.rotation.z = side * 0.2;
             upper.position.set(side * 1.32, 3.3, 0); upper.castShadow = true; g.add(upper);
-            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 1.0, 8), purpleMat);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 1.0, 16), purpleMat);
             fore.rotation.z = side * 0.12;
             fore.position.set(side * 1.52, 2.28, 0); g.add(fore);
             // wrist cuff gold
-            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.19, 0.28, 8), goldMat);
+            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.19, 0.28, 16), goldMat);
             cuff.position.set(side * 1.6, 1.78, 0); g.add(cuff);
             // hand: pale vampire hands
-            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 7), skinMat);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 11), skinMat);
             hand.position.set(side * 1.68, 1.52, 0); g.add(hand);
         }
 
         // neck
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.5, 8), skinMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.5, 16), skinMat);
         neck.position.y = 4.12; g.add(neck);
 
         // HEAD: angular vampire face -- slightly narrower at jaw, wider at cheekbones
@@ -169,16 +169,16 @@ export class DioNPC extends BaseNPC {
 
         // EYES: piercing and pale
         for (const ex of [-0.25, 0.25]) {
-            const white = new THREE.Mesh(new THREE.SphereGeometry(0.14, 9, 8), whiteMat);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), whiteMat);
             white.position.set(ex, 4.82, 0.62); g.add(white);
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), new THREE.MeshBasicMaterial({color:0x6611aa}));
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 11), new THREE.MeshBasicMaterial({color:0x6611aa}));
             iris.position.set(ex, 4.82, 0.68); g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 7, 6), darkMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), darkMat);
             pupil.position.set(ex, 4.82, 0.72); g.add(pupil);
         }
 
         // nose: aristocratic
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 7), skinMat);
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 11), skinMat);
         nose.scale.set(1.0, 0.85, 1.1); nose.position.set(0, 4.68, 0.65); g.add(nose);
 
         // lips: thin contemptuous
@@ -390,7 +390,7 @@ export class DioNPC extends BaseNPC {
         band.position.y = 4.72;
         g.add(band);
         // small gem center of headband
-        const gem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeMat);
+        const gem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), eyeMat);
         gem.position.set(0, 4.72, 0.61);
         g.add(gem);
 
@@ -404,10 +404,10 @@ export class DioNPC extends BaseNPC {
         g.add(shoulderR);
 
         // heart symbol on each shoulder -- THE WORLD is thorough with its branding
-        const shL = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), goldMat);
+        const shL = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12), goldMat);
         shL.position.set(-1.27, 3.62, 0.43);
         g.add(shL);
-        const shR = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), goldMat);
+        const shR = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12), goldMat);
         shR.position.set(1.27, 3.62, 0.43);
         g.add(shR);
 

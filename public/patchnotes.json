@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.3.0 feat: REBUILT ALL 10 NPC MODELS FROM SCRATCH meow~~ new proportions, new geometry, new everything. VoidCat=phantom tendrils, Shrek=proper ogre, BuffCat=COMICALLY BIG ARMS, Emo=goth boots+stand, Obama=presidential suit, Trump=legendary TIE, Barney=T-rex round boi, Dio=vampire cape, UgandanKnuckles=meme-accurate, CatGod=even more divine. nyaaaa 🐱✨",
+    "date": "2026-04-06",
+    "hash": "2318f60"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "9c0ca2e"
+  },
+  {
     "msg": "v3.2.0 feat: advanced geometry EVERYWHERE meow~ LatheGeometry, TubeGeometry, ExtrudeGeometry, CSG, TorusKnotGeometry, ShapeGeometry on ALL da NPCs + WorldGenerator. every single mesh upgraded. no exceptions. purrr 🐱✨",
     "date": "2026-04-06",
     "hash": "16371c8"

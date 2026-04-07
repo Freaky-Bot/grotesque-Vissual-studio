@@ -56,11 +56,11 @@ export class ShrekNPC extends BaseNPC {
 
         // LEGS: thick ogre trunk-legs, feet with stubby toes
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.5, 1.65, 10), swampMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.5, 1.65, 16), swampMat);
             thigh.position.set(side * 0.72, 0.82, 0.05);
             thigh.castShadow = true; g.add(thigh);
 
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.38, 1.35, 10), swampMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.38, 1.35, 16), swampMat);
             shin.position.set(side * 0.7, -0.72, 0.05);
             shin.castShadow = true; g.add(shin);
 
@@ -69,7 +69,7 @@ export class ShrekNPC extends BaseNPC {
             foot.castShadow = true; g.add(foot);
 
             for (let t = -1; t <= 1; t++) {
-                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), swampMat);
+                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), swampMat);
                 toe.position.set(side * 0.7 + t * 0.22, -1.72, 0.68);
                 g.add(toe);
             }
@@ -86,7 +86,7 @@ export class ShrekNPC extends BaseNPC {
             new THREE.Vector2(0.98, 2.78),
             new THREE.Vector2(0.78, 2.82),
         ];
-        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 14), tunicMat);
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 24), tunicMat);
         body.position.y = 1.56;
         body.castShadow = true; g.add(body);
 
@@ -96,7 +96,7 @@ export class ShrekNPC extends BaseNPC {
         gut.position.set(0, 2.78, 0.58); g.add(gut);
 
         // belt at waist
-        const beltRing = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.18, 8, 24), beltMat);
+        const beltRing = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.18, 12, 24), beltMat);
         beltRing.rotation.x = Math.PI / 2; beltRing.position.y = 2.22; g.add(beltRing);
 
         // ARMS: TubeGeometry thick green arms drooping from shoulders
@@ -115,7 +115,7 @@ export class ShrekNPC extends BaseNPC {
         g.add(new THREE.Mesh(new THREE.TubeGeometry(lArmCurve, 12, 0.44, 9), swampMat));
         g.add(new THREE.Mesh(new THREE.TubeGeometry(rArmCurve, 12, 0.44, 9), swampMat));
         for (const [x, y, z] of [[-1.9, 1.58, 0.38], [1.9, 1.58, 0.38]] as [number,number,number][]) {
-            const fist = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), swampMat);
+            const fist = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), swampMat);
             fist.scale.set(1.12, 0.88, 1.0); fist.position.set(x, y, z); g.add(fist);
         }
 
@@ -126,9 +126,9 @@ export class ShrekNPC extends BaseNPC {
         headMesh.updateMatrix();
         let headResult: THREE.Mesh;
         try {
-            const lSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), skinMat);
+            const lSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), skinMat);
             lSock.position.set(-0.44, 6.2, 1.04); lSock.updateMatrix();
-            const rSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), skinMat);
+            const rSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), skinMat);
             rSock.position.set(0.44, 6.2, 1.04); rSock.updateMatrix();
             headResult = CSG.toMesh(
                 CSG.fromMesh(headMesh).subtract(CSG.fromMesh(lSock)).subtract(CSG.fromMesh(rSock)),
@@ -139,7 +139,7 @@ export class ShrekNPC extends BaseNPC {
         g.add(headResult);
 
         // Forehead wrinkles
-        const crease = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.062, 6, 18, Math.PI * 0.7), new THREE.MeshPhongMaterial({ color: 0x3d6428 }));
+        const crease = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.062, 10, 18, Math.PI * 0.7), new THREE.MeshPhongMaterial({ color: 0x3d6428 }));
         crease.position.set(0, 6.78, 0.74); crease.rotation.x = Math.PI / 2.5; g.add(crease);
 
         // Eyebrows -- very angry V shape
@@ -150,7 +150,7 @@ export class ShrekNPC extends BaseNPC {
 
         // Eyes -- beady
         for (const [ex, ez] of [[-0.44, 1.07], [0.44, 1.07]] as [number,number][]) {
-            const w = new THREE.Mesh(new THREE.SphereGeometry(0.19, 8, 8), whiteMat);
+            const w = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 12), whiteMat);
             w.position.set(ex, 6.22, ez); g.add(w);
             const iris = new THREE.Mesh(new THREE.SphereGeometry(0.13, 7, 7), eyeMat);
             iris.position.set(ex, 6.22, ez + 0.08); g.add(iris);
@@ -160,12 +160,12 @@ export class ShrekNPC extends BaseNPC {
         const noseBulb = new THREE.Mesh(new THREE.SphereGeometry(0.54, 12, 10), skinMat);
         noseBulb.scale.set(1, 0.78, 0.92); noseBulb.position.set(0, 5.9, 1.2); g.add(noseBulb);
         for (const nx of [-0.24, 0.24]) {
-            const nostril = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0x2a1a02 }));
+            const nostril = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.1, 16), new THREE.MeshBasicMaterial({ color: 0x2a1a02 }));
             nostril.position.set(nx, 5.77, 1.4); nostril.rotation.x = Math.PI / 2; g.add(nostril);
         }
 
         // MOUTH: wide smirk with teeth
-        const smirk = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.07, 6, 16, Math.PI * 0.8), beltMat);
+        const smirk = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.07, 10, 16, Math.PI * 0.8), beltMat);
         smirk.position.set(-0.06, 5.46, 1.1); smirk.rotation.x = Math.PI / 1.8; g.add(smirk);
         for (const [tx] of [[-0.24], [0.0], [0.24]] as [number[]][]) {
             const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.12), toothMat);

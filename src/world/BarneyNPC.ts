@@ -80,15 +80,15 @@ export class BarneyNPC extends BaseNPC {
 
         // LEGS: thick stubby dino legs with 3 toes
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.48, 1.4, 9), purpleMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.48, 1.4, 16), purpleMat);
             thigh.position.set(side * 0.62, 0.72, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 1.15, 9), purpleMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 1.15, 16), purpleMat);
             shin.position.set(side * 0.62, -0.65, 0.12); shin.castShadow = true; g.add(shin);
-            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 9, 7), purpleMat);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 11), purpleMat);
             foot.scale.set(0.88, 0.52, 1.3); foot.position.set(side * 0.62, -1.42, 0.35); g.add(foot);
             // 3 toes
             for (let t = -1; t <= 1; t++) {
-                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), toeMat);
+                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), toeMat);
                 toe.position.set(side * 0.62 + t * 0.22, -1.62, 0.65); g.add(toe);
             }
         }
@@ -105,41 +105,41 @@ export class BarneyNPC extends BaseNPC {
             new THREE.Vector2(0.98, 2.82),  // shoulders
             new THREE.Vector2(0.88, 3.0),
         ];
-        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 12), purpleMat);
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 24), purpleMat);
         body.position.y = 1.42; body.castShadow = true; g.add(body);
 
         // round belly patch (yellow)
-        const belly = new THREE.Mesh(new THREE.SphereGeometry(1.0, 10, 8), bellyMat);
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), bellyMat);
         belly.scale.set(0.82, 0.78, 0.55); belly.position.set(0, 2.85, 1.1); g.add(belly);
 
         // TINY ARMS: T-rex arms, comically small for this huge round body
         const leftArm = new THREE.Group();
         leftArm.position.set(-1.0, 4.28, 0.45);
-        const lUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 8), purpleMat);
+        const lUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 16), purpleMat);
         lUA.rotation.z = 0.9; lUA.position.set(-0.28, 0, 0); leftArm.add(lUA);
-        const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), purpleMat);
+        const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), purpleMat);
         lHand.position.set(-0.56, -0.14, 0); leftArm.add(lHand);
         // 2 finger nubs
         for (let f of [-1, 1]) {
-            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 5, 4), toeMat);
+            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 11), toeMat);
             fng.position.set(-0.58 + f * 0.11, -0.29, 0.12); leftArm.add(fng);
         }
         g.add(leftArm);
 
         const rightArm = new THREE.Group();
         rightArm.position.set(1.0, 4.28, 0.45);
-        const rUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 8), purpleMat);
+        const rUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 16), purpleMat);
         rUA.rotation.z = -0.9; rUA.position.set(0.28, 0, 0); rightArm.add(rUA);
-        const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), purpleMat);
+        const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), purpleMat);
         rHand.position.set(0.56, -0.14, 0); rightArm.add(rHand);
         for (let f of [-1, 1]) {
-            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 5, 4), toeMat);
+            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 11), toeMat);
             fng.position.set(0.58 + f * 0.11, -0.29, 0.12); rightArm.add(fng);
         }
         g.add(rightArm);
 
         // NECK: thick barrel neck
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.72, 0.85, 9), purpleMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.72, 0.85, 16), purpleMat);
         neck.position.y = 4.62; g.add(neck);
 
         // HEAD: big round dinosaur noggin, slightly too big
@@ -147,7 +147,7 @@ export class BarneyNPC extends BaseNPC {
         head.scale.set(1.1, 0.92, 1.05); head.position.y = 5.52; head.castShadow = true; g.add(head);
 
         // SNOUT: big flat dino snout
-        const snout = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 8), purpleMat);
+        const snout = new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 12), purpleMat);
         snout.scale.set(0.95, 0.68, 1.25); snout.position.set(0, 5.38, 0.82); g.add(snout);
 
         // nostrils
@@ -158,16 +158,16 @@ export class BarneyNPC extends BaseNPC {
 
         // eyes: big dopey friendly eyes
         for (const ex of [-0.42, 0.42]) {
-            const white = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 9), whiteMat);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), whiteMat);
             white.position.set(ex, 5.72, 0.72); g.add(white);
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.14, 9, 8), new THREE.MeshBasicMaterial({color:0x1a3a88}));
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), new THREE.MeshBasicMaterial({color:0x1a3a88}));
             iris.position.set(ex, 5.72, 0.82); g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), darkMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 11), darkMat);
             pupil.position.set(ex, 5.72, 0.89); g.add(pupil);
         }
 
         // the big dopey smile
-        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.055, 6, 16, Math.PI), pinkMat);
+        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.055, 10, 16, Math.PI), pinkMat);
         smile.rotation.z = Math.PI; smile.position.set(0, 5.22, 0.98); g.add(smile);
         const teethBar = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.08, 0.12), whiteMat);
         teethBar.position.set(0, 5.2, 1.0); g.add(teethBar);

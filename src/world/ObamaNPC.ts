@@ -68,14 +68,14 @@ export class ObamaNPC extends BaseNPC {
 
         // LEGS: well-pressed suit trousers
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.25, 8), suitMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.25, 16), suitMat);
             thigh.position.set(side * 0.32, 0.65, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.1, 8), suitMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.1, 16), suitMat);
             shin.position.set(side * 0.32, -0.55, 0); shin.castShadow = true; g.add(shin);
             // polished dress shoes
             const shoeSole = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 0.82), shoeMat);
             shoeSole.position.set(side * 0.32, -1.25, 0.1); g.add(shoeSole);
-            const shoeToe = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), shoeMat);
+            const shoeToe = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), shoeMat);
             shoeToe.scale.set(1.0, 0.6, 1.4); shoeToe.position.set(side * 0.32, -1.22, 0.3); g.add(shoeToe);
         }
 
@@ -90,7 +90,7 @@ export class ObamaNPC extends BaseNPC {
             new THREE.Vector2(0.92, 2.15),
             new THREE.Vector2(0.82, 2.32),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), suitMat);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 24), suitMat);
         torso.position.y = 1.3; torso.castShadow = true; g.add(torso);
 
         // white shirt front panel
@@ -123,22 +123,22 @@ export class ObamaNPC extends BaseNPC {
 
         // ARMS: suit sleeves with cufflinks
         for (const side of [-1, 1]) {
-            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.05, 8), suitMat);
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.05, 16), suitMat);
             upper.rotation.z = side * 0.18;
             upper.position.set(side * 1.2, 3.12, 0); upper.castShadow = true; g.add(upper);
-            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.9, 8), suitMat);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.9, 16), suitMat);
             fore.rotation.z = side * 0.15;
             fore.position.set(side * 1.42, 2.18, 0); g.add(fore);
             // white cuff
-            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.22, 8), shirtMat);
+            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.22, 16), shirtMat);
             cuff.position.set(side * 1.52, 1.72, 0); g.add(cuff);
             // hand
-            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.19, 8, 7), skinMat);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 11), skinMat);
             hand.position.set(side * 1.6, 1.48, 0); g.add(hand);
         }
 
         // neck
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.45, 8), skinMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.45, 16), skinMat);
         neck.position.y = 3.48; g.add(neck);
 
         // HEAD: presidential dimensions. tall and slightly angular.
@@ -156,20 +156,20 @@ export class ObamaNPC extends BaseNPC {
 
         // EYES: warm and alert
         for (const ex of [-0.24, 0.24]) {
-            const white = new THREE.Mesh(new THREE.SphereGeometry(0.125, 9, 8), whiteMat);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.125, 14, 12), whiteMat);
             white.position.set(ex, 4.12, 0.58); g.add(white);
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.082, 8, 7), new THREE.MeshBasicMaterial({color:0x3a2810}));
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.082, 14, 11), new THREE.MeshBasicMaterial({color:0x3a2810}));
             iris.position.set(ex, 4.12, 0.63); g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), darkMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), darkMat);
             pupil.position.set(ex, 4.12, 0.67); g.add(pupil);
         }
 
         // nose: broad and strong
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 9, 7), skinMat);
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 11), skinMat);
         nose.scale.set(1.3, 0.85, 1.1); nose.position.set(0, 3.95, 0.6); g.add(nose);
 
         // iconic smile -- TorusGeometry partial arc
-        const smileCurve = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.032, 6, 14, Math.PI * 0.7), skinMat);
+        const smileCurve = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.032, 10, 14, Math.PI * 0.7), skinMat);
         smileCurve.rotation.z = Math.PI; smileCurve.position.set(0, 3.78, 0.58); g.add(smileCurve);
         // teeth (just a bit of white peeking through)
         const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.08), teethMat);
@@ -180,7 +180,7 @@ export class ObamaNPC extends BaseNPC {
         hairCap.scale.set(0.94, 0.55, 0.96); hairCap.position.set(0, 4.45, -0.08); g.add(hairCap);
         // temple fade effect (subtle dark patches)
         for (const tx of [-0.56, 0.56]) {
-            const temple = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), hairMat);
+            const temple = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), hairMat);
             temple.scale.set(0.62, 1.0, 0.5); temple.position.set(tx, 4.08, 0); g.add(temple);
         }
 

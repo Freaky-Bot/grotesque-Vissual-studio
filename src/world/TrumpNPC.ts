@@ -70,9 +70,9 @@ export class TrumpNPC extends BaseNPC {
 
         // LEGS: thick stubby legs
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.30, 1.15, 8), suitMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.30, 1.15, 16), suitMat);
             thigh.position.set(side * 0.38, 0.6, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 1.0, 8), suitMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 1.0, 16), suitMat);
             shin.position.set(side * 0.38, -0.5, 0); shin.castShadow = true; g.add(shin);
             const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.16, 0.88), shoeMat);
             shoe.position.set(side * 0.38, -1.18, 0.12); g.add(shoe);
@@ -89,7 +89,7 @@ export class TrumpNPC extends BaseNPC {
             new THREE.Vector2(1.08, 2.12),  // shoulder width
             new THREE.Vector2(0.92, 2.38),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), suitMat);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 24), suitMat);
         torso.position.y = 1.2; torso.castShadow = true; g.add(torso);
 
         // white shirt front
@@ -128,18 +128,18 @@ export class TrumpNPC extends BaseNPC {
 
         // ARMS: thick arms
         for (const side of [-1, 1]) {
-            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.27, 1.12, 8), suitMat);
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.27, 1.12, 16), suitMat);
             upper.rotation.z = side * 0.2;
             upper.position.set(side * 1.32, 3.22, 0); upper.castShadow = true; g.add(upper);
-            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.98, 8), suitMat);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.98, 16), suitMat);
             fore.rotation.z = side * 0.15;
             fore.position.set(side * 1.52, 2.2, 0); g.add(fore);
-            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 7), skinMat);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 11), skinMat);
             hand.position.set(side * 1.64, 1.72, 0); g.add(hand);
         }
 
         // neck: thick
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.42, 8), skinMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.42, 16), skinMat);
         neck.position.y = 3.58; g.add(neck);
 
         // HEAD: wide face, jowls
@@ -148,26 +148,26 @@ export class TrumpNPC extends BaseNPC {
 
         // jowls: extra spheres hanging off the sides
         for (const jx of [-0.52, 0.52]) {
-            const jowl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), skinMat);
+            const jowl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), skinMat);
             jowl.scale.set(1.0, 0.68, 0.78); jowl.position.set(jx, 3.88, 0.25); g.add(jowl);
         }
 
         // EYES: small, alert
         for (const ex of [-0.26, 0.26]) {
-            const white = new THREE.Mesh(new THREE.SphereGeometry(0.13, 9, 8), whiteMat);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 12), whiteMat);
             white.position.set(ex, 4.28, 0.65); g.add(white);
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 7), new THREE.MeshBasicMaterial({color:0x336655}));
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.085, 14, 11), new THREE.MeshBasicMaterial({color:0x336655}));
             iris.position.set(ex, 4.28, 0.7); g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), darkMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), darkMat);
             pupil.position.set(ex, 4.28, 0.74); g.add(pupil);
         }
 
         // nose
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.11, 9, 7), skinMat);
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 11), skinMat);
         nose.scale.set(1.3, 1.1, 1.0); nose.position.set(0, 4.1, 0.68); g.add(nose);
 
         // the mouth: puckered expression
-        const lips = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.045, 6, 12, Math.PI * 0.9), skinMat);
+        const lips = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.045, 10, 12, Math.PI * 0.9), skinMat);
         lips.position.set(0, 3.9, 0.65); lips.rotation.z = Math.PI * 0.1; g.add(lips);
 
         // THE HAIR: ExtrudeGeometry iconic swept comb-over masterpiece

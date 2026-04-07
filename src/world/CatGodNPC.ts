@@ -116,7 +116,7 @@ export class CatGodNPC {
 
         // outer aura shells -- 3 layers of divine radiance
         for (let i = 0; i < 3; i++) {
-            const aura = new THREE.Mesh(new THREE.SphereGeometry(13 + i * 3.0, 8, 8), new THREE.MeshBasicMaterial({
+            const aura = new THREE.Mesh(new THREE.SphereGeometry(13 + i * 3.0, 14, 12), new THREE.MeshBasicMaterial({
                 color: [0xffee44, 0xffaa00, 0xff6600][i], transparent: true,
                 opacity: [0.055, 0.038, 0.022][i], side: THREE.BackSide
             }));
@@ -141,21 +141,21 @@ export class CatGodNPC {
             new THREE.Vector2(3.15, 6.95),
             new THREE.Vector2(2.55, 7.6),
         ];
-        const robe = new THREE.Mesh(new THREE.LatheGeometry(robePoints, 16), robeMat);
+        const robe = new THREE.Mesh(new THREE.LatheGeometry(robePoints, 24), robeMat);
         robe.name = 'robe-base';
         robe.position.y = -5.25; g.add(robe);
 
         // robe hem trim -- wide golden ring at base
-        const hem = new THREE.Mesh(new THREE.TorusGeometry(4.72, 0.32, 8, 40), robeTrimMat);
+        const hem = new THREE.Mesh(new THREE.TorusGeometry(4.72, 0.32, 12, 40), robeTrimMat);
         hem.name = 'robe-hem';
         hem.position.y = -5.15; hem.rotation.x = Math.PI / 2; g.add(hem);
 
         // second hem ring (double hem for drama)
-        const hem2 = new THREE.Mesh(new THREE.TorusGeometry(4.45, 0.18, 8, 36), goldMat);
+        const hem2 = new THREE.Mesh(new THREE.TorusGeometry(4.45, 0.18, 12, 36), goldMat);
         hem2.position.y = -4.85; hem2.rotation.x = Math.PI / 2; g.add(hem2);
 
         // collar
-        const collar = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.32, 8, 30), goldMat);
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.32, 12, 30), goldMat);
         collar.name = 'robe-collar';
         collar.position.y = 2.5; collar.rotation.x = Math.PI / 2; g.add(collar);
 
@@ -185,7 +185,7 @@ export class CatGodNPC {
             new THREE.Vector2(1.22, 2.72),
             new THREE.Vector2(0.68, 2.85),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(divineBodyPoints, 16), skinMat);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(divineBodyPoints, 24), skinMat);
         torso.name = 'torso';
         torso.position.y = -0.2; g.add(torso);
 
@@ -201,7 +201,7 @@ export class CatGodNPC {
         muzzle.position.set(0, 4.45, 1.72);
         muzzle.scale.set(1.0, 0.7, 0.65); g.add(muzzle);
 
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), noseMat);
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), noseMat);
         nose.name = 'nose';
         nose.position.set(0, 4.62, 2.38); g.add(nose);
 
@@ -217,7 +217,7 @@ export class CatGodNPC {
             sclera.position.set(ex, ey, ez); g.add(sclera);
             const iris = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), eyeMat);
             iris.position.set(ex, ey, ez + 0.1); g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), pupilMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), pupilMat);
             pupil.position.set(ex, ey, ez + 0.16);
             pupil.scale.set(0.55, 1, 0.6); g.add(pupil);
             const glint = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), whiteMat);
@@ -243,7 +243,7 @@ export class CatGodNPC {
             const rim = new THREE.Mesh(new THREE.ConeGeometry(0.75, 0.28, 10), goldMat);
             rim.position.set(ex, 5.88, 0);
             rim.rotation.z = rz; g.add(rim);
-            const tipGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), gemMat);
+            const tipGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), gemMat);
             tipGem.position.set(ex * 1.28, 7.75, 0); g.add(tipGem);
         }
 
@@ -269,7 +269,7 @@ export class CatGodNPC {
         // halo gems (KEEP NAMES EXACTLY -- 'halo-gem-0' through 'halo-gem-7')
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            const gem = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), gemMat);
+            const gem = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), gemMat);
             gem.position.set(Math.cos(angle) * 5.5, 7.5, Math.sin(angle) * 5.5);
             gem.name = `halo-gem-${i}`; g.add(gem);
         }
@@ -282,10 +282,10 @@ export class CatGodNPC {
         for (let i = 0; i < 5; i++) {
             const angle = (i / 5) * Math.PI * 2;
             const r = i === 0 ? 0 : 1.95;
-            const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.3, spireHeights[i], 8), goldMat);
+            const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.3, spireHeights[i], 16), goldMat);
             spire.position.set(Math.cos(angle) * r, 6.62 + spireHeights[i] / 2, Math.sin(angle) * r);
             spire.name = `crown-spire-${i}`; g.add(spire);
-            const spGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), gemMat);
+            const spGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), gemMat);
             spGem.position.set(Math.cos(angle) * r, 6.62 + spireHeights[i] + 0.08, Math.sin(angle) * r);
             spGem.name = `crown-gem-${i}`; g.add(spGem);
         }
@@ -423,19 +423,19 @@ export class CatGodNPC {
         const buildSide = (side: number): THREE.Group => {
             const arm = new THREE.Group();
             arm.position.set(side * 2.2, 1.4, 0.2);
-            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.3, 1.7, 9), skinMat);
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.3, 1.7, 16), skinMat);
             upper.rotation.z = side * (Math.PI / 4.5);
             upper.position.set(side * 0.65, 0, 0);
             arm.add(upper);
-            const bracer = new THREE.Mesh(new THREE.TorusGeometry(0.37, 0.1, 7, 18), goldMat);
+            const bracer = new THREE.Mesh(new THREE.TorusGeometry(0.37, 0.1, 12, 18), goldMat);
             bracer.rotation.x = Math.PI / 2;
             bracer.position.set(side * 0.65, 0.6, 0);
             arm.add(bracer);
-            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 1.45, 9), skinMat);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 1.45, 16), skinMat);
             fore.rotation.z = side * (Math.PI / 5.5);
             fore.position.set(side * 1.45, -0.4, 0);
             arm.add(fore);
-            const wrist = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.1, 7, 16), goldMat);
+            const wrist = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.1, 12, 16), goldMat);
             wrist.rotation.x = Math.PI / 2;
             wrist.position.set(side * 1.9, -0.72, 0);
             arm.add(wrist);
@@ -462,11 +462,11 @@ export class CatGodNPC {
         this.staff = new THREE.Group();
         this.staff.name = 'divine-staff';
         this.staff.position.set(3.5, 0.5, 0.3);
-        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 9.5, 9), staffMat);
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 9.5, 16), staffMat);
         shaft.position.y = 1.5;
         this.staff.add(shaft);
         for (let i = 0; i < 3; i++) {
-            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.06, 7, 16), goldMat);
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.06, 12, 16), goldMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.y = -1.5 + i * 2.2;
             this.staff.add(ring);
@@ -477,13 +477,13 @@ export class CatGodNPC {
         orb.name = 'staff-orb';
         orb.position.y = 6.3;
         this.staff.add(orb);
-        const orbRing = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.1, 8, 22), goldMat);
+        const orbRing = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.1, 12, 22), goldMat);
         orbRing.rotation.x = Math.PI / 2;
         orbRing.position.y = 6.3;
         this.staff.add(orbRing);
         for (let i = 0; i < 3; i++) {
             const angle = (i / 3) * Math.PI * 2;
-            const sg = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), goldMat);
+            const sg = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 12), goldMat);
             sg.position.set(Math.cos(angle) * 0.78, 6.3, Math.sin(angle) * 0.78);
             this.staff.add(sg);
         }
@@ -625,7 +625,7 @@ export class CatGodNPC {
         // this is how god says hello to enemies. with a beam of light. directly.
         const dir = targetPos.clone().sub(this.position);
         const len = dir.length();
-        const beamGeo = new THREE.CylinderGeometry(0.18, 0.06, len, 7);
+        const beamGeo = new THREE.CylinderGeometry(0.18, 0.06, len, 12);
         const beamMat = new THREE.MeshBasicMaterial({ color: 0xffff88, transparent: true, opacity: 0.95 });
         const beam = new THREE.Mesh(beamGeo, beamMat);
         const mid = this.position.clone().add(targetPos).multiplyScalar(0.5);
@@ -663,7 +663,7 @@ export class CatGodNPC {
         this.healTimer = 0;
         this.healCooldown = 10 + Math.random() * 6;
         const ring = new THREE.Mesh(
-            new THREE.TorusGeometry(1, 0.22, 8, 36),
+            new THREE.TorusGeometry(1, 0.22, 12, 36),
             new THREE.MeshBasicMaterial({ color: 0x44ff88, transparent: true, opacity: 0.7 })
         );
         ring.position.copy(this.position);

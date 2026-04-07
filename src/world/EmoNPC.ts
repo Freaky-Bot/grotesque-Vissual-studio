@@ -83,12 +83,12 @@ export class EmoNPC extends BaseNPC {
 
         // LEGS: skinny jeans
         for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.15, 7), pantsMat);
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.15, 12), pantsMat);
             thigh.position.set(side * 0.28, 0.58, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.0, 7), pantsMat);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.0, 12), pantsMat);
             shin.position.set(side * 0.28, -0.5, 0.0); shin.castShadow = true; g.add(shin);
             // chunky platform boots (gotta have the platform boots)
-            const bootTop = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.55, 8), new THREE.MeshPhongMaterial({color:0x110011}));
+            const bootTop = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.55, 16), new THREE.MeshPhongMaterial({color:0x110011}));
             bootTop.position.set(side * 0.28, -1.1, 0.0); g.add(bootTop);
             const sole = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.72), new THREE.MeshPhongMaterial({color:0x222222}));
             sole.position.set(side * 0.28, -1.47, 0.08); g.add(sole);
@@ -104,7 +104,7 @@ export class EmoNPC extends BaseNPC {
             new THREE.Vector2(0.72, 1.55),
             new THREE.Vector2(0.65, 1.75),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 10), shirtMat);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 24), shirtMat);
         torso.position.y = 1.15; torso.castShadow = true; g.add(torso);
 
         // band tee stripes across the chest
@@ -125,11 +125,11 @@ export class EmoNPC extends BaseNPC {
             const arm = new THREE.Mesh(new THREE.TubeGeometry(c, 10, 0.14, 7), shirtMat);
             ag.add(arm);
             // hand
-            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), skinMat);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), skinMat);
             hand.position.set(side * 0.08, -1.36, -0.04); ag.add(hand);
             // stud bracelets
             for (let j = 0; j < 5; j++) {
-                const stud = new THREE.Mesh(new THREE.SphereGeometry(0.04, 5, 4), studMat);
+                const stud = new THREE.Mesh(new THREE.SphereGeometry(0.04, 14, 11), studMat);
                 const angle = (j / 5) * Math.PI * 2;
                 stud.position.set(Math.cos(angle) * 0.15, -1.08, Math.sin(angle) * 0.15 - 0.04);
                 ag.add(stud);
@@ -147,18 +147,18 @@ export class EmoNPC extends BaseNPC {
         for (const ex of [-0.22, 0.22]) {
             const shadow = new THREE.Mesh(new THREE.EllipseCurve ? new THREE.SphereGeometry(0.155, 8, 4) : new THREE.SphereGeometry(0.155, 8, 4), eyeShadMat);
             shadow.scale.set(1.2, 0.7, 0.6); shadow.position.set(ex, 3.65, 0.56); g.add(shadow);
-            const white = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 7), eyeWhite);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 11), eyeWhite);
             white.position.set(ex, 3.66, 0.56); g.add(white);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 6), pupilMat);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 10), pupilMat);
             pupil.position.set(ex, 3.66, 0.63); g.add(pupil);
         }
 
         // nose: small
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), lipMat);
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), lipMat);
         nose.position.set(0, 3.55, 0.58); g.add(nose);
 
         // lips: slight frown obviously
-        const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.025, 6, 12, Math.PI), lipMat);
+        const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.025, 10, 12, Math.PI), lipMat);
         lowerLip.position.set(0, 3.43, 0.57); lowerLip.rotation.x = 0.4; g.add(lowerLip);
 
         // HAIR: ExtrudeGeometry massive side sweep -- one big dramatic swoop to the left
@@ -176,11 +176,11 @@ export class EmoNPC extends BaseNPC {
         hairMesh.position.set(-0.05, 3.5, -0.18); g.add(hairMesh);
 
         // back of head hair coverage
-        const hairBack = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 8), hairMat);
+        const hairBack = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12), hairMat);
         hairBack.scale.set(1.1, 0.9, 0.9); hairBack.position.set(-0.08, 3.7, -0.25); g.add(hairBack);
 
         // neck
-        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.38, 7), skinMat);
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.38, 12), skinMat);
         neck.position.y = 3.22; g.add(neck);
 
         // THE VOID STAND: spooky crystalline entity
@@ -240,7 +240,7 @@ export class EmoNPC extends BaseNPC {
     private fireOrb(targetPos: THREE.Vector3): void {
         if (!this.standActive) return;
 
-        const orbGeo = new THREE.SphereGeometry(0.16, 8, 8);
+        const orbGeo = new THREE.SphereGeometry(0.16, 14, 12);
         const orbMat = new THREE.MeshBasicMaterial({ color: 0xdd00ff, transparent: true, opacity: 0.9 });
         const proj = new THREE.Mesh(orbGeo, orbMat);
 
