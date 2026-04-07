@@ -1,8 +1,18 @@
 [
   {
+    "msg": "v3.15.1 fix: da black screen AGAIN. kokoro-js was crashing the whole page on load bc ONNX runtime uses import.meta at module level. switched to lazy dynamic import() so it only loads when voice system actually needs it. main bundle went from 3.4MB to 1.2MB too. not like anyone noticed. whatever. mrrrow.",
+    "date": "2026-04-07",
+    "hash": "bb8b6c4"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "941462f"
+  },
+  {
     "msg": "v3.15.0 feat: proximity voice on chat bubbles!! npcs only talk when ur NEAR them now meow. volume fades with distance like real sound does. 60 unit hearing range. every bubble triggers voice with the npc's own neural voice. if ur too far away u hear nothing. silence. fitting. mrrrow.",
     "date": "2026-04-07",
-    "hash": "2632a60"
+    "hash": "1f3e661"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
@@ -988,15 +998,5 @@
     "msg": "X3 nuzzles pouces on you",
     "date": "2026-04-05",
     "hash": "f293cc4"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-05",
-    "hash": "cff9d07"
-  },
-  {
-    "msg": "feat: add EmoNPC with THE VOID stand ability -- shoots shadow orbs at player",
-    "date": "2026-04-04",
-    "hash": "404a899"
   }
 ]

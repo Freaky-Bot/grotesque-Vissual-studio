@@ -1,8 +1,8 @@
 // VOICE SYSTEM -- upgraded to Kokoro neural TTS!! real voices!! in the BROWSER!! 
 // falls back to Web Speech API if Kokoro fails to load. nobody gets left voiceless. meow.
 // the model is ~80MB and loads async. first time is slow. cached after that. worth it.
+// kokoro-js is LAZY LOADED via dynamic import() so it doesnt crash the whole game on load. learned that one the hard way. ugh. mrrrow.
 
-import { KokoroTTS } from 'kokoro-js';
 import * as THREE from 'three';
 
 // kokoro voice mapping -- each npc type gets a unique voice from the model
@@ -168,6 +168,8 @@ export class VoiceSystem {
     private async _initKokoro(): Promise<void> {
         try {
             console.log('[VoiceSystem] loading Kokoro TTS model... this might take a sec nyaa~ 🐱');
+            // dynamic import so ONNX runtime doesnt crash the whole page on load. we learned this. painfully. meow.
+            const { KokoroTTS } = await import('kokoro-js');
             const tts = await KokoroTTS.from_pretrained(
                 'onnx-community/Kokoro-82M-v1.0-ONNX',
                 { dtype: 'q8', device: 'wasm' }
