@@ -2,7 +2,7 @@
   {
     "msg": "v3.15.2 fix: switched build to IIFE format so proxy sites dont crash on import.meta anymore. stripped type=module from dist script tags. kokoro auto-falls back to Web Speech if it cant load. the game works EVERYWHERE now. even on weird proxy sites that strip module attrs. adapted. survived. mrrrow.",
     "date": "2026-04-07",
-    "hash": "c9aef4d"
+    "hash": "6a6baf5"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
