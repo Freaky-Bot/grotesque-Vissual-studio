@@ -33,9 +33,10 @@ const _pending = new Map<string, Promise<LoadedModel>>();
 // modelName: just the filename like "cat.glb"
 // falls back to null if file doesn't exist
 // =====================================================
-export async function loadModel(modelName: string): Promise<LoadedModel | null> {
+export async function loadModel(modelName: string, force = false): Promise<LoadedModel | null> {
     // procedural meshes won. GLBs looked worse. bye.
-    if (!GLB_ENABLED) return null;
+    // unless force=true -- then somebody REALLY wants this specific GLB. let em have it.
+    if (!GLB_ENABLED && !force) return null;
 
     const url = `/models/${modelName}`;
 
@@ -106,6 +107,12 @@ export async function loadModel(modelName: string): Promise<LoadedModel | null> 
         // silently return null -- caller gets the procedural fallback
         return null;
     }
+}
+
+// loadModelForced -- bypasses GLB_ENABLED flag.
+// for when u kno da wey and u want da specific GLB regardless of global setting.
+export async function loadModelForced(modelName: string): Promise<LoadedModel | null> {
+    return loadModel(modelName, true);
 }
 
 // =====================================================

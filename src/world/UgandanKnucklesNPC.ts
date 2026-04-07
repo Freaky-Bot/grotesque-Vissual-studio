@@ -104,8 +104,8 @@ export class UgandanKnucklesNPC extends BaseNPC {
         // kick off the buffer load -- no-ops if already loading/loaded
         loadClickBuffer();
 
-        // u kno da wey to da GLB folder now brudda
-        this.tryLoadGLBModel(3.5);
+        // u kno da wey to da GLB folder now brudda -- forced=true so it bypasses GLB_ENABLED. da wey demands it.
+        this.tryLoadGLBModelForced(3.5);
     }
 
     // called by UgandanKnucklesEvent to crown one as leader

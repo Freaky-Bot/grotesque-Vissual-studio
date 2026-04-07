@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ItemType, ITEM_INFO } from './InventorySystem';
-import { loadModel, applyModel, playAnimation, MODEL_NAMES } from './ModelLoader';
+import { loadModel, loadModelForced, applyModel, playAnimation, MODEL_NAMES } from './ModelLoader';
 
 export abstract class BaseNPC {
     protected position: THREE.Vector3;
@@ -268,6 +268,30 @@ export abstract class BaseNPC {
         if (!glbName) return;
 
         const loaded = await loadModel(glbName);
+        if (!loaded) return;
+
+        if (this.mesh instanceof THREE.Group) {
+            while (this.mesh.children.length > 0) {
+                this.mesh.remove(this.mesh.children[0]);
+            }
+            const mixer = applyModel(this.mesh as THREE.Group, loaded, targetScale);
+            if (mixer) {
+                this.glbMixer = mixer;
+                playAnimation(mixer, loaded.animations, 'idle', false)
+                    ?? playAnimation(mixer, loaded.animations, 'Idle', false);
+            }
+            this.glbLoaded = true;
+        }
+    }
+
+    // tryLoadGLBModelForced -- same as above but ignores GLB_ENABLED.
+    // idc if somebody disabled GLBs globally, THIS npc wants its specific model. deal with it.
+    protected async tryLoadGLBModelForced(targetScale: number = 2.2): Promise<void> {
+        const type = this.getType();
+        const glbName = MODEL_NAMES[type];
+        if (!glbName) return;
+
+        const loaded = await loadModelForced(glbName);
         if (!loaded) return;
 
         if (this.mesh instanceof THREE.Group) {
