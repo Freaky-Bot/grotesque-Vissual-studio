@@ -4,6 +4,7 @@
 // this is fine. we're fine. everything is fine.
 
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 export class TrumpNPC extends BaseNPC {
@@ -78,9 +79,18 @@ export class TrumpNPC extends BaseNPC {
         }
 
         // ---- TORSO (chunky suit jacket + belly of tremendous proportions) ----
-        const torsoGeo = new THREE.BoxGeometry(1.1, 1.15, 0.65);
-        const torso = new THREE.Mesh(torsoGeo, suitMat);
-        torso.position.set(0, 1.28, 0); torso.castShadow = true; g.add(torso);
+        // LatheGeometry torso -- presidential power gut silhouette
+        // the belly is real. the suit is real. the profile is tremendous.
+        const torsoPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.3, 0.05),
+            new THREE.Vector2(0.52, 0.35),
+            new THREE.Vector2(0.56, 0.75), // girth. tremendous girth.
+            new THREE.Vector2(0.48, 1.1),
+            new THREE.Vector2(0.35, 1.15),
+        ];
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), suitMat);
+        torso.position.set(0, 0.85, 0); torso.castShadow = true; g.add(torso);
 
         // belly bump -- important detail, no cap
         const bellyGeo = new THREE.SphereGeometry(0.42, 12, 10);
@@ -93,10 +103,22 @@ export class TrumpNPC extends BaseNPC {
         const shirt = new THREE.Mesh(shirtGeo, whiteMat);
         shirt.position.set(0, 1.55, 0); g.add(shirt);
 
-        // THE TIE -- iconic long red tie, extends almost to the waist
-        const tieTopGeo = new THREE.BoxGeometry(0.13, 1.15, 0.67);
-        const tie = new THREE.Mesh(tieTopGeo, tieMat);
-        tie.position.set(0, 1.2, 0); g.add(tie);
+        // THE TIE -- ExtrudeGeometry iconic long red tie extends almost to the waist
+        // the most important GeometryGeometry in this entire file. nobody has a longer tie.
+        // box before was embarrassing. this is a REAL tie shape now. believe me.
+        const trumpTieShape = new THREE.Shape();
+        trumpTieShape.moveTo(0, 1.1); // top narrow
+        trumpTieShape.lineTo(-0.08, 0.85);
+        trumpTieShape.lineTo(-0.07, 0.2);
+        trumpTieShape.lineTo(-0.14, -0.55); // getting wider -- long and wide, tremendous
+        trumpTieShape.lineTo(0, -0.72); // bottom tip
+        trumpTieShape.lineTo(0.14, -0.55);
+        trumpTieShape.lineTo(0.07, 0.2);
+        trumpTieShape.lineTo(0.08, 0.85);
+        trumpTieShape.closePath();
+        const trumpTieExt = { depth: 0.07, bevelEnabled: false };
+        const tie = new THREE.Mesh(new THREE.ExtrudeGeometry(trumpTieShape, trumpTieExt), tieMat);
+        tie.position.set(-0.06, 1.1, 0.27); g.add(tie);
 
         // little tie knot at top -- fancy
         const knotGeo = new THREE.BoxGeometry(0.17, 0.15, 0.68);
@@ -202,9 +224,15 @@ export class TrumpNPC extends BaseNPC {
 
     // fire a golden dollar projectile -- TREMENDOUS DAMAGE
     private fireGoldOrb(targetPos: THREE.Vector3): void {
-        const geo = new THREE.SphereGeometry(0.18, 8, 8);
-        const mat = new THREE.MeshBasicMaterial({ color: 0xFFD700, transparent: true, opacity: 0.95 });
-        const proj = new THREE.Mesh(geo, mat);
+        // ShapeGeometry dollar sign -- not just a boring sphere. this is TREMENDOUS.
+        const dollarShape = new THREE.Shape();
+        // approximate S-curve dollar sign shape
+        dollarShape.moveTo(0, 0.2);
+        dollarShape.bezierCurveTo(-0.18, 0.2, -0.18, 0.0, 0, 0.0);
+        dollarShape.bezierCurveTo(0.18, 0.0, 0.18, -0.2, 0, -0.2);
+        const dollarGeo = new THREE.ShapeGeometry(dollarShape, 8);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xFFD700, transparent: true, opacity: 0.95, side: THREE.DoubleSide });
+        const proj = new THREE.Mesh(dollarGeo, mat);
 
         const startPos = this.position.clone();
         startPos.y += 2.0;

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 // DO U KNO DA WEY -- HERD MENTALITY EDITION
@@ -143,16 +144,37 @@ export class UgandanKnucklesNPC extends BaseNPC {
                 g.add(gem);
             }
         }
+
+        // TorusKnotGeometry "da wey" -- only the leader gets this orbiting chaos gem
+        // do u kno da knot? now u do.
+        const daWeyKnot = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.22, 0.05, 48, 6, 2, 3),
+            new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.9, roughness: 0.1 })
+        );
+        daWeyKnot.position.set(0, 0.9, 0);
+        daWeyKnot.name = 'da-wey-knot';
+        g.add(daWeyKnot);
         return g;
     }
 
     private buildMesh(): THREE.Group {
         const group = new THREE.Group();
 
-        // main head - big round reddish purple knuckles head
-        const headGeo = new THREE.SphereGeometry(1.1, 20, 20);
+        // main head - LatheGeometry big round reddish purple knuckles head
+        // the sphere before was fine but a lathe gives it a proper head-like silhouette
         const headMat = new THREE.MeshStandardMaterial({ color: 0x8B2020, roughness: 0.7 });
-        const head = new THREE.Mesh(headGeo, headMat);
+        const headPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.55, 0.1),
+            new THREE.Vector2(1.0, 0.45),
+            new THREE.Vector2(1.1, 0.9),
+            new THREE.Vector2(1.05, 1.35),
+            new THREE.Vector2(0.85, 1.75),
+            new THREE.Vector2(0.45, 2.08),
+            new THREE.Vector2(0.0, 2.18),
+        ];
+        const head = new THREE.Mesh(new THREE.LatheGeometry(headPoints, 16), headMat);
+        head.position.y = -1.0; // sits on the body
         head.castShadow = true;
         group.add(head);
 
@@ -204,8 +226,18 @@ export class UgandanKnucklesNPC extends BaseNPC {
         rightNostril.position.set(0.22, -0.12, 1.15);
         group.add(rightNostril);
 
-        // dreadlocks / spiky head things on top - classic knuckles look
+        // dreadlocks / spiky head things on top - ExtrudeGeometry gives them a real fin shape
+        // cones before = basic. now they're proper dread flaps. da wey is this.
         const dreadMat = new THREE.MeshStandardMaterial({ color: 0x701515, roughness: 0.9 });
+        const dreadShape = new THREE.Shape();
+        dreadShape.moveTo(0, 0);
+        dreadShape.lineTo(-0.2, 0);
+        dreadShape.quadraticCurveTo(-0.22, 0.4, -0.05, 0.82);
+        dreadShape.quadraticCurveTo(0.0, 0.88, 0.05, 0.82);
+        dreadShape.quadraticCurveTo(0.22, 0.4, 0.2, 0);
+        dreadShape.closePath();
+        const dreadExtSettings = { depth: 0.12, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
+        const dreadExtGeo = new THREE.ExtrudeGeometry(dreadShape, dreadExtSettings);
         const dreadPositions = [
             { x: -0.5, z: 0.0, ry: -0.4 },
             { x: -0.2, z: 0.15, ry: -0.1 },
@@ -214,9 +246,8 @@ export class UgandanKnucklesNPC extends BaseNPC {
             { x: 0.0, z: -0.1, ry: 0.0 },
         ];
         for (const d of dreadPositions) {
-            const dreadGeo = new THREE.ConeGeometry(0.18, 0.8, 6);
-            const dread = new THREE.Mesh(dreadGeo, dreadMat);
-            dread.position.set(d.x, 1.1, d.z);
+            const dread = new THREE.Mesh(dreadExtGeo, dreadMat);
+            dread.position.set(d.x, 1.0, d.z);
             dread.rotation.z = d.ry;
             dread.castShadow = true;
             group.add(dread);
@@ -410,6 +441,9 @@ export class UgandanKnucklesNPC extends BaseNPC {
         if (this.crownMesh) {
             this.crownMesh.position.y = 1.8 + Math.sin(Date.now() * 0.003) * 0.12;
             this.crownMesh.rotation.y += deltaTime * 0.8;
+            // spin da wey knot -- only da leader has da knot
+            const daWeyKnot = this.crownMesh.getObjectByName('da-wey-knot');
+            if (daWeyKnot) { daWeyKnot.rotation.y += deltaTime * 3.0; daWeyKnot.rotation.x += deltaTime * 1.5; }
         }
     }
 

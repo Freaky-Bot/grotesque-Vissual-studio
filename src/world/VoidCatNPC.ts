@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 // VOID CAT -- all black cat, leaves trails of darkness, extremely nihilistic vibes
@@ -56,13 +57,24 @@ export class VoidCatNPC extends BaseNPC {
             emissiveIntensity: 1.5,
         });
 
-        // body (slightly round cat body)
-        const body = new THREE.Mesh(new THREE.SphereGeometry(1.0, 10, 8), voidMat);
-        body.scale.set(1.1, 1.25, 0.95);
-        body.position.y = 2.2;
+        // body -- LatheGeometry gives dat void cat silhouette, nice and organic
+        // revolve a profile around Y axis -- way better than sphere lol
+        const bodyPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.55, 0.2),
+            new THREE.Vector2(1.0, 0.7),
+            new THREE.Vector2(1.1, 1.2),
+            new THREE.Vector2(1.05, 1.8),
+            new THREE.Vector2(0.85, 2.3),
+            new THREE.Vector2(0.55, 2.6),
+            new THREE.Vector2(0.2, 2.75),
+        ];
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 14), voidMat);
+        body.position.y = 1.2;
+        body.castShadow = true;
         g.add(body);
 
-        // 4 standard cat legs
+        // 4 standard void legs -- lil stubby cylinders, fine
         const legPositions: [number, number, number][] = [
             [-0.55, 1.0, 0.45],
             [0.55, 1.0, 0.45],
@@ -80,16 +92,26 @@ export class VoidCatNPC extends BaseNPC {
         head.position.y = 3.5;
         g.add(head);
 
-        // pointy ears
-        const earGeo = new THREE.ConeGeometry(0.26, 0.52, 4);
+        // ExtrudeGeometry ears -- sharp void triangles, way better than cone
+        const earShape = new THREE.Shape();
+        earShape.moveTo(0, 0);
+        earShape.lineTo(-0.26, 0);
+        earShape.lineTo(-0.08, 0.58);
+        earShape.lineTo(0.08, 0.58);
+        earShape.lineTo(0.26, 0);
+        earShape.closePath();
+        const earExtrude = { depth: 0.12, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 };
+        const earGeo = new THREE.ExtrudeGeometry(earShape, earExtrude);
         const lEar = new THREE.Mesh(earGeo, voidMat);
-        lEar.position.set(-0.45, 4.12, 0);
+        lEar.position.set(-0.55, 3.85, -0.06);
+        lEar.rotation.z = -0.15;
         g.add(lEar);
         const rEar = new THREE.Mesh(earGeo, voidMat);
-        rEar.position.set(0.45, 4.12, 0);
+        rEar.position.set(0.29, 3.85, -0.06);
+        rEar.rotation.z = 0.15;
         g.add(rEar);
 
-        // GLOWING purple void eyes -- the best feature
+        // GLOWING purple void eyes -- the best feature honestly
         const eyeGeo = new THREE.SphereGeometry(0.19, 8, 6);
         const lEye = new THREE.Mesh(eyeGeo, eyeMat);
         lEye.position.set(-0.28, 3.56, 0.67);
@@ -98,11 +120,28 @@ export class VoidCatNPC extends BaseNPC {
         rEye.position.set(0.28, 3.56, 0.67);
         g.add(rEye);
 
-        // long wispy tail
-        const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.04, 1.9, 6), voidMat);
-        tail.position.set(0, 2.2, -1.05);
-        tail.rotation.x = 0.8;
+        // TubeGeometry tail -- S-curve tail with CatmullRomCurve3, looks so much better
+        // just a straight cylinder before. embarrassing. fixed it. whatever.
+        const tailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 2.2, -0.8),
+            new THREE.Vector3(-0.4, 2.5, -1.3),
+            new THREE.Vector3(-0.8, 2.9, -1.1),
+            new THREE.Vector3(-1.0, 3.3, -0.7),
+            new THREE.Vector3(-0.65, 3.6, -0.4),
+        ]);
+        const tailGeo = new THREE.TubeGeometry(tailCurve, 12, 0.08, 6, false);
+        const tail = new THREE.Mesh(tailGeo, voidMat);
         g.add(tail);
+
+        // TorusKnotGeometry void emblem floating above head -- pure chaos energy
+        // just because we can. the void demands it. ngl looks sick.
+        const voidEmblem = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.28, 0.06, 48, 6, 2, 3),
+            new THREE.MeshPhongMaterial({ color: 0x6600aa, emissive: 0x220044, emissiveIntensity: 1.2 })
+        );
+        voidEmblem.position.set(0, 4.8, 0);
+        voidEmblem.name = 'void-emblem';
+        g.add(voidEmblem);
 
         // big faint void aura -- makes it look spooky from a distance
         this.auraMesh = new THREE.Mesh(new THREE.SphereGeometry(1.9, 8, 6), glowMat);
@@ -128,6 +167,10 @@ export class VoidCatNPC extends BaseNPC {
             const mat = this.auraMesh.material as THREE.MeshPhongMaterial;
             mat.opacity = 0.1 + Math.sin(this.eyeGlowTimer * 1.5) * 0.08;
         }
+
+        // spin the void emblem like the enigmatic chaos it is
+        const emblem = this.mesh.getObjectByName('void-emblem');
+        if (emblem) { emblem.rotation.y += deltaTime * 1.8; emblem.rotation.x += deltaTime * 0.7; }
 
         // spawn trail orbs every little bit
         this.trailTimer -= deltaTime;

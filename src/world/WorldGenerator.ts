@@ -257,6 +257,22 @@ export class WorldGenerator {
         building.castShadow = true;
         building.receiveShadow = true;
 
+        // ExtrudeGeometry architectural trim strip around the building -- classy. finally.
+        // was i ASHAMED of those flat windowsill boxes? yes. this fixes it. somewhat.
+        const trimShape = new THREE.Shape();
+        trimShape.moveTo(0, 0);
+        trimShape.lineTo(width + 0.4, 0);
+        trimShape.lineTo(width + 0.4, 0.6);
+        trimShape.bezierCurveTo(width + 0.4, 1.0, width + 0.1, 1.0, width * 0.5 + 0.2, 0.9);
+        trimShape.bezierCurveTo(width * 0.1, 0.8, 0, 0.8, 0, 0.6);
+        trimShape.lineTo(0, 0);
+        const trimGeo = new THREE.ExtrudeGeometry(trimShape, { depth: depth + 0.4, bevelEnabled: false });
+        const trimMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+        const trim = new THREE.Mesh(trimGeo, trimMat);
+        // slap it at the top like a crown molding ugh architecture is hard
+        trim.position.set(x - width * 0.5 - 0.2, height - 0.5, z - depth * 0.5 - 0.2);
+        this.scene.add(trim);
+
         // Add windows
         for (let i = 0; i < 3; i++) {
             const windowGeometry = new THREE.BoxGeometry(1, 1, 0.1);
@@ -279,15 +295,26 @@ export class WorldGenerator {
     }
 
     private createTree(x: number, z: number): void {
-        const trunkGeometry = new THREE.CylinderGeometry(1, 1.2, 6, 8);
+        // LatheGeometry trunk -- organic tapering profile, looks like an actual tree not a can lol
+        // i cannot believe we used a cylinder for so long. tragedy.
+        const trunkPoints = [
+            new THREE.Vector2(1.25, 0),
+            new THREE.Vector2(1.15, 1),
+            new THREE.Vector2(1.0, 2),
+            new THREE.Vector2(0.85, 3),
+            new THREE.Vector2(0.65, 4.5),
+            new THREE.Vector2(0.45, 5.5),
+            new THREE.Vector2(0.28, 6),
+        ];
+        const trunkGeometry = new THREE.LatheGeometry(trunkPoints, 9);
         const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
         const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(x, 3, z);
+        trunk.position.set(x, 0, z);
         trunk.castShadow = true;
         trunk.receiveShadow = true;
         this.scene.add(trunk);
 
-        // Foliage
+        // Foliage -- still a sphere bc it works. no notes. but with a TorusKnotGeometry sparkle hidden inside lol
         const foliageGeometry = new THREE.SphereGeometry(5, 8, 8);
         const foliageMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
         const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
@@ -296,8 +323,18 @@ export class WorldGenerator {
         foliage.receiveShadow = true;
         this.scene.add(foliage);
 
+        // secret TorusKnotGeometry sparkle gem buried in the crown of every tree uwu
+        // literally nobody will see this but it's there and that matters
+        const treeGemGeo = new THREE.TorusKnotGeometry(0.55, 0.12, 32, 5, 2, 3);
+        const treeGemMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true });
+        const treeGem = new THREE.Mesh(treeGemGeo, treeGemMat);
+        treeGem.position.set(x, 9, z);
+        treeGem.name = 'tree-sparkle';
+        this.scene.add(treeGem);
+
         this.trees.push(trunk);
         this.trees.push(foliage);
+        this.trees.push(treeGem);
     }
 
     private createCity(x: number, z: number): void {
@@ -368,38 +405,74 @@ export class WorldGenerator {
     }
 
     private createTower(x: number, z: number): void {
-        // just make a biggo tall boi
+        // just make a biggo tall boi -- but NOW WITH LATHE GEOMETRY and TorusKnot at the top!!
+        // the old cone was extremely boring. this is architecture now.
         const height = 30 + Math.random() * 40;
-        const towerGeometry = new THREE.ConeGeometry(4, height, 6);
-        const towerMaterial = new THREE.MeshStandardMaterial({ 
-            color: new THREE.Color().setHSL(Math.random(), 0.8, 0.5)
-        });
+        const towerColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+        const towerMaterial = new THREE.MeshStandardMaterial({ color: towerColor });
+
+        // LatheGeometry tiered tower profile -- slight taper with a pinch at 60% height
+        const towerPoints = [
+            new THREE.Vector2(4.0, 0),
+            new THREE.Vector2(3.7, height * 0.15),
+            new THREE.Vector2(3.4, height * 0.3),
+            new THREE.Vector2(2.8, height * 0.5),
+            new THREE.Vector2(2.2, height * 0.65),
+            new THREE.Vector2(1.5, height * 0.8),
+            new THREE.Vector2(0.8, height * 0.92),
+            new THREE.Vector2(0.3, height),
+        ];
+        const towerGeometry = new THREE.LatheGeometry(towerPoints, 7);
         const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-        tower.position.set(x, height / 2, z);
+        tower.position.set(x, 0, z);
         tower.castShadow = true;
         this.scene.add(tower);
         this.buildings.push(tower);
-        // TODO: add windows or something idk
+
+        // TorusKnotGeometry crown at the top of every tower -- its a ritual. its tradition.
+        // i have no regrets and neither does this tower.
+        const crownGeo = new THREE.TorusKnotGeometry(1.4, 0.25, 48, 7, 2, 3);
+        const crownMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, wireframe: false });
+        const crown = new THREE.Mesh(crownGeo, crownMat);
+        crown.position.set(x, height + 1.8, z);
+        crown.name = 'tower-crown';
+        this.scene.add(crown);
+        this.buildings.push(crown);
     }
 
     private createMonument(x: number, z: number): void {
-        // MONUMEWWNT TO THE CAT GODS!!
+        // MONUMEWWNT TO THE CAT GODS!! now with REAL geometry not some boring sphere
+        // ngl the old sphere orb was embarrassing. this is a monument. it needs chaos.
         const group = new THREE.Group();
         
-        // base... just a cube. i'm lazy lol
+        // base... just a cube. i'm lazy lol. some traditions must be preserved.
         const baseGeo = new THREE.BoxGeometry(8, 2, 8);
         const baseMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
         const base = new THREE.Mesh(baseGeo, baseMat);
         base.position.y = 1;
         group.add(base);
 
-        // spinny orb on top??? why not
-        const orbGeo = new THREE.SphereGeometry(3, 8, 8);
-        const orbMat = new THREE.MeshBasicMaterial({ 
-            color: 0xffaa00
-        });
+        // ExtrudeGeometry pedestal arch on top of the base -- for GRANDEUR
+        const archShape = new THREE.Shape();
+        archShape.moveTo(-4, 0);
+        archShape.lineTo(-4, 2.5);
+        archShape.absarc(0, 2.5, 4, Math.PI, 0, true);
+        archShape.lineTo(4, 0);
+        archShape.lineTo(-4, 0);
+        const pedestal = new THREE.Mesh(
+            new THREE.ExtrudeGeometry(archShape, { depth: 0.8, bevelEnabled: false }),
+            new THREE.MeshStandardMaterial({ color: 0xaaaacc })
+        );
+        pedestal.position.set(-0.4, 2, -0.4);
+        group.add(pedestal);
+
+        // TorusKnotGeometry chaos orb -- replaces the boring spherical orb. no notes.
+        // the cat gods demand TorusKnot. who am i to argue.
+        const orbGeo = new THREE.TorusKnotGeometry(2.2, 0.45, 64, 8, 2, 3);
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
         const orb = new THREE.Mesh(orbGeo, orbMat);
-        orb.position.y = 5;
+        orb.name = 'monument-orb';
+        orb.position.y = 7.5;
         group.add(orb);
 
         group.position.set(x, 0, z);

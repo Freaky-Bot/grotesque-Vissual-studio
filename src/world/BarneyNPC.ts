@@ -3,6 +3,7 @@
 // the most dangerous entity in the cat god world frankly
 
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 export class BarneyNPC extends BaseNPC {
@@ -147,20 +148,28 @@ export class BarneyNPC extends BaseNPC {
         nr.position.set(0.2, 3.35, 1.38);
         group.add(nr);
 
-        // ---- DINO SPIKES along the back ---- classic barney detail
-        const spikeGeo = new THREE.ConeGeometry(0.18, 0.45, 8);
+        // ---- DINO SPIKES along the back ---- ExtrudeGeometry fins look legit
+        // cones before = triangle ice cream cones. now they're actual fin shapes.
         const spikeMat = new THREE.MeshStandardMaterial({ color: 0x4a7c2b, roughness: 0.9 });
+        const spikeShape = new THREE.Shape();
+        spikeShape.moveTo(0, 0);
+        spikeShape.lineTo(-0.2, 0);
+        spikeShape.quadraticCurveTo(-0.15, 0.3, 0, 0.5);
+        spikeShape.quadraticCurveTo(0.15, 0.3, 0.2, 0);
+        spikeShape.closePath();
+        const spikeExtSettings = { depth: 0.1, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
+        const spikeExtGeo = new THREE.ExtrudeGeometry(spikeShape, spikeExtSettings);
         const spikePositions = [
-            [0, 4.4, -0.3],  // top of head
-            [0, 3.35, -0.95], // neck
-            [0, 2.9, -1.25],  // upper back
-            [0, 2.45, -1.3],  // mid back
-            [0, 1.9, -1.2],   // lower back
+            { pos: [0, 4.4, -0.3] as [number,number,number], rx: 0.1 },
+            { pos: [0, 3.35, -0.95] as [number,number,number], rx: 0.2 },
+            { pos: [0, 2.9, -1.25] as [number,number,number], rx: 0.15 },
+            { pos: [0, 2.45, -1.3] as [number,number,number], rx: 0.1 },
+            { pos: [0, 1.9, -1.2] as [number,number,number], rx: 0.05 },
         ];
-        for (const [sx, sy, sz] of spikePositions) {
-            const spike = new THREE.Mesh(spikeGeo, spikeMat);
-            spike.position.set(sx, sy, sz);
-            spike.rotation.x = Math.PI / 8; // tilt back a lil
+        for (const { pos, rx } of spikePositions) {
+            const spike = new THREE.Mesh(spikeExtGeo, spikeMat);
+            spike.position.set(...pos);
+            spike.rotation.x = rx;
             group.add(spike);
         }
 
@@ -228,13 +237,27 @@ export class BarneyNPC extends BaseNPC {
             group.add(foot);
         }
 
-        // ---- TAIL ---- the signature barney tail sticking back
-        const tailGeo = new THREE.CylinderGeometry(0.45, 0.08, 1.8, 10);
-        const tail = new THREE.Mesh(tailGeo, purpleMat);
-        tail.position.set(0, 1.2, -1.6);
-        tail.rotation.x = Math.PI / 2.5;
-        tail.castShadow = true;
-        group.add(tail);
+        // ---- TAIL ---- TubeGeometry CatmullRomCurve3 -- the signature barney tail
+        // straight tapering cylinder before = log. now it curves back naturally. nice.
+        const barneyTailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 1.4, -1.2),
+            new THREE.Vector3(0.1, 1.0, -1.8),
+            new THREE.Vector3(0.2, 0.55, -2.2),
+            new THREE.Vector3(0.1, 0.3, -2.5),
+        ]);
+        const tailTube = new THREE.Mesh(new THREE.TubeGeometry(barneyTailCurve, 10, 0.32, 8, false), purpleMat);
+        tailTube.castShadow = true;
+        group.add(tailTube);
+
+        // also add a LatheGeometry tail base section for extra volume
+        const tailBasePoints = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.45, 0.08),
+            new THREE.Vector2(0.42, 0.5), new THREE.Vector2(0.28, 0.8), new THREE.Vector2(0, 0.88),
+        ];
+        const tailBase = new THREE.Mesh(new THREE.LatheGeometry(tailBasePoints, 10), purpleMat);
+        tailBase.position.set(0, 1.0, -1.1);
+        tailBase.rotation.x = Math.PI / 2.5;
+        group.add(tailBase);
 
         // lil yellow star shapes on barney's body cuz the show had em
         const starGeo = new THREE.SphereGeometry(0.12, 6, 6);
@@ -248,6 +271,16 @@ export class BarneyNPC extends BaseNPC {
             star.scale.set(1, 0.5, 0.5); // flat lil star blobs
             group.add(star);
         }
+
+        // TorusKnotGeometry love token floating above Barney -- because love is complicated
+        // nobody asked. barney woulda wanted it. rest in peace icon.
+        const loveKnot = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.32, 0.08, 64, 8, 2, 3),
+            new THREE.MeshStandardMaterial({ color: 0xff55cc, emissive: 0x551122, emissiveIntensity: 0.8, roughness: 0.3 })
+        );
+        loveKnot.position.set(0, 5.6, 0);
+        loveKnot.name = 'barney-love-knot';
+        group.add(loveKnot);
 
         return { group, leftArm: leftArmGroup, rightArm: rightArmGroup };
     }
@@ -307,6 +340,10 @@ export class BarneyNPC extends BaseNPC {
                 this.rightArm.rotation.z = -Math.PI / 12;
             }
         }
+
+        // spin the love knot -- barney loves you and the knot proves it
+        const loveKnot = this.mesh.getObjectByName('barney-love-knot');
+        if (loveKnot) { loveKnot.rotation.y += deltaTime * 1.2; loveKnot.rotation.z += deltaTime * 0.8; }
     }
 
     public getType(): string {

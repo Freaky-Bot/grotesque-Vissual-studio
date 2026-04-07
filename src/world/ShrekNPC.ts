@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 // SHREK NPC -- this was NOT supposed to happen but here we are
@@ -51,13 +52,22 @@ export class ShrekNPC extends BaseNPC {
         body.position.y = 2.5;
         g.add(body);
 
-        // massive green arms -- he's built different
-        const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.1, 0.75), greenMat);
-        lArm.position.set(-1.6, 2.5, 0);
-        g.add(lArm);
-        const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.1, 0.75), greenMat);
-        rArm.position.set(1.6, 2.5, 0);
-        g.add(rArm);
+        // TubeGeometry arms -- CatmullRomCurve3 makes them look like actual arms not boxes
+        // boxes were an embarrassment tbh. whatever. fixed now.
+        const lArmCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-1.2, 3.5, 0),
+            new THREE.Vector3(-1.7, 2.8, 0.2),
+            new THREE.Vector3(-1.9, 1.8, 0.4),
+            new THREE.Vector3(-1.75, 1.0, 0.3),
+        ]);
+        const rArmCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(1.2, 3.5, 0),
+            new THREE.Vector3(1.7, 2.8, 0.2),
+            new THREE.Vector3(1.9, 1.8, 0.4),
+            new THREE.Vector3(1.75, 1.0, 0.3),
+        ]);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(lArmCurve, 10, 0.38, 8, false), greenMat));
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(rArmCurve, 10, 0.38, 8, false), greenMat));
 
         // stubby little legs
         const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.85), brownMat);
@@ -68,17 +78,48 @@ export class ShrekNPC extends BaseNPC {
         g.add(rLeg);
 
         // big round head -- ogre sized
-        const head = new THREE.Mesh(new THREE.SphereGeometry(1.1, 12, 8), skinMat);
-        head.position.y = 5.0;
-        g.add(head);
+        // CSG: subtract eye socket holes from the head for that real carved look
+        const headGeo = new THREE.SphereGeometry(1.1, 16, 12);
+        const headMesh = new THREE.Mesh(headGeo, skinMat);
+        headMesh.position.y = 5.0;
+        headMesh.updateMatrix();
+        const lSocketMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), skinMat);
+        lSocketMesh.position.set(-0.38, 5.05, 0.88);
+        lSocketMesh.updateMatrix();
+        const rSocketMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), skinMat);
+        rSocketMesh.position.set(0.38, 5.05, 0.88);
+        rSocketMesh.updateMatrix();
+        // do the CSG subtract -- head with carved eye socket depressions. FANCY.
+        let headResult: THREE.Mesh;
+        try {
+            const csgHead = CSG.fromMesh(headMesh);
+            const csgL = CSG.fromMesh(lSocketMesh);
+            const csgR = CSG.fromMesh(rSocketMesh);
+            headResult = CSG.toMesh(csgHead.subtract(csgL).subtract(csgR), headMesh.matrix, skinMat);
+            headResult.castShadow = true;
+        } catch(e) {
+            // CSG sometimes throws if geometry is bad, just fall back lol
+            headResult = headMesh;
+        }
+        g.add(headResult);
 
-        // iconic ogre ears (big round stubs)
-        const earGeo = new THREE.SphereGeometry(0.45, 8, 6);
+        // ExtrudeGeometry ogre ears -- that classic teardrop ear flap shape
+        // sphere blobs before. looked dumb. this is better. maybe.
+        const earShape = new THREE.Shape();
+        earShape.moveTo(0, 0);
+        earShape.quadraticCurveTo(-0.5, 0.2, -0.45, 0.6);
+        earShape.quadraticCurveTo(-0.3, 1.0, 0, 0.85);
+        earShape.quadraticCurveTo(0.3, 1.0, 0.45, 0.6);
+        earShape.quadraticCurveTo(0.5, 0.2, 0, 0);
+        const earExtrudeSettings = { depth: 0.22, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.05, bevelSegments: 3 };
+        const earGeo = new THREE.ExtrudeGeometry(earShape, earExtrudeSettings);
         const lEar = new THREE.Mesh(earGeo, skinMat);
-        lEar.position.set(-1.1, 5.2, 0);
+        lEar.position.set(-1.45, 4.6, -0.1);
+        lEar.rotation.z = -0.3;
         g.add(lEar);
         const rEar = new THREE.Mesh(earGeo, skinMat);
-        rEar.position.set(1.1, 5.2, 0);
+        rEar.position.set(0.9, 4.6, -0.1);
+        rEar.rotation.z = 0.3;
         g.add(rEar);
 
         // eyebrows -- he always looks angry idk
@@ -101,16 +142,32 @@ export class ShrekNPC extends BaseNPC {
         rEye.position.set(0.38, 5.05, 0.92);
         g.add(rEye);
 
-        // ONION STACK on top of head -- iconic and essential
+        // ONION STACK on top of head -- LatheGeometry makes them actually look like onions!!
+        // spheres before = looked like balls on his head. embarrassing. fixed.
         const whiteMat = new THREE.MeshPhongMaterial({ color: 0xeeeecc });
-        const onion1 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), whiteMat);
-        onion1.position.set(0, 6.3, 0);
+        const onionPoints1 = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.25, 0.05),
+            new THREE.Vector2(0.48, 0.25), new THREE.Vector2(0.5, 0.5),
+            new THREE.Vector2(0.38, 0.88), new THREE.Vector2(0.15, 1.0), new THREE.Vector2(0, 1.05),
+        ];
+        const onionPoints2 = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.18, 0.04),
+            new THREE.Vector2(0.34, 0.18), new THREE.Vector2(0.36, 0.4),
+            new THREE.Vector2(0.26, 0.65), new THREE.Vector2(0.1, 0.75), new THREE.Vector2(0, 0.77),
+        ];
+        const onionPoints3 = [
+            new THREE.Vector2(0, 0), new THREE.Vector2(0.1, 0.03),
+            new THREE.Vector2(0.2, 0.12), new THREE.Vector2(0.2, 0.28),
+            new THREE.Vector2(0.14, 0.44), new THREE.Vector2(0.05, 0.5), new THREE.Vector2(0, 0.52),
+        ];
+        const onion1 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints1, 12), whiteMat);
+        onion1.position.set(0, 5.7, 0);
         g.add(onion1);
-        const onion2 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), whiteMat);
-        onion2.position.set(0, 6.95, 0);
+        const onion2 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints2, 10), whiteMat);
+        onion2.position.set(0, 6.62, 0);
         g.add(onion2);
-        const onion3 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), whiteMat);
-        onion3.position.set(0, 7.45, 0);
+        const onion3 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints3, 8), whiteMat);
+        onion3.position.set(0, 7.3, 0);
         g.add(onion3);
 
         return g;

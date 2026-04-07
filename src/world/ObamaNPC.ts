@@ -4,6 +4,7 @@
 // ugh this is the most unexpected npc in game history ngl
 
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 export class ObamaNPC extends BaseNPC {
@@ -76,20 +77,39 @@ export class ObamaNPC extends BaseNPC {
             shoe.position.set(s * 0.23, -0.83, 0.08); shoe.castShadow = true; g.add(shoe);
         }
 
-        // ---- TORSO (suit jacket) ----
-        const torsoGeo = new THREE.BoxGeometry(0.95, 1.1, 0.5);
-        const torso = new THREE.Mesh(torsoGeo, suitMat);
-        torso.position.set(0, 1.25, 0); torso.castShadow = true; g.add(torso);
+        // ---- TORSO (suit jacket) -- LatheGeometry suit jacket profile ----
+        // box torso was fine but a presidential suit deserves a presidential profile
+        const torsoPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.26, 0.05),
+            new THREE.Vector2(0.45, 0.35),
+            new THREE.Vector2(0.47, 0.75),
+            new THREE.Vector2(0.43, 1.05),
+            new THREE.Vector2(0.32, 1.1),
+        ];
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), suitMat);
+        torso.position.set(0, 0.85, 0); torso.castShadow = true; g.add(torso);
 
         // white shirt collar peeking out
         const shirtGeo = new THREE.BoxGeometry(0.35, 0.5, 0.52);
         const shirt = new THREE.Mesh(shirtGeo, shirtMat);
         shirt.position.set(0, 1.6, 0); g.add(shirt);
 
-        // tie -- blue and long
-        const tieTopGeo = new THREE.BoxGeometry(0.11, 0.75, 0.53);
-        const tie = new THREE.Mesh(tieTopGeo, tieMat);
-        tie.position.set(0, 1.3, 0); g.add(tie);
+        // tie -- ExtrudeGeometry proper tie silhouette shape
+        // a box tie is a war crime. the president deserves better. here's a real tie shape.
+        const tieShape = new THREE.Shape();
+        tieShape.moveTo(0, 0.75); // top narrow
+        tieShape.lineTo(-0.07, 0.55);
+        tieShape.lineTo(-0.05, 0.0); // widen to middle
+        tieShape.lineTo(-0.1, -0.5); // bottom wide
+        tieShape.lineTo(0, -0.62); // bottom tip
+        tieShape.lineTo(0.1, -0.5);
+        tieShape.lineTo(0.05, 0.0);
+        tieShape.lineTo(0.07, 0.55);
+        tieShape.closePath();
+        const tieExt = { depth: 0.06, bevelEnabled: false };
+        const tie = new THREE.Mesh(new THREE.ExtrudeGeometry(tieShape, tieExt), tieMat);
+        tie.position.set(-0.05, 1.28, 0.25); g.add(tie);
 
         // suit lapels (just dark angled boxes, nobody cares about accuracy)
         const lapelGeo = new THREE.BoxGeometry(0.22, 0.5, 0.53);
@@ -176,11 +196,22 @@ export class ObamaNPC extends BaseNPC {
             tooth.position.set(s * 0.07, 2.08, 0.54); g.add(tooth);
         }
 
-        // pin on lapel -- american flag energy
-        const pinGeo = new THREE.SphereGeometry(0.04, 6, 6);
-        const pinMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
-        const pin = new THREE.Mesh(pinGeo, pinMat);
-        pin.position.set(-0.28, 1.7, 0.26); g.add(pin);
+        // pin on lapel -- ShapeGeometry presidential seal / star badge
+        // sphere blob before. now its a proper 5-pointed star shape. yes we can.
+        const starShape = new THREE.Shape();
+        const outerR = 0.07; const innerR = 0.033; const pts = 5;
+        for (let i = 0; i < pts * 2; i++) {
+            const angle = (i * Math.PI) / pts - Math.PI / 2;
+            const r = i % 2 === 0 ? outerR : innerR;
+            const method = i === 0 ? 'moveTo' : 'lineTo';
+            starShape[method](Math.cos(angle) * r, Math.sin(angle) * r);
+        }
+        starShape.closePath();
+        const starGeo = new THREE.ShapeGeometry(starShape, 4);
+        const pinMat = new THREE.MeshBasicMaterial({ color: 0xff3333, side: THREE.DoubleSide });
+        const pin = new THREE.Mesh(starGeo, pinMat);
+        pin.position.set(-0.28, 1.7, 0.28);
+        g.add(pin);
 
         return g;
     }

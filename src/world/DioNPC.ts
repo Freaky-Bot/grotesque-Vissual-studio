@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 // KONO DIO DA!!!!!
@@ -148,13 +149,18 @@ export class DioNPC extends BaseNPC {
         g.add(vNeck);
 
         // ========== SHOULDER PADS ==========
-        // DIO has HUGE shoulder ornaments. very important. round golden discs.
-        const lShoulderPad = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.28, 10), goldMat);
-        lShoulderPad.position.set(-1.3, 4.65, 0);
+        // DIO has HUGE shoulder ornaments -- ExtrudeGeometry gives them actual form
+        // cylinder discs before = flat as a pancake. now they're 3D geometric shields.
+        const shoulderShape = new THREE.Shape();
+        shoulderShape.absellipse(0, 0, 0.58, 0.42, 0, Math.PI * 2, false, 0);
+        const shoulderExt = { depth: 0.32, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 3 };
+        const shoulderGeo = new THREE.ExtrudeGeometry(shoulderShape, shoulderExt);
+        const lShoulderPad = new THREE.Mesh(shoulderGeo, goldMat);
+        lShoulderPad.position.set(-1.3, 4.45, -0.16);
         lShoulderPad.rotation.z = 0.15;
         g.add(lShoulderPad);
-        const rShoulderPad = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.28, 10), goldMat);
-        rShoulderPad.position.set(1.3, 4.65, 0);
+        const rShoulderPad = new THREE.Mesh(shoulderGeo, goldMat);
+        rShoulderPad.position.set(1.0, 4.45, -0.16);
         rShoulderPad.rotation.z = -0.15;
         g.add(rShoulderPad);
         // heart jewels on shoulder pads
@@ -299,10 +305,16 @@ export class DioNPC extends BaseNPC {
         capeMain.name = 'dio-cape';
         g.add(capeMain);
 
-        // cape collar -- stands up around shoulders, very dramatic
-        const collarGeo = new THREE.CylinderGeometry(1.35, 1.15, 0.55, 12, 1, true, -Math.PI * 0.6, Math.PI * 1.2);
-        const collar = new THREE.Mesh(collarGeo, capeMat);
-        collar.position.set(0, 4.55, -0.1);
+        // cape collar -- LatheGeometry standing collar, way more dramatic than cylinder
+        // a half-open funnel silhouette -- exactly how DIO's collar looks in the manga
+        const collarPoints = [
+            new THREE.Vector2(1.1, 0.0),
+            new THREE.Vector2(1.35, 0.2),
+            new THREE.Vector2(1.5, 0.45),
+            new THREE.Vector2(1.42, 0.6),
+        ];
+        const collar = new THREE.Mesh(new THREE.LatheGeometry(collarPoints, 14, -Math.PI * 0.6, Math.PI * 1.2), capeMat);
+        collar.position.set(0, 4.4, -0.1);
         g.add(collar);
 
         // cape sides wrap forward slightly -- makes it feel 3D
@@ -389,6 +401,9 @@ export class DioNPC extends BaseNPC {
             // pulse the stand light -- it breathes with menace
             const standLight = this.standGroup.getObjectByName('stand-light') as THREE.PointLight;
             if (standLight) standLight.intensity = 2.5 + Math.sin(this.standPulse * 8) * 1.5;
+            // spin the ZA WARUDO knot -- time stops for everyone except this knot
+            const zaKnot = this.standGroup.getObjectByName('zawarudo-knot');
+            if (zaKnot) { zaKnot.rotation.y += deltaTime * 2.2; zaKnot.rotation.x += deltaTime * 1.1; }
             if (this.standTimer <= 0) {
                 this.standGroup.visible = false;
                 this.standVisible = false;
@@ -596,6 +611,17 @@ export class DioNPC extends BaseNPC {
         standLight.name = 'stand-light';
         standLight.position.y = 3;
         g.add(standLight);
+
+        // ZA WARUDO -- TorusKnotGeometry time-stop aura around THE WORLD
+        // it rotates when the stand is active. time itself bends around it. menacing.
+        // WRYYYYYY this looks incredible. nobody will appreciate it. whatever.
+        const zaWarudoKnot = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(1.2, 0.1, 96, 8, 2, 3),
+            new THREE.MeshPhongMaterial({ color: 0xffdd00, emissive: 0xcc8800, emissiveIntensity: 2.0, transparent: true, opacity: 0.65 })
+        );
+        zaWarudoKnot.name = 'zawarudo-knot';
+        zaWarudoKnot.position.y = 2.5;
+        g.add(zaWarudoKnot);
 
         g.visible = false; // dormant until ZA WARUDO
         return g;

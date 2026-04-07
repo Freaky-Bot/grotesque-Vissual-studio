@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 // BUFF CAT -- absolutely jacked tabby, does not skip arm day
@@ -42,9 +43,20 @@ export class BuffCatNPC extends BaseNPC {
         const whiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
         const pinkMat = new THREE.MeshPhongMaterial({ color: 0xff88aa });
 
-        // ABSOLUTE UNIT of a torso -- huge beefy box
-        const body = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.1, 1.7), orangeMat);
-        body.position.y = 2.1;
+        // ABSOLUTE UNIT of a torso -- LatheGeometry barrel chest profile
+        // box was fine but THIS is a SWOLE torso. respect the gains.
+        const torsoPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.62, 0.1),
+            new THREE.Vector2(1.12, 0.5),
+            new THREE.Vector2(1.25, 1.0), // widest at chest
+            new THREE.Vector2(1.2, 1.6),
+            new THREE.Vector2(0.95, 2.0),
+            new THREE.Vector2(0.7, 2.1),
+        ];
+        const body = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 14), orangeMat);
+        body.position.y = 1.1;
+        body.castShadow = true;
         g.add(body);
 
         // white belly patch -- even buff cats have tummies
@@ -94,13 +106,23 @@ export class BuffCatNPC extends BaseNPC {
             g.add(stripe);
         }
 
-        // cat ears -- pointy
-        const earGeo = new THREE.ConeGeometry(0.3, 0.52, 4);
-        const lEar = new THREE.Mesh(earGeo, orangeMat);
-        lEar.position.set(-0.55, 4.78, 0);
+        // cat ears -- ExtrudeGeometry pointy triangle ears, way better than cone
+        const earShape = new THREE.Shape();
+        earShape.moveTo(0, 0);
+        earShape.lineTo(-0.3, 0);
+        earShape.lineTo(-0.06, 0.58);
+        earShape.lineTo(0.06, 0.58);
+        earShape.lineTo(0.3, 0);
+        earShape.closePath();
+        const earExt = { depth: 0.14, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.04, bevelSegments: 2 };
+        const buffEarGeo = new THREE.ExtrudeGeometry(earShape, earExt);
+        const lEar = new THREE.Mesh(buffEarGeo, orangeMat);
+        lEar.position.set(-0.7, 4.45, -0.07);
+        lEar.rotation.z = -0.1;
         g.add(lEar);
-        const rEar = new THREE.Mesh(earGeo, orangeMat);
-        rEar.position.set(0.55, 4.78, 0);
+        const rEar = new THREE.Mesh(buffEarGeo, orangeMat);
+        rEar.position.set(0.4, 4.45, -0.07);
+        rEar.rotation.z = 0.1;
         g.add(rEar);
 
         // inner ear pink bits
@@ -110,6 +132,19 @@ export class BuffCatNPC extends BaseNPC {
         const riEar = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.3, 4), pinkMat);
         riEar.position.set(0.55, 4.74, 0.04);
         g.add(riEar);
+
+        // TubeGeometry tail -- big buff cat has a big curved tail
+        // straight cylinder before = boring. CatmullRomCurve3 tail = SWOLE.
+        const tailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 1.8, -1.0),
+            new THREE.Vector3(-0.5, 2.2, -1.5),
+            new THREE.Vector3(-1.1, 2.8, -1.3),
+            new THREE.Vector3(-1.4, 3.4, -0.8),
+            new THREE.Vector3(-1.0, 3.8, -0.3),
+        ]);
+        const tailTube = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.14, 8, false), orangeMat);
+        tailTube.castShadow = true;
+        g.add(tailTube);
 
         return g;
     }

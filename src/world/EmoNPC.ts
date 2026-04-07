@@ -5,6 +5,7 @@
 // very depressed, very powerful, ゴゴゴゴゴゴ
 
 import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
 export class EmoNPC extends BaseNPC {
@@ -78,9 +79,19 @@ export class EmoNPC extends BaseNPC {
         const bandageMat = new THREE.MeshBasicMaterial({ color: 0x333333 }); // wristbands
 
         // -- BODY (skinny, wearing black band tee) --
-        const torsoGeo = new THREE.BoxGeometry(0.85, 1.1, 0.45);
-        const torso = new THREE.Mesh(torsoGeo, blackMat);
-        torso.position.set(0, 1.2, 0);
+        // LatheGeometry torso -- emo body profile, narrow shoulders / slim fit / sad
+        // way better than a box. the box was fine but this is WORSE. i mean better. whatever.
+        const torsoPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.28, 0.05),
+            new THREE.Vector2(0.38, 0.3),
+            new THREE.Vector2(0.4, 0.65),
+            new THREE.Vector2(0.42, 1.0),
+            new THREE.Vector2(0.38, 1.1),
+            new THREE.Vector2(0.25, 1.1),
+        ];
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), blackMat);
+        torso.position.set(0, 0.7, 0);
         torso.castShadow = true;
         g.add(torso);
 
@@ -105,10 +116,19 @@ export class EmoNPC extends BaseNPC {
         g.add(topHair);
 
         // the iconic side sweep covering left eye entirely
-        const sweepGeo = new THREE.BoxGeometry(0.45, 0.55, 0.74);
-        const sweep = new THREE.Mesh(sweepGeo, hairMat);
-        sweep.position.set(-0.24, 2.28, 0.2);
-        sweep.rotation.z = -0.25;
+        // ExtrudeGeometry -- actual swept hair silhouette shape
+        // boxes looked terrible. the emo deserved better. here it is.
+        const sweepShape = new THREE.Shape();
+        sweepShape.moveTo(0, 0);
+        sweepShape.quadraticCurveTo(-0.25, 0.1, -0.42, 0.4);
+        sweepShape.quadraticCurveTo(-0.48, 0.65, -0.32, 0.82);
+        sweepShape.quadraticCurveTo(-0.12, 0.9, 0.02, 0.72);
+        sweepShape.quadraticCurveTo(0.14, 0.55, 0.1, 0.25);
+        sweepShape.quadraticCurveTo(0.08, 0.08, 0, 0);
+        const sweepExtSettings = { depth: 0.34, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
+        const sweep = new THREE.Mesh(new THREE.ExtrudeGeometry(sweepShape, sweepExtSettings), hairMat);
+        sweep.position.set(-0.05, 2.1, 0.04);
+        sweep.rotation.z = -0.2;
         g.add(sweep);
 
         // back of hair, long and dramatic
@@ -212,12 +232,34 @@ export class EmoNPC extends BaseNPC {
             opacity: 0.45,
         });
 
-        // stand body -- distorted humanoid shape
-        const sBodyGeo = new THREE.SphereGeometry(0.55, 10, 10);
-        const sBody = new THREE.Mesh(sBodyGeo, voidMat);
-        sBody.scale.set(0.8, 1.5, 0.6);
-        sBody.position.set(0, 1.2, 0);
+        // stand body -- custom BufferGeometry amorphous shadow wraith
+        // sphere was too clean. THE VOID should be WRONG. broken. uneven.
+        // just building a distorted pyramid-ish mess with manual vertices
+        const verts = new Float32Array([
+            // front face -- twisted triangle
+             0.0,  1.8,  0.58,   -0.62,  0.3,  0.3,   0.62,  0.3,  0.3,
+            // back face -- offset for spooky twist
+             0.1,  1.9, -0.5,    -0.55,  0.25, -0.35,  0.55,  0.25, -0.35,
+            // side faces to connect em
+            -0.62,  0.3,  0.3,   -0.55,  0.25, -0.35,   0.0,  1.9,  0.0,
+             0.62,  0.3,  0.3,    0.55,  0.25, -0.35,   0.0,  1.9,  0.0,
+            // bottom -- jagged opening
+            -0.62,  0.3,  0.3,    0.62,  0.3,  0.3,   -0.55,  0.25, -0.35,
+             0.62,  0.3,  0.3,    0.55,  0.25, -0.35,  -0.55,  0.25, -0.35,
+        ]);
+        const sBodyBufGeo = new THREE.BufferGeometry();
+        sBodyBufGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+        sBodyBufGeo.computeVertexNormals(); // compute so it lights right-ish
+        const sBody = new THREE.Mesh(sBodyBufGeo, voidMat);
+        sBody.scale.set(0.9, 1.5, 0.7);
+        sBody.position.set(0, 0.1, 0); // sit at base of stand group
         standGroup.add(sBody);
+
+        // also add a sphere base so it doesn't look completely broken lol
+        const sBodySphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), voidMat);
+        sBodySphere.scale.set(0.75, 1.4, 0.55);
+        sBodySphere.position.set(0, 1.2, 0);
+        standGroup.add(sBodySphere);
 
         // stand head -- distorted, slightly tilted
         const sHeadGeo = new THREE.SphereGeometry(0.42, 10, 10);
@@ -276,6 +318,15 @@ export class EmoNPC extends BaseNPC {
         ring.position.set(0, 0.3, 0);
         ring.rotation.x = Math.PI / 2;
         standGroup.add(ring);
+
+        // TorusKnot chaos spiral above THE VOID's head -- required. the void demands it.
+        // nobody asked. we delivered. this is emo culture.
+        const knotGeo = new THREE.TorusKnotGeometry(0.35, 0.07, 64, 8, 2, 3);
+        const knotMat = new THREE.MeshBasicMaterial({ color: 0x8800ff, transparent: true, opacity: 0.7 });
+        const chaosKnot = new THREE.Mesh(knotGeo, knotMat);
+        chaosKnot.position.set(0, 3.1, 0);
+        chaosKnot.name = 'void-chaos-knot';
+        standGroup.add(chaosKnot);
 
         g.add(standGroup);
         return { group: g, stand: standGroup };
@@ -357,6 +408,10 @@ export class EmoNPC extends BaseNPC {
             // stand hovers and bobs dramatically
             this.stand.position.y = 0.5 + Math.sin(this.standPulseTimer) * 0.25;
             this.stand.rotation.y += deltaTime * 0.8; // slow menacing rotation
+
+            // spin the chaos knot -- the void demands chaos. ngl this looks sick.
+            const chaosKnot = this.stand.getObjectByName('void-chaos-knot');
+            if (chaosKnot) { chaosKnot.rotation.y += deltaTime * 2.5; chaosKnot.rotation.x += deltaTime * 1.3; }
 
             // orbit the shadow orbs around the stand
             for (let i = 0; i < this.shadowOrbs.length; i++) {

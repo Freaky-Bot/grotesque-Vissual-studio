@@ -1,4 +1,5 @@
 ﻿import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
 import { loadModel, applyModel } from './ModelLoader';
 
 // THE CAT GOD. REMASTERED. DIVINE. ETERNAL.
@@ -150,10 +151,20 @@ export class CatGodNPC {
             g.add(ray);
         }
 
-        // TORSO
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.6, 2.5), skinMat);
+        // TORSO -- LatheGeometry divine cat body profile
+        // BoxGeometry was UNWORTHY of a god. this is a proper godly silhouette. hear ye.
+        const divineBodyPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.8, 0.15),
+            new THREE.Vector2(1.45, 0.6),
+            new THREE.Vector2(1.6, 1.3), // widest point -- chest area  
+            new THREE.Vector2(1.45, 2.1),
+            new THREE.Vector2(1.1, 2.6),
+            new THREE.Vector2(0.6, 2.6),
+        ];
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(divineBodyPoints, 16), skinMat);
         torso.name = 'torso';
-        torso.position.y = 1.0;
+        torso.position.y = -0.3;
         g.add(torso);
 
         // HEAD
@@ -279,25 +290,21 @@ export class CatGodNPC {
         // ARMS
         this.buildArms(g, skinMat, goldMat, whiteMat);
 
-        // TAIL (5 segments + puff tip)
-        const tailSegs: [THREE.Vector3, number, THREE.Vector3][] = [
-            [new THREE.Vector3(0, -0.5, -2.8),    0.7,  new THREE.Vector3(1, 1, 1)],
-            [new THREE.Vector3(0.4, -0.5, -3.4),  0.5,  new THREE.Vector3(0.9, 0.85, 0.9)],
-            [new THREE.Vector3(0.9, -0.3, -3.85), 0.2,  new THREE.Vector3(0.75, 0.7, 0.75)],
-            [new THREE.Vector3(1.4, 0.2, -4.05),  -0.3, new THREE.Vector3(0.6, 0.55, 0.6)],
-            [new THREE.Vector3(1.8, 0.8, -3.9),   -0.7, new THREE.Vector3(0.45, 0.42, 0.45)],
-        ];
-        tailSegs.forEach(([pos, rx, scl], i) => {
-            const seg = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.9, 9), tailMat);
-            seg.position.copy(pos);
-            seg.rotation.x = rx;
-            seg.scale.copy(scl);
-            seg.name = `tail-${i}`;
-            g.add(seg);
-        });
+        // TAIL -- TubeGeometry with CatmullRomCurve3, so much better than cone segments
+        // 5 cone segments before = looked like a caterpillar. fixed. this is divine.
+        const divineTailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, -0.4, -2.6),
+            new THREE.Vector3(-0.5, -0.2, -3.5),
+            new THREE.Vector3(-1.2, 0.4, -3.9),
+            new THREE.Vector3(-1.9, 1.1, -3.6),
+            new THREE.Vector3(-1.8, 2.0, -2.85),
+        ]);
+        const divineTail = new THREE.Mesh(new THREE.TubeGeometry(divineTailCurve, 16, 0.28, 10, false), tailMat);
+        divineTail.name = 'tail-tube';
+        g.add(divineTail);
         const tipPuff = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 10), goldMat);
         tipPuff.name = 'tail-tip';
-        tipPuff.position.set(2.0, 1.4, -3.6);
+        tipPuff.position.set(-1.8, 2.1, -2.75);
         g.add(tipPuff);
 
         // DIVINE STAFF
@@ -356,13 +363,29 @@ export class CatGodNPC {
         const buildWingPanel = (group: THREE.Group, side: number, isUpper: boolean): void => {
             const bW = isUpper ? 5.5 : 3.2;
             const bH = isUpper ? 3.5 : 2.2;
-            const wingPanel = new THREE.Mesh(new THREE.PlaneGeometry(bW, bH, 2, 4), wingMat);
-            wingPanel.position.set(side * bW * 0.48, 0, 0);
+            // ExtrudeGeometry divine wing silhouette -- no more boring flat planes. cats demand curves.
+            // swept feather wing shape: wide at base, pointed at tip, curved leading edge
+            const wingShape = new THREE.Shape();
+            const sw = side as 1 | -1; // side direction
+            wingShape.moveTo(0, -bH * 0.5);
+            wingShape.lineTo(sw * bW * 0.18, -bH * 0.45);
+            wingShape.bezierCurveTo(sw * bW * 0.65, -bH * 0.3, sw * bW * 0.95, 0, sw * bW * 0.88, bH * 0.35);
+            wingShape.bezierCurveTo(sw * bW * 0.7, bH * 0.55, sw * bW * 0.35, bH * 0.52, 0, bH * 0.5);
+            wingShape.lineTo(0, -bH * 0.5);
+            const wingPanel = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(wingShape, { depth: 0.06, bevelEnabled: true, bevelSize: 0.025, bevelSegments: 2 }),
+                wingMat
+            );
             wingPanel.rotation.set(0, side * 0.22, 0);
             group.add(wingPanel);
-            const edge = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, bH, 7), wingGoldMat as THREE.MeshPhongMaterial);
-            edge.position.set(side * bW * 0.95, 0, 0);
-            edge.rotation.z = side * 0.18;
+            // TubeGeometry wing leading edge strut -- henceforth this strut shall guide the divine feathers
+            const strutCurve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0, -bH * 0.5, 0),
+                new THREE.Vector3(side * bW * 0.35, -bH * 0.15, 0.06),
+                new THREE.Vector3(side * bW * 0.72, bH * 0.1, 0.1),
+                new THREE.Vector3(side * bW * 0.88, bH * 0.35, 0.04)
+            ]);
+            const edge = new THREE.Mesh(new THREE.TubeGeometry(strutCurve, 12, 0.07, 7), wingGoldMat as THREE.MeshPhongMaterial);
             group.add(edge);
             for (let f = 0; f < 5; f++) {
                 const tip = new THREE.Mesh(new THREE.ConeGeometry(0.07, bH * 0.28 * (1 - f * 0.06), 7), goldMat as THREE.MeshPhongMaterial);
@@ -449,7 +472,9 @@ export class CatGodNPC {
             ring.position.y = -1.5 + i * 2.2;
             this.staff.add(ring);
         }
-        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.55, 13, 13), gemMat);
+        // TorusKnotGeometry divine orb -- way more interesting than a sphere
+        // a sphere was fine. this is DIVINE. the cat god demands chaos geometry.
+        const orb = new THREE.Mesh(new THREE.TorusKnotGeometry(0.42, 0.1, 64, 8, 2, 3), gemMat);
         orb.name = 'staff-orb';
         orb.position.y = 6.3;
         this.staff.add(orb);
