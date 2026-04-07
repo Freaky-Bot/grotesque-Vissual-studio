@@ -2,7 +2,7 @@
   {
     "msg": "v3.15.1 fix: da black screen AGAIN. kokoro-js was crashing the whole page on load bc ONNX runtime uses import.meta at module level. switched to lazy dynamic import() so it only loads when voice system actually needs it. main bundle went from 3.4MB to 1.2MB too. not like anyone noticed. whatever. mrrrow.",
     "date": "2026-04-07",
-    "hash": "bb8b6c4"
+    "hash": "3fda6d6"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
