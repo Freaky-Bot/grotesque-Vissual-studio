@@ -17,6 +17,7 @@
     "@gltf-transform/core": "^4.3.0",
     "@gltf-transform/extensions": "^4.3.0",
     "cannon-es": "^0.20.0",
+    "kokoro-js": "^1.2.1",
     "three": "latest",
     "three-csg-ts": "^3.2.0",
     "ws": "^8.18.0"

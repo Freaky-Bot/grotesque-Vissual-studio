@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.14.0 feat: NEURAL VOICES ARE HERE!! replaced dat boring robot speech with Kokoro TTS nyaa~ 80MB model loads in background then REAL voices come out!! every npc has their own neural voice now!! af_heart for da cute cats, am_fenrir for da void boys, bm_george for da divine ones!! Web Speech API still works as fallback while model loads UwU we literally evolved 🐱💕✨",
+    "date": "2026-04-07",
+    "hash": "7e3d8b6"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "2994721"
+  },
+  {
     "msg": "v3.13.2 fix: added missing setDayIntensity method to NPCManager. it was calling a function that literally didnt exist. every frame. forever. the black screen was just the void staring back. meow.",
     "date": "2026-04-06",
     "hash": "f8b9960"
@@ -988,15 +998,5 @@
     "msg": "feat: jumping -- space bar for player, random jumps for all grounded NPCs, mobile jump button",
     "date": "2026-04-04",
     "hash": "480a52a"
-  },
-  {
-    "msg": "fix: prevent GitHub Actions loop -- skip CI bot pushes",
-    "date": "2026-04-04",
-    "hash": "6e741ff"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-05",
-    "hash": "7e8f19d"
   }
 ]
