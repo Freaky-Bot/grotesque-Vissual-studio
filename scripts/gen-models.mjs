@@ -1681,6 +1681,555 @@ async function buildCatGlitch() {
     await m.save('cat-glitch.glb');
 }
 
+// ------ CAT JESUS ------
+async function buildCatJesus() {
+    const m = new ModelDoc('cat-jesus');
+    const white   = m.createMaterial('j-white',  0xf5f5f0, 0.8,  0.0, 0x111100);
+    const orange  = m.createMaterial('j-orange', 0xff8844, 0.85, 0.0);
+    const gold    = m.createMaterial('j-gold',   0xffdd44, 0.2,  0.1, 0xddaa00);
+    const skin    = m.createMaterial('j-skin',   0xffb07a, 0.8,  0.0);
+    const beam    = m.createMaterial('j-beam',   0xffffcc, 0.1,  0.0, 0xffff88, 0.7);
+
+    // cat body in a white robe
+    m.addMesh('body',    makeSphere(0.7, 16, 12, 0, 1.2, 0), orange, [0,0,0], [0,0,0], [1, 1.3, 0.85]);
+    // robe flowing down
+    m.addMesh('robe',    makeCylinder(0.78, 0.88, 1.55, 14, 0, 0.8, 0), white);
+    m.addMesh('robe-sh', makeSphere(0.78, 14, 10, 0, 1.75, 0), white, [0,0,0], [0,0,0], [1.05, 0.55, 1.05]);
+    // sleeves -- wide, draping
+    for (const s of [-1, 1]) {
+        m.addMesh(`sleeve-${s}`,  makeCylinder(0.24, 0.38, 0.9, 8, s*0.9, 1.62, 0), white, [0,0,0], [0, 0, s*0.42]);
+        m.addMesh(`sleeve2-${s}`, makeCylinder(0.38, 0.28, 0.55, 8, s*1.3, 1.28, 0), white, [0,0,0], [0, 0, s*0.25]);
+        m.addMesh(`hand-${s}`,    makeSphere(0.14, 8, 6, s*1.55, 1.02, 0), skin);
+    }
+    // head + cat ears
+    m.addMesh('head',  makeSphere(0.62, 16, 12, 0, 2.35, 0), orange, [0,0,0], [0,0,0], [1, 1.0, 0.95]);
+    m.addMesh('ear-l', makeCone(0.24, 0.42, 7, -0.3, 2.84, 0), orange, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r', makeCone(0.24, 0.42, 7,  0.3, 2.84, 0), orange, [0,0,0], [0,0, 0.22]);
+    m.addMesh('eye-l', makeSphere(0.09, 8, 6, -0.22, 2.44, 0.56), m.createMaterial('el', 0x2244ff, 0.2, 0.0, 0x0011aa));
+    m.addMesh('eye-r', makeSphere(0.09, 8, 6,  0.22, 2.44, 0.56), m.createMaterial('er', 0x2244ff, 0.2, 0.0, 0x0011aa));
+    // halo -- glowing golden ring
+    m.addMesh('halo',     makeTorus(0.52, 0.06, 20, 8, 0, 3.22, 0), gold);
+    m.addMesh('halo-glo', makeTorus(0.52, 0.1,  20, 8, 0, 3.22, 0), beam);
+    // divine light rays around halo
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        m.addMesh(`ray-${i}`, makeBox(0.04, 0.45, 0.02, Math.cos(a)*0.64, 3.22, Math.sin(a)*0.64), gold, [0,0,0], [0, a, 0]);
+    }
+    // blessing hands position -- arms slightly open
+    m.addMesh('beard', makeSphere(0.28, 10, 8, 0, 2.08, 0.32), m.createMaterial('beard', 0xdda055, 0.85, 0.0), [0,0,0], [0,0,0], [0.88, 0.9, 0.55]);
+    // tail visible under robe
+    m.addMesh('tail', makeCylinder(0.1, 0.05, 1.1, 8, 0, 0.75, -0.88), orange, [0,0,0], [0.55, 0, 0]);
+
+    await m.save('cat-jesus.glb');
+}
+
+// ------ CAT ORB ------
+async function buildCatOrb() {
+    const m = new ModelDoc('cat-orb');
+    const glow   = m.createMaterial('orb-glow', 0x88aaff, 0.1,  0.0, 0x4466cc);
+    const core   = m.createMaterial('orb-core', 0xccddff, 0.05, 0.0, 0x99aaff);
+    const purple = m.createMaterial('orb-purp', 0xaa55ff, 0.1,  0.0, 0x6622cc);
+    const white  = m.createMaterial('orb-wht',  0xeeeeff, 0.5,  0.0, 0x6688aa);
+    const ring   = m.createMaterial('orb-ring', 0x66aaff, 0.2,  0.1, 0x3366cc, 0.75);
+
+    // main orb body -- large pulsing sphere
+    m.addMesh('core',    makeSphere(0.9, 20, 16, 0, 1.5, 0), core);
+    m.addMesh('glow-1',  makeSphere(1.0, 16, 12, 0, 1.5, 0), glow,   [0,0,0], [0,0,0], [1, 1, 1]);
+    m.addMesh('glow-2',  makeSphere(1.1, 14, 10, 0, 1.5, 0), purple, [0,0,0], [0,0,0], [1, 0.95, 1]);
+    // cat face on the orb surface (inset slightly)
+    m.addMesh('eye-l', makeSphere(0.1,  10, 8, -0.28, 1.72, 0.84), white);
+    m.addMesh('eye-r', makeSphere(0.1,  10, 8,  0.28, 1.72, 0.84), white);
+    m.addMesh('pup-l', makeSphere(0.06, 8, 6, -0.28, 1.72, 0.9),  m.createMaterial('pl', 0x000022, 0.9, 0.0));
+    m.addMesh('pup-r', makeSphere(0.06, 8, 6,  0.28, 1.72, 0.9),  m.createMaterial('pr', 0x000022, 0.9, 0.0));
+    m.addMesh('nose',  makeSphere(0.055, 8, 6, 0, 1.58, 0.9), m.createMaterial('nose', 0xff99aa, 0.7, 0.0));
+    // cat ears poking from top of orb
+    m.addMesh('ear-l', makeCone(0.2, 0.38, 6, -0.38, 2.32, 0), glow, [0,0,0], [0,0,-0.18]);
+    m.addMesh('ear-r', makeCone(0.2, 0.38, 6,  0.38, 2.32, 0), glow, [0,0,0], [0,0, 0.18]);
+    // orbital rings around the orb
+    m.addMesh('ring-h', makeTorus(1.25, 0.055, 22, 8, 0, 1.5, 0), ring, [0,0,0], [0, 0, 0]);
+    m.addMesh('ring-v', makeTorus(1.25, 0.055, 22, 8, 0, 1.5, 0), ring, [0,0,0], [Math.PI/2, 0, 0]);
+    m.addMesh('ring-d', makeTorus(1.25, 0.055, 22, 8, 0, 1.5, 0), purple, [0,0,0], [0, Math.PI/4, 0]);
+    // orbital particles 
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        m.addMesh(`orb-p-${i}`, makeSphere(0.1, 8, 6, Math.cos(a)*1.25, 1.5 + Math.sin(a)*1.25, 0), i%2===0?glow:purple);
+    }
+    // wispy tail made of spheres
+    for (let i = 0; i < 5; i++) {
+        const y = 0.52 - i * 0.15, s2 = 0.14 - i * 0.02;
+        m.addMesh(`tail-${i}`, makeSphere(Math.max(s2, 0.04), 6, 5, 0, y, -0.1 - i*0.1), glow);
+    }
+
+    await m.save('cat-orb.glb');
+}
+
+// ------ CAT PIRATE ------
+async function buildCatPirate() {
+    const m = new ModelDoc('cat-pirate');
+    const orange  = m.createMaterial('p-orange', 0xff8844, 0.85, 0.0);
+    const black   = m.createMaterial('p-black',  0x111111, 0.9,  0.1);
+    const dkbrown = m.createMaterial('p-dbrown', 0x3a1c08, 0.85, 0.05);
+    const red     = m.createMaterial('p-red',    0xaa1111, 0.7,  0.05);
+    const gold    = m.createMaterial('p-gold',   0xddaa22, 0.3,  0.7);
+    const silver  = m.createMaterial('p-silver', 0xaabbcc, 0.3,  0.6);
+
+    // cat body in pirate coat
+    m.addMesh('body',     makeSphere(0.7, 16, 12, 0, 1.2, 0), orange, [0,0,0], [0,0,0], [1, 1.3, 0.85]);
+    m.addMesh('coat-f',   makeBox(0.75, 1.1, 0.08, 0, 1.35, 0.52), red);    // front coat flap
+    m.addMesh('coat-b',   makeBox(1.05, 1.35, 0.06, 0, 1.22, -0.5),  dkbrown); // coat back
+    m.addMesh('coat-brd', makeBox(0.08, 1.05, 0.06, 0, 1.4, 0.56), gold);   // center trim
+    // buttons
+    for (let i = 0; i < 4; i++) {
+        m.addMesh(`btn-${i}`, makeSphere(0.045, 6, 5, 0, 1.72 - i*0.28, 0.57), gold);
+    }
+    // coat shoulders / sleeves
+    for (const s of [-1, 1]) {
+        m.addMesh(`sleeve-${s}`, makeCylinder(0.2, 0.16, 0.82, 8, s*0.96, 1.65, 0), dkbrown, [0,0,0], [0,0,s*0.3]);
+        m.addMesh(`cuff-${s}`,   makeCylinder(0.18, 0.18, 0.16, 8, s*1.25, 1.18, 0), red);
+    }
+    // hook hand on left, paw on right
+    m.addMesh('hook-arm', makeCylinder(0.1, 0.085, 0.45, 8, -1.55, 1.0, 0), orange);
+    m.addMesh('hook',     makeCylinder(0.055, 0.03, 0.42, 6, -1.7, 0.82, 0.12), silver, [0,0,0], [-0.75, 0, 0]);
+    m.addMesh('hook-tip', makeCone(0.03, 0.12, 5, -1.75, 0.6, 0.24), silver, [0,0,0], [-0.75, 0, 0.2]);
+    m.addMesh('paw-r',    makeSphere(0.16, 8, 6, 1.42, 1.0, 0), orange, [0,0,0], [0,0,0], [1, 0.65, 1.1]);
+    // cat legs + boots
+    for (const [lx, lz] of [[-0.42, 0.36], [0.42, 0.36], [-0.42, -0.36], [0.42, -0.36]]) {
+        m.addMesh(`leg-${lx}`,  makeCylinder(0.17, 0.14, 0.9, 8, lx, 0.5, lz), dkbrown);
+        m.addMesh(`boot-${lx}`, makeBox(0.22, 0.24, 0.38, lx, -0.02, lz+0.04), black);
+        m.addMesh(`bsole-${lx}`,makeBox(0.24, 0.06, 0.4, lx, -0.16, lz+0.04), dkbrown);
+    }
+    // head + eyepatch
+    m.addMesh('head',   makeSphere(0.62, 16, 12, 0, 2.35, 0), orange, [0,0,0], [0,0,0], [1, 1.0, 0.95]);
+    m.addMesh('ear-l',  makeCone(0.24, 0.42, 7, -0.3, 2.84, 0), orange, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r',  makeCone(0.24, 0.42, 7,  0.3, 2.84, 0), orange, [0,0,0], [0,0, 0.22]);
+    m.addMesh('eye-r',  makeSphere(0.1, 8, 6, 0.24, 2.44, 0.57), m.createMaterial('eye', 0x3c6000, 0.3, 0.0));
+    // eyepatch
+    m.addMesh('patch',  makeSphere(0.1, 8, 6, -0.24, 2.44, 0.57), black, [0,0,0], [0,0,0], [1.2, 0.9, 0.4]);
+    m.addMesh('pstr-h', makeBox(0.22, 0.025, 0.02, -0.06, 2.44, 0.57), black); // strap horizontal
+    m.addMesh('pstr-v', makeBox(0.025, 0.28, 0.02, -0.24, 2.44, 0.57), black); // strap over ear
+    // pirate hat -- tricorn
+    m.addMesh('hat-main', makeSphere(0.7, 14, 10, 0, 2.82, 0), black, [0,0,0], [0,0,0], [1.05, 0.65, 1]);
+    m.addMesh('hat-brim', makeBox(1.15, 0.1, 0.38, 0, 2.54, 0), black);
+    m.addMesh('hat-skull',makeBox(0.22, 0.18, 0.04, 0, 2.75, 0.5), m.createMaterial('skull', 0xddddcc, 0.8, 0.0)); // skull badge
+    m.addMesh('hat-trim', makeBox(1.17, 0.04, 0.4, 0, 2.63, 0), gold);
+    // tail curled like a pirate swagger
+    m.addMesh('tail', makeCylinder(0.11, 0.06, 1.2, 8, 0, 1.1, -0.85), orange, [0,0,0], [0.7, 0, 0.15]);
+
+    await m.save('cat-pirate.glb');
+}
+
+// ------ CAT DISCO ------
+async function buildCatDisco() {
+    const m = new ModelDoc('cat-disco');
+    const orange  = m.createMaterial('d-orange', 0xff8844, 0.85, 0.0);
+    const silver  = m.createMaterial('d-silver', 0xccddee, 0.05, 0.9);
+    const gold    = m.createMaterial('d-gold',   0xffdd22, 0.1,  0.8, 0xcc9900);
+    const pink    = m.createMaterial('d-pink',   0xff44cc, 0.3,  0.0, 0xcc0099);
+    const cyan    = m.createMaterial('d-cyan',   0x22ffee, 0.2,  0.0, 0x00cccc);
+    const purple  = m.createMaterial('d-purp',   0xcc22ff, 0.2,  0.0, 0x8800cc);
+    const white   = m.createMaterial('d-white',  0xffffff, 0.1,  0.2, 0x888888);
+    const platform= m.createMaterial('d-plat',   0x888899, 0.3,  0.5);
+
+    // sparkly disco body -- sequined outfit
+    m.addMesh('body',   makeSphere(0.7, 16, 12, 0, 1.2, 0), silver, [0,0,0], [0,0,0], [1, 1.3, 0.85]);
+    m.addMesh('seq-1',  makeSphere(0.55, 12, 8, 0, 1.3, 0.02), gold,   [0,0,0], [0,0,0], [0.85, 1.0, 0.55]); // sequins layer
+    m.addMesh('seq-2',  makeSphere(0.48, 10, 8, 0, 1.3, 0.02), pink,   [0,0,0], [0,0,0], [0.75, 0.9, 0.5]);
+    // flare pants
+    for (const [lx, lz] of [[-0.36, 0.32], [0.36, 0.32], [-0.36, -0.32], [0.36, -0.32]]) {
+        m.addMesh(`flare-${lx}`,  makeCylinder(0.16, 0.32, 1.05, 10, lx, 0.4, lz), purple); // flare bottom
+        m.addMesh(`flare2-${lx}`, makeCylinder(0.14, 0.16, 0.55, 8,  lx, 0.85, lz), silver);
+        // platform shoes
+        m.addMesh(`shoe-${lx}`,   makeBox(0.22, 0.16, 0.38, lx, -0.12, lz+0.04), pink);
+        m.addMesh(`plat-${lx}`,   makeBox(0.22, 0.22, 0.40, lx, -0.27, lz+0.04), platform);
+    }
+    // sparkly arms
+    for (const s of [-1, 1]) {
+        m.addMesh(`arm-${s}`,  makeCylinder(0.14, 0.11, 0.82, 8, s*0.96, 1.65, 0), silver, [0,0,0], [0,0,s*0.3]);
+        m.addMesh(`aglv-${s}`, makeCylinder(0.13, 0.13, 0.22, 8, s*1.25, 1.18, 0), gold);   // glove cuff
+        m.addMesh(`paw-${s}`,  makeSphere(0.13, 8, 6, s*1.42, 1.0, 0), white);
+    }
+    // head
+    m.addMesh('head',  makeSphere(0.62, 16, 12, 0, 2.35, 0), orange, [0,0,0], [0,0,0], [1, 1.0, 0.95]);
+    m.addMesh('ear-l', makeCone(0.24, 0.42, 7, -0.3, 2.84, 0), orange, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r', makeCone(0.24, 0.42, 7,  0.3, 2.84, 0), orange, [0,0,0], [0,0, 0.22]);
+    m.addMesh('eye-l', makeSphere(0.09, 8, 6, -0.22, 2.44, 0.56), pink);
+    m.addMesh('eye-r', makeSphere(0.09, 8, 6,  0.22, 2.44, 0.56), cyan);
+    // afro / big disco hair
+    m.addMesh('hair',    makeSphere(0.88, 16, 12, 0, 2.75, 0), gold, [0,0,0], [0,0,0], [1.05, 0.95, 1.0]);
+    m.addMesh('hair-sh', makeSphere(0.8, 14, 10, 0, 2.75, 0), pink,  [0,0,0], [0,0,0], [0.92, 0.82, 0.9]);
+    // mini disco ball on head -- THE PIECE DE RESISTANCE
+    m.addMesh('disco-ball',  makeSphere(0.28, 12, 10, 0, 3.52, 0), silver);
+    m.addMesh('ball-row-1',  makeTorus(0.29, 0.02, 14, 4, 0, 3.52, 0), gold);
+    m.addMesh('ball-row-2',  makeTorus(0.29, 0.02, 14, 4, 0, 3.52, 0), gold, [0,0,0], [Math.PI/4, 0, 0]);
+    m.addMesh('ball-row-3',  makeTorus(0.29, 0.02, 14, 4, 0, 3.52, 0), pink, [0,0,0], [-Math.PI/4, 0, 0]);
+    m.addMesh('ball-v',      makeTorus(0.29, 0.015, 14, 4, 0, 3.52, 0), cyan, [0,0,0], [Math.PI/2, 0, 0]);
+    // sparkle particles around ball
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2, r = 0.52;
+        const cols = [gold, pink, cyan, purple, silver, white];
+        m.addMesh(`spark-${i}`, makeSphere(0.06, 5, 4, Math.cos(a)*r, 3.52+Math.sin(a)*r*0.5, Math.sin(a)*r), cols[i]);
+    }
+    // tail with sequins
+    m.addMesh('tail', makeCylinder(0.11, 0.06, 1.2, 8, 0, 1.1, -0.85), gold, [0,0,0], [0.7, 0, 0.1]);
+
+    await m.save('cat-disco.glb');
+}
+
+// ------ CAT ZOMBIE ------
+async function buildCatZombie() {
+    const m = new ModelDoc('cat-zombie');
+    const rot    = m.createMaterial('z-rot',    0x4a6635, 0.9,  0.0); // rotting green-grey
+    const dark   = m.createMaterial('z-dark',   0x2a3320, 0.95, 0.05);
+    const bone   = m.createMaterial('z-bone',   0xd4c9a8, 0.8,  0.05);
+    const blood  = m.createMaterial('z-blood',  0x880011, 0.7,  0.0, 0x220000);
+    const eye    = m.createMaterial('z-eye',    0xeeffcc, 0.2,  0.0, 0x88cc22); // milky green
+    const torn   = m.createMaterial('z-torn',   0x332211, 0.9,  0.05);
+
+    // decaying cat body -- asymmetric, slumped
+    m.addMesh('body',      makeSphere(0.72, 16, 12, 0, 1.18, 0), rot,   [0,0,0], [0.12, 0, 0], [1, 1.28, 0.88]);
+    m.addMesh('rib-l',     makeBox(0.05, 0.42, 0.04, -0.28, 1.22, 0.62), bone); // exposed ribs
+    m.addMesh('rib-l2',    makeBox(0.05, 0.38, 0.04, -0.18, 1.32, 0.64), bone);
+    m.addMesh('rib-r',     makeBox(0.05, 0.36, 0.04,  0.25, 1.2, 0.62), bone);
+    m.addMesh('flesh-t',   makeBox(0.22, 0.18, 0.05, -0.28, 1.08, 0.65), blood); // torn flesh
+    // torn rags for clothing
+    m.addMesh('rag-f',   makeBox(0.62, 0.55, 0.06, 0, 1.35, 0.5), torn);
+    m.addMesh('rag-l',   makeBox(0.06, 0.48, 0.06, -0.45, 1.22, 0.5), torn, [0,0,0], [0, 0, 0.18]);
+    m.addMesh('rag-r',   makeBox(0.06, 0.38, 0.06,  0.4, 1.28, 0.5), torn, [0,0,0], [0, 0,-0.12]);
+    // arms -- one normal, one skeletal/missing
+    m.addMesh(`arm-r`,   makeCylinder(0.2, 0.16, 0.85, 8, 0.98, 1.62, 0), rot, [0,0,0], [0,0, 0.3]);
+    m.addMesh(`hand-r`,  makeSphere(0.19, 8, 6, 1.4, 1.12, 0), rot, [0,0,0], [0,0,0], [1.1, 0.9, 1.0]);
+    // reaching arm (zombie pose -- outstretched)
+    m.addMesh('arm-l',   makeCylinder(0.18, 0.14, 0.9, 8, -0.98, 1.68, 0), rot, [0,0,0], [0.4, 0,-0.35]);
+    m.addMesh('bone-l',  makeCylinder(0.06, 0.05, 0.58, 6, -1.52, 1.25, 0.2), bone, [0,0,0], [0.4, 0, -0.2]);
+    m.addMesh('hand-l',  makeSphere(0.13, 8, 6, -1.68, 1.0, 0.38), bone, [0,0,0], [0,0,0], [1.1, 0.85, 1.0]);
+    for (let c = 0; c < 3; c++) {
+        m.addMesh(`claw-l${c}`, makeCone(0.03, 0.2, 4, -1.72 + c*0.07, 0.82, 0.44+c*0.04), bone, [0,0,0], [0.5, 0, (c-1)*0.4]);
+    }
+    // legs -- one dragging
+    for (const [lx, lz, rot2] of [[-0.44, 0.36, 0.0], [0.44, 0.36, 0.08], [-0.44, -0.36, 0.0], [0.44, -0.36, 0.0]]) {
+        m.addMesh(`leg-${lx}`, makeCylinder(0.18, 0.14, 0.92, 8, lx, 0.5, lz), rot, [0,0,0], [rot2, 0, 0]);
+        m.addMesh(`paw-${lx}`, makeSphere(0.15, 8, 6, lx, 0.02, lz+0.05), dark, [0,0,0], [0,0,0], [1, 0.5, 1.2]);
+    }
+    // bloodstain on ground / foot area
+    m.addMesh('blood-d', makeSphere(0.28, 10, 6, 0.44, 0.0, 0.38), blood, [0,0,0], [0,0,0], [1.4, 0.08, 1.4]);
+    // head -- tilted, jaw slack
+    m.addMesh('head',    makeSphere(0.62, 16, 12, 0, 2.35, 0), rot,  [0,0,0], [0.18, 0.06, 0], [1, 0.98, 0.94]);
+    m.addMesh('jaw',     makeSphere(0.38, 10, 8, 0, 2.12, 0.18), rot, [0,0,0], [0.35, 0, 0], [1, 0.55, 0.9]);
+    m.addMesh('ear-l',   makeCone(0.2, 0.36, 6, -0.3, 2.8, 0), rot, [0,0,0], [0,0,-0.2]);
+    m.addMesh('ear-r',   makeCone(0.18, 0.32, 5,  0.3, 2.82, 0), dark, [0,0,0], [0,0, 0.18]); // one ear ripped
+    // milky dead eyes -- one falling out
+    m.addMesh('eye-l',   makeSphere(0.1, 8, 6, -0.22, 2.42, 0.54), eye);
+    m.addMesh('eye-r',   makeSphere(0.1, 8, 6,  0.24, 2.38, 0.56), eye, [0,0,0], [0,0,0], [1, 1.3, 1]);
+    m.addMesh('blood-e', makeCylinder(0.04, 0.025, 0.25, 5, -0.22, 2.28, 0.56), blood); // drip from eye
+    // brain matter peaking through skull (why not)
+    m.addMesh('brain',   makeSphere(0.24, 8, 6, 0.12, 2.85, 0), m.createMaterial('brain', 0xcc6677, 0.7, 0.0), [0,0,0], [0,0,0], [1.1, 0.75, 1.0]);
+    // tail -- half decomposed
+    m.addMesh('tail',    makeCylinder(0.1, 0.04, 0.85, 6, 0, 1.08, -0.86), rot, [0,0,0], [0.6, 0.15, 0]);
+    m.addMesh('tail-b',  makeCylinder(0.04, 0.025, 0.38, 4, 0, 0.72, -1.38), bone, [0,0,0], [-0.2, 0, 0]);
+
+    await m.save('cat-zombie.glb');
+}
+
+// ------ CAT ALIEN ------
+async function buildCatAlien() {
+    const m = new ModelDoc('cat-alien');
+    const green   = m.createMaterial('al-green', 0x44cc66, 0.5,  0.1, 0x228844);
+    const lgrn    = m.createMaterial('al-lgrn',  0x88ffaa, 0.4,  0.0, 0x44cc77);
+    const black   = m.createMaterial('al-black', 0x000005, 0.95, 0.1);
+    const silver  = m.createMaterial('al-sil',   0xaabbcc, 0.2,  0.7);
+    const glowblue= m.createMaterial('al-glow',  0x33aaff, 0.1,  0.0, 0x1166cc);
+    const white   = m.createMaterial('al-wht',   0xeeffff, 0.5,  0.0, 0x446688);
+
+    // slim alien cat body
+    m.addMesh('body',     makeSphere(0.62, 16, 12, 0, 1.22, 0), green,  [0,0,0], [0,0,0], [0.9, 1.25, 0.82]);
+    m.addMesh('chest-g',  makeSphere(0.38, 10, 8, 0, 1.32, 0.48), lgrn, [0,0,0], [0,0,0], [0.8, 0.9, 0.4]); // bioluminescent patch
+    // 4 slim arms -- two pairs for alien hands
+    for (const s of [-1, 1]) {
+        m.addMesh(`arm-up-${s}`,   makeCylinder(0.12, 0.09, 0.75, 8, s*0.82, 1.72, 0), green, [0,0,0], [0,0,s*0.28]);
+        m.addMesh(`arm-lo-${s}`,   makeCylinder(0.09, 0.07, 0.65, 8, s*1.1, 1.23, 0), green);
+        m.addMesh(`hand-${s}`,     makeSphere(0.12, 8, 6, s*1.35, 0.88, 0), lgrn, [0,0,0], [0,0,0], [1.1, 0.9, 1.0]);
+        // 3 long alien fingers with sucker tips
+        for (let f = 0; f < 3; f++) {
+            const fa = (f / 3 - 0.33) * 0.5;
+            m.addMesh(`fing-${s}${f}`, makeCylinder(0.025, 0.02, 0.3, 5, s*(1.46+fa*s*0.12), 0.72, fa*0.5), green);
+            m.addMesh(`suck-${s}${f}`, makeSphere(0.04, 5, 4, s*(1.5+fa*s*0.14), 0.58, fa*0.52), lgrn);
+        }
+    }
+    // slim legs
+    for (const [lx, lz] of [[-0.38, 0.32], [0.38, 0.32], [-0.38, -0.32], [0.38, -0.32]]) {
+        m.addMesh(`leg-${lx}`,  makeCylinder(0.13, 0.1, 0.88, 8, lx, 0.52, lz), green);
+        m.addMesh(`foot-${lx}`, makeSphere(0.14, 8, 6, lx, 0.04, lz+0.12), green, [0,0,0], [0,0,0], [1.2, 0.5, 1.5]);
+    }
+    // BIG alien head -- oversized, classic
+    m.addMesh('head',     makeSphere(0.98, 20, 16, 0, 2.52, 0), green, [0,0,0], [0,0,0], [0.88, 1.0, 0.88]);
+    // cat ears -- smaller, more aerodynamic
+    m.addMesh('ear-l',    makeCone(0.2, 0.48, 7, -0.4, 3.2, 0), green, [0,0,0], [0,0,-0.18]);
+    m.addMesh('ear-r',    makeCone(0.2, 0.48, 7,  0.4, 3.2, 0), green, [0,0,0], [0,0, 0.18]);
+    // HUGE black almond eyes
+    m.addMesh('eye-l',    makeSphere(0.24, 12, 10, -0.34, 2.58, 0.84), black,  [0,0,0], [0,0,0], [1, 1.8, 0.45]);
+    m.addMesh('eye-r',    makeSphere(0.24, 12, 10,  0.34, 2.58, 0.84), black,  [0,0,0], [0,0,0], [1, 1.8, 0.45]);
+    m.addMesh('shine-l',  makeSphere(0.08, 8, 6, -0.28, 2.62, 0.92), white);   // eye shine
+    m.addMesh('shine-r',  makeSphere(0.08, 8, 6,  0.28, 2.62, 0.92), white);
+    // tiny slit nostrils (no nose)
+    m.addMesh('nos-l', makeBox(0.03, 0.06, 0.03, -0.07, 2.38, 0.95), black);
+    m.addMesh('nos-r', makeBox(0.03, 0.06, 0.03,  0.07, 2.38, 0.95), black);
+    // antennae -- bouncy alien antennae
+    for (const s of [-1, 1]) {
+        m.addMesh(`ant-b-${s}`, makeCylinder(0.03, 0.02, 0.55, 6, s*0.28, 3.68, 0), green, [0,0,0], [0, 0, s*0.22]);
+        m.addMesh(`ant-t-${s}`, makeSphere(0.08, 8, 6, s*0.38, 4.18, 0), glowblue);
+    }
+    // abduction beam from below -- classic joke
+    m.addMesh('beam-t',  makeCylinder(0.55, 0.85, 1.5, 14, 0, -0.5, 0), glowblue, [0,0,0], [0,0,0], [1,1,1]);
+    // tail -- thin alien tail
+    m.addMesh('tail', makeCylinder(0.07, 0.03, 1.1, 6, 0, 1.05, -0.84), lgrn, [0,0,0], [0.55, 0, 0]);
+
+    await m.save('cat-alien.glb');
+}
+
+// ------ CAT GHOST ------
+async function buildCatGhost() {
+    const m = new ModelDoc('cat-ghost');
+    const ghost  = m.createMaterial('gh-white',  0xeeeeff, 0.3, 0.0, 0x8888cc, 0.78);
+    const dark   = m.createMaterial('gh-dark',   0x1a1a2e, 0.95, 0.0,  0x000011);
+    const eye    = m.createMaterial('gh-eye',    0x000022, 0.9,  0.1);
+    const glowwh = m.createMaterial('gh-glow',   0xffffff, 0.05, 0.0,  0xaaaadd, 0.45);
+    const bluegl = m.createMaterial('gh-blue',   0x6688ff, 0.2,  0.0,  0x3344cc, 0.65);
+
+    // wispy ghost body -- floating, no legs
+    m.addMesh('body',    makeSphere(0.75, 16, 12, 0, 1.5, 0), ghost, [0,0,0], [0,0,0], [1, 1.25, 0.95]);
+    // wispy bottom -- undulating ghostly trail
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const wx = Math.cos(a) * 0.38, wz = Math.sin(a) * 0.38;
+        m.addMesh(`wisp-${i}`, makeCylinder(0.15, 0.04, 0.55+i*0.06, 6, wx, 0.65-i*0.04, wz), ghost, [0,0,0], [(i*0.15)%0.4-0.2, 0, 0]);
+    }
+    m.addMesh('wisp-c',  makeCylinder(0.22, 0.02, 0.85, 8, 0, 0.6, 0), ghost);
+    // glow aura
+    m.addMesh('aura',    makeSphere(0.95, 16, 12, 0, 1.5, 0), glowwh, [0,0,0], [0,0,0], [1, 1.2, 1]);
+    m.addMesh('aura-2',  makeSphere(1.1,  14, 10, 0, 1.5, 0), bluegl, [0,0,0], [0,0,0], [1, 1.15, 1]);
+    // arms -- trailing wispy ghost arms
+    for (const s of [-1, 1]) {
+        m.addMesh(`arm-${s}`, makeCylinder(0.18, 0.06, 0.72, 8, s*0.95, 1.72, 0), ghost, [0,0,0], [0.15, 0, s*0.35]);
+        m.addMesh(`hnd-${s}`, makeSphere(0.12, 8, 6, s*1.38, 1.38, 0), ghost, [0,0,0], [0,0,0], [1.2, 0.8, 1.0]);
+        // finger wisps
+        for (let f = 0; f < 3; f++) {
+            m.addMesh(`fwsp-${s}${f}`, makeCylinder(0.04, 0.01, 0.28, 5, s*(1.48+(f-1)*0.08), 1.22+(f-1)*0.04, 0.0), ghost, [0,0,0], [(f-1)*0.25, 0, s*0.1]);
+        }
+    }
+    // head -- classic cat ghost head with HUGE eyes
+    m.addMesh('head',  makeSphere(0.72, 18, 14, 0, 2.45, 0), ghost, [0,0,0], [0,0,0], [0.96, 1.0, 0.94]);
+    m.addMesh('ear-l', makeCone(0.25, 0.46, 7, -0.32, 2.98, 0), ghost, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r', makeCone(0.25, 0.46, 7,  0.32, 2.98, 0), ghost, [0,0,0], [0,0, 0.22]);
+    // sad huge O eyes
+    m.addMesh('eye-l',  makeSphere(0.15, 10, 8, -0.25, 2.52, 0.64), eye, [0,0,0], [0,0,0], [1, 1.5, 0.55]);
+    m.addMesh('eye-r',  makeSphere(0.15, 10, 8,  0.25, 2.52, 0.64), eye, [0,0,0], [0,0,0], [1, 1.5, 0.55]);
+    m.addMesh('shine-l',makeSphere(0.055, 7, 5, -0.22, 2.56, 0.7),  glowwh);
+    m.addMesh('shine-r',makeSphere(0.055, 7, 5,  0.22, 2.56, 0.7),  glowwh);
+    // small wavy mouth
+    for (let i = 0; i < 4; i++) {
+        m.addMesh(`mouth-${i}`, makeSphere(0.04, 5, 4, (i-1.5)*0.11, 2.24 + Math.sin(i)*0.03, 0.68), eye);
+    }
+    // ghostly chain -- bound to something spooky
+    for (let i = 0; i < 6; i++) {
+        const cy = 0.85 - i * 0.22;
+        m.addMesh(`chain-${i}`, makeTorus(0.1, 0.025, 8, 4, -0.55+Math.sin(i)*0.08, cy, -0.1+Math.cos(i)*0.06), dark, [0,0,0], [0, i*0.55, 0]);
+    }
+
+    await m.save('cat-ghost.glb');
+}
+
+// ------ CAT WITCH ------
+async function buildCatWitch() {
+    const m = new ModelDoc('cat-witch');
+    const black  = m.createMaterial('wt-black', 0x0d0d15, 0.85, 0.1);
+    const purple = m.createMaterial('wt-purp',  0x5a1a8a, 0.6,  0.1, 0x220044);
+    const orange = m.createMaterial('wt-orange',0xff8844, 0.85, 0.0);
+    const skin   = m.createMaterial('wt-skin',  0xc8b89a, 0.8,  0.0);
+    const green  = m.createMaterial('wt-green', 0x225500, 0.6,  0.0, 0x112200);
+    const caul   = m.createMaterial('wt-caul',  0x228822, 0.5,  0.2, 0x114411);
+    const gold   = m.createMaterial('wt-gold',  0xcc9922, 0.3,  0.5);
+    const wood   = m.createMaterial('wt-wood',  0x7a4a22, 0.9,  0.05);
+
+    // cat body in witch robes
+    m.addMesh('body',     makeSphere(0.7, 16, 12, 0, 1.2, 0), orange, [0,0,0], [0,0,0], [1, 1.3, 0.85]);
+    m.addMesh('robe',     makeCylinder(0.76, 0.92, 1.65, 14, 0, 0.72, 0), black);
+    m.addMesh('robe-top', makeSphere(0.78, 14, 10, 0, 1.7, 0), black, [0,0,0], [0,0,0], [1.0, 0.52, 1.0]);
+    m.addMesh('robe-trim',makeBox(0.88, 0.06, 0.98, 0, -0.03, 0), purple); // hem with purple trim
+    // sleeves with pointy tips
+    for (const s of [-1, 1]) {
+        m.addMesh(`slv-${s}`,  makeCylinder(0.22, 0.35, 0.88, 8, s*0.94, 1.62, 0), black, [0,0,0], [0, 0, s*0.42]);
+        m.addMesh(`slv2-${s}`, makeCylinder(0.34, 0.22, 0.55, 8, s*1.32, 1.24, 0), black, [0,0,0], [0, 0, s*0.22]);
+        m.addMesh(`hnd-${s}`,  makeSphere(0.13, 8, 6, s*1.58, 1.0, 0), skin);
+        // gnarled warty fingers
+        for (let f = 0; f < 3; f++) {
+            const fy = 0.82-(f*0.08), fx = s*(1.62 + (f-1)*0.06);
+            m.addMesh(`fng-${s}${f}`, makeCylinder(0.025, 0.018, 0.28, 4, fx, fy, -0.05+f*0.08), skin);
+        }
+    }
+    // big green nose (classic witch)
+    m.addMesh('head',  makeSphere(0.62, 16, 12, 0, 2.38, 0), orange, [0,0,0], [0,0,0], [1, 0.98, 0.95]);
+    m.addMesh('ear-l', makeCone(0.24, 0.42, 7, -0.3, 2.86, 0), orange, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r', makeCone(0.24, 0.42, 7,  0.3, 2.86, 0), orange, [0,0,0], [0,0, 0.22]);
+    m.addMesh('eye-l', makeSphere(0.09, 8, 6, -0.22, 2.44, 0.57), m.createMaterial('el', 0x553300, 0.4, 0.0));
+    m.addMesh('eye-r', makeSphere(0.09, 8, 6,  0.22, 2.44, 0.57), m.createMaterial('er', 0x553300, 0.4, 0.0));
+    m.addMesh('nose',  makeSphere(0.12, 8, 6, 0, 2.28, 0.64), green, [0,0,0], [-0.5, 0, 0], [1.2, 2.2, 0.65]); // big warty nose
+    m.addMesh('wart',  makeSphere(0.04, 6, 5, -0.08, 2.24, 0.7), green); // wart ON the nose
+    // ICONIC pointy witch hat
+    m.addMesh('hat-brim',  makeCylinder(0.22, 0.88, 0.15, 14, 0, 2.9, 0), black);
+    m.addMesh('hat-brim2', makeCylinder(0.88, 0.95, 0.07, 14, 0, 2.83, 0), black);
+    m.addMesh('hat-cone',  makeCone(0.22, 1.45, 12, 0, 3.12, 0), black);
+    m.addMesh('hat-band',  makeTorus(0.22, 0.04, 12, 5, 0, 3.0, 0), purple);
+    m.addMesh('hat-star',  makeSphere(0.07, 6, 5, 0, 3.0, 0.26), gold); // buckle star
+    m.addMesh('hat-tip',   makeSphere(0.08, 6, 5, 0, 4.58, 0), purple);
+    // broomstick -- because DUH
+    m.addMesh('broom-haft', makeCylinder(0.045, 0.04, 2.4, 6, 0.95, 1.55, 0.35), wood, [0,0,0], [0.2, 0, 0.45]);
+    m.addMesh('broom-head', makeCylinder(0.1, 0.24, 0.65, 10, 1.55, 0.55, 0.75), m.createMaterial('bsh', 0xcc9944, 0.9, 0.0), [0,0,0], [0.45, 0, 0]);
+    m.addMesh('broom-tie',  makeTorus(0.13, 0.03, 8, 4, 1.55, 0.57, 0.73), wood);
+    // cauldron floating beside
+    m.addMesh('caul',  makeCylinder(0.35, 0.48, 0.52, 12, -1.4, 0.5, 0.2), m.createMaterial('ck', 0x222222, 0.7, 0.4));
+    m.addMesh('brew',  makeSphere(0.4, 10, 8, -1.4, 0.78, 0.2), caul, [0,0,0], [0,0,0], [1, 0.22, 1]); // bubbling brew top
+    m.addMesh('steam', makeCylinder(0.12, 0.04, 0.45, 6, -1.38, 1.05, 0.22), caul);
+    // TAIL -- cats always have tails
+    m.addMesh('tail', makeCylinder(0.11, 0.06, 1.2, 8, 0, 1.12, -0.86), orange, [0,0,0], [0.7, 0, 0.1]);
+
+    await m.save('cat-witch.glb');
+}
+
+// ------ CAT CHEF ------
+async function buildCatChef() {
+    const m = new ModelDoc('cat-chef');
+    const orange = m.createMaterial('ch-orange', 0xff8844, 0.85, 0.0);
+    const white  = m.createMaterial('ch-white',  0xf8f5ee, 0.8,  0.0);
+    const cream  = m.createMaterial('ch-cream',  0xeee8d5, 0.85, 0.0);
+    const black  = m.createMaterial('ch-black',  0x111111, 0.9,  0.1);
+    const navybl = m.createMaterial('ch-navy',   0x1a2244, 0.75, 0.05);
+    const wood   = m.createMaterial('ch-wood',   0x8b5a2b, 0.9,  0.05);
+    const gold   = m.createMaterial('ch-gold',   0xddaa22, 0.3,  0.6);
+    const food   = m.createMaterial('ch-food',   0xff6633, 0.7,  0.0);
+
+    // cat body in pristine chef whites
+    m.addMesh('body',    makeSphere(0.7, 16, 12, 0, 1.2, 0), orange, [0,0,0], [0,0,0], [1, 1.3, 0.85]);
+    m.addMesh('jacket',  makeCylinder(0.76, 0.82, 1.4, 14, 0, 0.82, 0), white);
+    m.addMesh('jacket-f',makeBox(0.68, 1.0, 0.08, 0, 1.35, 0.55), white);         // front overlap
+    m.addMesh('collar',  makeBox(0.24, 0.55, 0.06, 0, 1.95, 0.58), white);         // collar V
+    m.addMesh('jk-btn',  makeBox(0.06, 0.82, 0.06, -0.1, 1.35, 0.59), white);     // button row
+    for (let i = 0; i < 4; i++) {
+        m.addMesh(`btn-${i}`, makeSphere(0.042, 6, 5, -0.1, 1.72 - i*0.28, 0.6), black);
+    }
+    // apron
+    m.addMesh('apron',    makeBox(0.66, 0.95, 0.06, 0, 0.88, 0.58), navybl);
+    m.addMesh('apron-st', makeBox(0.68, 0.04, 0.06, 0, 1.35, 0.58), navybl); // apron strap across
+    m.addMesh('pocket',   makeBox(0.22, 0.18, 0.04, -0.25, 0.72, 0.62), navybl);
+    m.addMesh('spoon-p',  makeCylinder(0.02, 0.02, 0.35, 4, -0.3, 0.88, 0.65), m.createMaterial('sp', 0xaaaaaa, 0.3, 0.5));
+    // sleeves -- cuffed up, show orange fur
+    for (const s of [-1, 1]) {
+        m.addMesh(`slv-${s}`, makeCylinder(0.2, 0.17, 0.75, 8, s*0.96, 1.68, 0), white, [0,0,0], [0,0,s*0.3]);
+        m.addMesh(`cuf-${s}`, makeCylinder(0.18, 0.18, 0.2, 8, s*1.28, 1.22, 0), white);
+        m.addMesh(`paw-${s}`, makeSphere(0.16, 8, 6, s*1.45, 1.0, 0), orange, [0,0,0], [0,0,0], [1, 0.65, 1.1]);
+    }
+    // right hand holding a big rolling pin
+    m.addMesh('rp-l',  makeCylinder(0.06, 0.06, 0.88, 8, 1.5, 1.08, 0.15), wood);
+    m.addMesh('rp-bl', makeCylinder(0.12, 0.12, 0.6, 8, 1.5, 1.12, 0.16), cream);
+    m.addMesh('rp-br', makeCylinder(0.12, 0.12, 0.04, 8, 1.5, 1.08, -0.14), cream);
+    // legs -- black checkered pants
+    for (const [lx, lz] of [[-0.42, 0.36], [0.42, 0.36], [-0.42, -0.36], [0.42, -0.36]]) {
+        m.addMesh(`pant-${lx}`,  makeCylinder(0.18, 0.16, 0.9, 8, lx, 0.5, lz), black);
+        m.addMesh(`pant2-${lx}`, makeBox(0.2, 0.45, 0.22, lx, 0.5, lz), m.createMaterial('chk', 0x222222, 0.9, 0.1)); // check pattern (faked)
+        m.addMesh(`shoe-${lx}`,  makeBox(0.22, 0.18, 0.4, lx, -0.0, lz+0.05), black);
+    }
+    // head + toque blanche (the hat that matters)
+    m.addMesh('head',   makeSphere(0.62, 16, 12, 0, 2.35, 0), orange, [0,0,0], [0,0,0], [1, 1.0, 0.95]);
+    m.addMesh('ear-l',  makeCone(0.24, 0.42, 7, -0.3, 2.84, 0), orange, [0,0,0], [0,0,-0.22]);
+    m.addMesh('ear-r',  makeCone(0.24, 0.42, 7,  0.3, 2.84, 0), orange, [0,0,0], [0,0, 0.22]);
+    m.addMesh('eye-l',  makeSphere(0.09, 8, 6, -0.22, 2.44, 0.56), black);
+    m.addMesh('eye-r',  makeSphere(0.09, 8, 6,  0.22, 2.44, 0.56), black);
+    m.addMesh('mous-l', makeBox(0.14, 0.04, 0.03, -0.12, 2.22, 0.59), m.createMaterial('mr', 0x442200, 0.85, 0.0)); // tiny mustache
+    m.addMesh('mous-r', makeBox(0.14, 0.04, 0.03,  0.12, 2.22, 0.59), m.createMaterial('ml', 0x442200, 0.85, 0.0));
+    // tall toque blanche -- chef hat ICONIC
+    m.addMesh('hat-b',  makeCylinder(0.68, 0.72, 0.22, 14, 0, 2.82, 0), white); // brim band
+    m.addMesh('hat-t',  makeCylinder(0.65, 0.6, 1.0, 14, 0, 3.28, 0), white);    // tall crown
+    m.addMesh('hat-p',  makeSphere(0.62, 12, 10, 0, 3.82, 0), white, [0,0,0], [0,0,0], [1.05, 0.5, 1.05]); // puffed top
+    // food stain on apron (earned in battle)
+    m.addMesh('stain',  makeSphere(0.12, 8, 6, 0.18, 0.7, 0.62), food, [0,0,0], [0,0,0], [1.4, 0.5, 0.8]);
+    // tail
+    m.addMesh('tail', makeCylinder(0.11, 0.06, 1.2, 8, 0, 1.12, -0.86), orange, [0,0,0], [0.7, 0, 0.1]);
+
+    await m.save('cat-chef.glb');
+}
+
+// ------ CAT CLOWN ------
+async function buildCatClown() {
+    const m = new ModelDoc('cat-clown');
+    const orange  = m.createMaterial('cl-orange', 0xff8844, 0.85, 0.0);
+    const red     = m.createMaterial('cl-red',    0xff1111, 0.6,  0.0, 0x880000);
+    const yellow  = m.createMaterial('cl-yellow', 0xffee11, 0.5,  0.0, 0xcc9900);
+    const blue    = m.createMaterial('cl-blue',   0x2244ff, 0.5,  0.0, 0x1122cc);
+    const green   = m.createMaterial('cl-green',  0x00cc44, 0.5,  0.0, 0x006622);
+    const purple  = m.createMaterial('cl-purp',   0xaa22ee, 0.5,  0.0, 0x660099);
+    const white   = m.createMaterial('cl-white',  0xfafffa, 0.7,  0.0);
+    const skin    = m.createMaterial('cl-skin',   0xffd8c5, 0.75, 0.0);
+
+    // clown body -- oversized baggy suit
+    m.addMesh('body',    makeSphere(0.85, 16, 12, 0, 1.22, 0), yellow, [0,0,0], [0,0,0], [1.12, 1.35, 1.05]);
+    // multi-color suit pattern (stripes approximated with sections)
+    m.addMesh('suit-l',  makeBox(0.45, 1.15, 0.9, -0.28, 1.3, 0), blue, [0,0,0], [0,0,0]); // left half blue
+    m.addMesh('suit-r',  makeBox(0.45, 1.15, 0.9,  0.28, 1.3, 0), red);                    // right half red
+    m.addMesh('suit-ov', makeSphere(0.88, 14, 10, 0, 1.3, 0), yellow, [0,0,0], [0,0,0], [0.9, 0.75, 0.6]); // unifying shape
+    // giant bow tie
+    m.addMesh('bow-l',   makeSphere(0.32, 10, 8, -0.3, 1.95, 0.55), red, [0,0,0], [0,0,0], [1.2, 0.65, 0.45]);
+    m.addMesh('bow-r',   makeSphere(0.32, 10, 8,  0.3, 1.95, 0.55), red, [0,0,0], [0,0,0], [1.2, 0.65, 0.45]);
+    m.addMesh('bow-c',   makeSphere(0.14, 8, 6, 0, 1.95, 0.58), yellow);
+    // baggy sleeves
+    for (const s of [-1, 1]) {
+        m.addMesh(`slv-${s}`,  makeCylinder(0.28, 0.35, 0.85, 10, s*1.05, 1.68, 0), s<0?blue:red, [0,0,0], [0,0,s*0.38]);
+        m.addMesh(`cuf-${s}`,  makeCylinder(0.38, 0.28, 0.25, 10, s*1.45, 1.22, 0), white);
+        m.addMesh(`glv-${s}`,  makeSphere(0.2, 10, 8, s*1.65, 1.0, 0), white, [0,0,0], [0,0,0], [1.1, 0.85, 1.1]);
+    }
+    // HUGE clown feet -- the signature
+    for (const [lx, lz, col] of [
+        [-0.42, 0.36, yellow], [0.42, 0.36, green], [-0.42, -0.36, red], [0.42, -0.36, yellow]
+    ]) {
+        m.addMesh(`leg-${lx}${lz}`, makeCylinder(0.22, 0.26, 0.95, 8, lx, 0.5, lz), lx<0?blue:red);
+        m.addMesh(`shoe-${lx}`,     makeBox(0.3, 0.22, 0.88, lx, -0.04, lz + 0.2), col); // giant shoe
+        m.addMesh(`stoe-${lx}`,     makeSphere(0.2, 8, 6, lx, -0.02, lz + 0.56), col);   // rounded toe
+    }
+    // pompoms on suit
+    for (let i = 0; i < 3; i++) {
+        const colors = [red, yellow, green];
+        m.addMesh(`pom-${i}`, makeSphere(0.1, 8, 6, 0, 1.72 - i*0.32, 0.6), colors[i]);
+    }
+    // head + clown makeup
+    m.addMesh('head',    makeSphere(0.68, 16, 12, 0, 2.4, 0), skin, [0,0,0], [0,0,0], [1, 1.0, 0.95]);
+    m.addMesh('ear-l',   makeCone(0.26, 0.44, 7, -0.34, 2.96, 0), orange, [0,0,0], [0,0,-0.26]);
+    m.addMesh('ear-r',   makeCone(0.26, 0.44, 7,  0.34, 2.96, 0), orange, [0,0,0], [0,0, 0.26]);
+    // white face paint
+    m.addMesh('face',    makeSphere(0.65, 14, 10, 0, 2.42, 0.05), white, [0,0,0], [0,0,0], [0.95, 0.92, 0.58]);
+    // red clown nose -- THE NOSE
+    m.addMesh('nose',    makeSphere(0.15, 10, 8, 0, 2.34, 0.65), red, [0,0,0], [0,0,0], [1, 0.9, 0.8]);
+    // eye makeup -- stars
+    m.addMesh('eye-l',   makeSphere(0.11, 8, 6, -0.24, 2.5, 0.62), blue,   [0,0,0], [0,0,0], [1.4, 0.9, 0.6]);
+    m.addMesh('eye-r',   makeSphere(0.11, 8, 6,  0.24, 2.5, 0.62), purple, [0,0,0], [0,0,0], [1.4, 0.9, 0.6]);
+    m.addMesh('star-l',  makeSphere(0.14, 8, 6, -0.24, 2.5, 0.63), yellow, [0,0,0], [0,0,0], [1.6, 0.5, 0.4]);
+    m.addMesh('star-r',  makeSphere(0.14, 8, 6,  0.24, 2.5, 0.63), red,    [0,0,0], [0,0,0], [1.6, 0.5, 0.4]);
+    // giant grin
+    m.addMesh('mouth',   makeSphere(0.32, 10, 8, 0, 2.22, 0.62), red, [0,0,0], [0,0,0], [1.4, 0.55, 0.4]);
+    m.addMesh('teeth',   makeSphere(0.24, 8, 6, 0, 2.22, 0.65), white, [0,0,0], [0,0,0], [1.3, 0.35, 0.3]);
+    // rainbow afro -- the biggest, most chaotic element
+    const afroCols = [red, yellow, green, blue, purple, red];
+    for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        const r2 = 0.72, ax = Math.cos(a)*r2, ay = Math.sin(a)*r2*0.55+2.82, az = Math.sin(a)*0.22;
+        m.addMesh(`afro-${i}`, makeSphere(0.32, 8, 6, ax, ay, az), afroCols[i%6]);
+    }
+    m.addMesh('afro-top', makeSphere(0.38, 10, 8, 0, 3.42, 0), yellow);
+    m.addMesh('afro-mid', makeSphere(0.68, 12, 10, 0, 2.88, 0), red, [0,0,0], [0,0,0], [1.1, 0.7, 1.1]);
+    // tail -- curly clown tail with pompom
+    m.addMesh('tail',  makeCylinder(0.1, 0.06, 1.1, 8, 0, 1.12, -0.86), m.createMaterial('ctail', 0xffee11, 0.7, 0.0), [0,0,0], [0.7, 0.3, 0]);
+    m.addMesh('tail-p',makeSphere(0.14, 8, 6, 0.08, 0.45, -1.48), red);
+
+    await m.save('cat-clown.glb');
+}
+
 // =====================================================
 // MODELS LIST -- add entries here to generate more
 // each entry: { name, builder }

@@ -17,6 +17,10 @@ export interface LoadedModel {
 // global singleton loader -- one loader to rule them all
 const _loader = new GLTFLoader();
 
+// idc about the GLB stuff anymore, the procedural meshes look better actually
+// set this to true if we ever get REAL artist-made models. not generated ones. ugh.
+const GLB_ENABLED = false;
+
 // model cache -- load once, clone forever
 const _cache = new Map<string, LoadedModel>();
 
@@ -30,6 +34,9 @@ const _pending = new Map<string, Promise<LoadedModel>>();
 // falls back to null if file doesn't exist
 // =====================================================
 export async function loadModel(modelName: string): Promise<LoadedModel | null> {
+    // procedural meshes won. GLBs looked worse. bye.
+    if (!GLB_ENABLED) return null;
+
     const url = `/models/${modelName}`;
 
     // already cached? return a CLONE, not the original -- sharing meshes = bad time
