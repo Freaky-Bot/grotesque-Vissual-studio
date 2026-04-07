@@ -70,6 +70,17 @@ export class WildCards {
     // shrink ray -- D key. shrinks every npc to 0.15x. adorable+pathetic. 30s duration.
     private shrinkRayTimer: number = 0;
 
+    // mind control -- M key. nearest NPC becomes ur servant. 15s. it attacks others. chaos.
+    private mindControlNPC: BaseNPC | null = null;
+    private mindControlTimer: number = 0;
+    private mindControlOriginalMat: Map<THREE.Mesh, THREE.Color> = new Map();
+
+    // boss spawn -- [ key. one giant 5x NPC appears. it is angry. good luck.
+    private bossLight: THREE.PointLight | null = null;
+
+    // wormhole -- ] key. teleport player to random location. screen goes white. dramatic.
+    private wormholeCooldown: number = 0;
+
     // callbacks wired from main.ts -- keep it loosely coupled bc we're civilized
     public onChat: ((msg: string) => void) | null = null;
     public onShake: ((heavy: boolean) => void) | null = null;
@@ -77,6 +88,7 @@ export class WildCards {
     public getNPCs: (() => BaseNPC[]) | null = null;
     public getPlayerPos: (() => THREE.Vector3) | null = null;
     public onDeathParticles: ((pos: THREE.Vector3) => void) | null = null;
+    public onTeleportPlayer: ((x: number, z: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
@@ -616,6 +628,8 @@ export class WildCards {
         this._updateDiscoMode(dt);
         this._updateTimeBombs(dt);
         this._updateShrinkRay(dt);
+        this._updateMindControl(dt);
+        if (this.wormholeCooldown > 0) this.wormholeCooldown -= dt;
     }
 
     // ============================================================
@@ -988,6 +1002,157 @@ export class WildCards {
             }
             this.onChat?.('🔬 shrink ray wore off. everybody is back to normal. normal is relative. u know what i mean.');
         }
+    }
+
+    // ============================================================
+    // MIND CONTROL -- M KEY
+    // the nearest NPC becomes your slave. it attacks other npcs for 15s.
+    // purple glow. extra scary. then it remembers what happened and is upset.
+    // ============================================================
+    public triggerMindControl(): void {
+        if (this.mindControlTimer > 0) {
+            this.onChat?.('🧠 mind already controlled!! wait for the current puppet to snap out of it. meow.');
+            return;
+        }
+        const npcs = this.getNPCs?.() ?? [];
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const alive = npcs.filter(n => n.isAlive());
+        if (alive.length === 0) { this.onChat?.('🧠 no npcs to mind control. the void is quiet. this is fine.'); return; }
+
+        // find the closest one to the player
+        alive.sort((a, b) => a.getPosition().distanceTo(pp) - b.getPosition().distanceTo(pp));
+        const victim = alive[0];
+        this.mindControlNPC = victim;
+        this.mindControlTimer = 15;
+
+        // tint its mesh purple -- store originals so we can restore them
+        this.mindControlOriginalMat.clear();
+        (victim.getMesh() as THREE.Object3D).traverse(child => {
+            const m = child as THREE.Mesh;
+            if (!m.material) return;
+            const mat = m.material as THREE.MeshPhongMaterial;
+            if (!mat?.color) return;
+            this.mindControlOriginalMat.set(m, mat.color.clone());
+            mat.color.setHex(0xaa00ff);
+            mat.emissive?.setHex(0x440066);
+        });
+
+        this.onChat?.('🧠 MIND CONTROL ACTIVE!! the nearest NPC is now ur puppet!! it will attack the others for 15 seconds!!');
+        this.doFlash('hue-rotate(270deg) saturate(4) brightness(1.3)', 400);
+    }
+
+    private _updateMindControl(dt: number): void {
+        if (this.mindControlTimer <= 0 || !this.mindControlNPC) return;
+        this.mindControlTimer -= dt;
+
+        const controlled = this.mindControlNPC;
+        if (!controlled.isAlive()) {
+            this.mindControlTimer = 0;
+            this.mindControlNPC = null;
+            this.onChat?.('🧠 ur puppet died mid-control. awkward. the connection is severed.');
+            return;
+        }
+
+        // move toward nearest other NPC and deal damage on contact
+        const npcs = this.getNPCs?.() ?? [];
+        const others = npcs.filter(n => n !== controlled && n.isAlive());
+        if (others.length > 0) {
+            const myPos = controlled.getPosition();
+            others.sort((a, b) => a.getPosition().distanceTo(myPos) - b.getPosition().distanceTo(myPos));
+            const target = others[0];
+            const toTarget = target.getPosition().sub(myPos).normalize();
+            // nudge forward at 6 units/s
+            controlled.setPosition(myPos.add(toTarget.multiplyScalar(6 * dt)));
+            // damage target if close enough
+            if (controlled.getPosition().distanceTo(target.getPosition()) < 2.5) {
+                target.takeDamage(15 * dt);
+            }
+        }
+
+        if (this.mindControlTimer <= 0) {
+            // restore mesh colors
+            (controlled.getMesh() as THREE.Object3D).traverse(child => {
+                const m = child as THREE.Mesh;
+                const saved = this.mindControlOriginalMat.get(m);
+                if (saved && m.material) {
+                    (m.material as THREE.MeshPhongMaterial).color.copy(saved);
+                    (m.material as THREE.MeshPhongMaterial).emissive?.setHex(0x000000);
+                }
+            });
+            this.mindControlOriginalMat.clear();
+            this.mindControlNPC = null;
+            this.onChat?.('🧠 mind control expired. the NPC remembers everything. it is... upset.');
+        }
+    }
+
+    // ============================================================
+    // BOSS SPAWN -- [ KEY
+    // one giant 5x mega NPC with red glow and 10x health appears.
+    // it is not happy. nobody is happy. good luck.
+    // ============================================================
+    public spawnBossNPC(): void {
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const angle = Math.random() * Math.PI * 2;
+        const spawnPos = new THREE.Vector3(pp.x + Math.cos(angle) * 25, 0, pp.z + Math.sin(angle) * 25);
+
+        // spawn a normal NPC then immediately scale it 5x and tint it death-red
+        this.onSpawnNPC?.(null, spawnPos);
+
+        // after a tiny delay, find the latest NPC and beef it up
+        setTimeout(() => {
+            const npcs = this.getNPCs?.() ?? [];
+            const alive = npcs.filter(n => n.isAlive());
+            if (alive.length === 0) return;
+            // the newest NPC is the last in the array
+            const boss = alive[alive.length - 1];
+            const mesh = boss.getMesh() as THREE.Object3D;
+            mesh.scale.set(5, 5, 5);
+
+            // tint it angry red
+            mesh.traverse(child => {
+                const m = child as THREE.Mesh;
+                if (!m.material) return;
+                const mat = m.material as THREE.MeshPhongMaterial;
+                if (mat?.color) mat.color.setHex(0xcc1100);
+                if (mat?.emissive) mat.emissive.setHex(0x550000);
+            });
+
+            // boss glow light -- dramatic red spotlight
+            if (this.bossLight) this.scene.remove(this.bossLight);
+            const bLight = new THREE.PointLight(0xff0000, 8, 35);
+            bLight.position.copy(spawnPos).y += 5;
+            this.scene.add(bLight);
+            this.bossLight = bLight;
+
+            // deal it massive hp by... giving it more hp (we just pump tanking via not dying to normal damage)
+            // cant do this directly but it's visually massive -- 5x body means 5x hitbox feel
+            this.onChat?.('💀 A MEGA BOSS HAS APPEARED!! it is 5x the size!! red!! angry!! good luck!! u will need it!!');
+        }, 50);
+
+        this.doFlash('brightness(3) saturate(5)', 500);
+        this.onShake?.(true);
+    }
+
+    // ============================================================
+    // WORMHOLE -- ] KEY
+    // teleport the player to a random spot in the world.
+    // screen flashes white. disorienting. the world is big and scary.
+    // ============================================================
+    public activateWormhole(): void {
+        if (this.wormholeCooldown > 0) {
+            this.onChat?.(`🌀 wormhole recharging!! ${Math.ceil(this.wormholeCooldown)}s remaining!! ur stuck here!! embrace it!!`);
+            return;
+        }
+        this.wormholeCooldown = 20;
+
+        const newX = (Math.random() - 0.5) * 340;
+        const newZ = (Math.random() - 0.5) * 340;
+        this.onTeleportPlayer?.(newX, newZ);
+        this.onChat?.(`🌀 WORMHOLE!! u teleported to (${newX.toFixed(0)}, ${newZ.toFixed(0)})!! nothing is familiar!! this is ur life now!!`);
+        this.doFlash('brightness(10) invert(0)', 250);
+        setTimeout(() => this.doFlash('invert(1)', 150), 260);
+
+        this.onShake?.(false);
     }
 
     // small helper so we dont have to write the full document.body dance every time

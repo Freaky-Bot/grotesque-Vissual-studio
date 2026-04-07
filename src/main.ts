@@ -558,6 +558,10 @@ class CatGodWorld {
         this.wildCards.onSpawnNPC = (_type, pos) => {
             this.npcManager.forceSpawnAt(pos);
         };
+        // wormhole teleports the player -- sagcharacter needs teleportTo
+        this.wildCards.onTeleportPlayer = (x, z) => {
+            this.sageCharacter.teleportTo(x, z);
+        };
 
         // AMBIENT CHAOS -- the world just does stuff without being asked. UFOs, portals, rain, stalker, etc.
         this.ambientChaos = new AmbientChaos(this.scene);
@@ -754,6 +758,24 @@ class CatGodWorld {
             // D = SHRINK RAY -- every npc becomes 0.15x size for 30 seconds.
             if (e.key.toLowerCase() === 'd' && !this.chat.isInputOpen()) {
                 this.wildCards.activateShrinkRay();
+                return;
+            }
+
+            // M = MIND CONTROL -- nearest NPC becomes ur puppet for 15s. attacks others.
+            if (e.key.toLowerCase() === 'm' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerMindControl();
+                return;
+            }
+
+            // [ = BOSS SPAWN -- one giant red 5x NPC appears. angry. enormous. good luck.
+            if (e.key === '[' && !this.chat.isInputOpen()) {
+                this.wildCards.spawnBossNPC();
+                return;
+            }
+
+            // ] = WORMHOLE -- teleport player to a random location in the world. 20s cooldown.
+            if (e.key === ']' && !this.chat.isInputOpen()) {
+                this.wildCards.activateWormhole();
                 return;
             }
         });
