@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.9.1 fix: GLB models disabled. procedural meshes won. the hand-crafted geometry looks better than my generated boxes tbh. GLB_ENABLED = false. not like anyone will notice. mrrrow.",
+    "date": "2026-04-06",
+    "hash": "f0cb495"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "66515a6"
+  },
+  {
     "msg": "v2.9.0 feat: 11 new GLB models added!! emo! ninja! samurai! knight! grim reaper!! fire demon!! robot supreme!! fallen angel! viking!! demon!! GLITCH CAT!! omg omg omg they all generate from scratch nyaa~ 28 total models now PURRRRR 🐱✨🎀",
     "date": "2026-04-06",
     "hash": "de77752"

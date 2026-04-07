@@ -179,41 +179,122 @@ export class CatNPC extends BaseNPC {
         return group;
     }
 
-    private createNormalCat(group: THREE.Group): THREE.Group {
-        const bodyGeometry = new THREE.BoxGeometry(1, 1.5, 0.8);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff8844 });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    // THE CAT BASE BUILDER -- ears!! legs!! muzzle!! whiskers!! curved tail!! iris+pupil eyes!!
+    // every cat that calls this is IMMEDIATELY a better cat. no exceptions. no refunds. nyaa~
+    // bodyColor = body/fur color. eyeColor = iris color. innerEarColor = pink default (override for dark cats)
+    private buildCatBase(group: THREE.Group, bodyColor: number, eyeColor: number, innerEarColor: number = 0xff99bb): THREE.Group {
+        const bodyMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.75 });
+        const innerEarMat = new THREE.MeshBasicMaterial({ color: innerEarColor });
+        const eyeIrisMat = new THREE.MeshStandardMaterial({ color: eyeColor, emissive: eyeColor, emissiveIntensity: 0.3 });
+        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const noseMat = new THREE.MeshBasicMaterial({ color: 0xff88aa });
+        const whiskerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        // BODY - tapered torso. cylinder so it actually looks like a torso and not a minecraft block.
+        // this alone is already better than what we had. embarrassing that it took this long.
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.4, 1.4, 10), bodyMat);
         body.castShadow = true;
         body.receiveShadow = true;
-        group.add(body);
+        group.add(body); // children[0] = body -- color-mutation cats that do children[0] still work
 
-        // Head
-        const headGeometry = new THREE.SphereGeometry(0.6, 16, 16);
-        const head = new THREE.Mesh(headGeometry, bodyMaterial);
-        head.position.y = 1;
+        // HEAD - proper sphere with feline proportions
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 16, 14), bodyMat);
+        head.position.y = 1.05;
         head.castShadow = true;
-        head.receiveShadow = true;
         group.add(head);
 
-        // Tail
-        const tailGeometry = new THREE.ConeGeometry(0.2, 1.5, 8);
-        const tail = new THREE.Mesh(tailGeometry, bodyMaterial);
-        tail.position.set(0, 0.3, -0.6);
-        tail.rotation.z = 0.5;
-        tail.castShadow = true;
+        // THE EARS. OH MY GOD. FINALLY. THE EARS.
+        // this is literally the most impactful change in this entire file's history. cats have ears.
+        const earGeo = new THREE.ConeGeometry(0.22, 0.44, 5);
+        const innerEarGeo = new THREE.ConeGeometry(0.11, 0.27, 5);
+
+        const earL = new THREE.Mesh(earGeo, bodyMat);
+        earL.position.set(-0.3, 1.58, 0.05);
+        earL.rotation.z = -0.2;
+        group.add(earL);
+        const earR = earL.clone();
+        earR.position.set(0.3, 1.58, 0.05);
+        earR.rotation.z = 0.2;
+        group.add(earR);
+
+        // inner ears -- the pink triangles inside. THE DETAIL. incredible.
+        const iEarL = new THREE.Mesh(innerEarGeo, innerEarMat);
+        iEarL.position.set(-0.3, 1.59, 0.1);
+        iEarL.rotation.z = -0.2;
+        group.add(iEarL);
+        const iEarR = iEarL.clone();
+        iEarR.position.set(0.3, 1.59, 0.1);
+        iEarR.rotation.z = 0.2;
+        group.add(iEarR);
+
+        // MUZZLE - snout protrusion. cats have MUZZLES. they always had muzzles. where were they.
+        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10), bodyMat);
+        muzzle.scale.set(1, 0.72, 0.7);
+        muzzle.position.set(0, 1.02, 0.57);
+        group.add(muzzle);
+
+        // NOSE - tiny pink button. extremely important. i am adamant about this.
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.07, 7, 6), noseMat);
+        nose.scale.set(1.2, 0.8, 0.65);
+        nose.position.set(0, 1.03, 0.69);
+        group.add(nose);
+
+        // EYES - iris + pupil. they look alive now. this is what eyes look like.
+        // before this they were just black dots floating in space. not anymore.
+        const irisGeo = new THREE.SphereGeometry(0.13, 12, 10);
+        const pupilGeo = new THREE.SphereGeometry(0.07, 8, 8);
+        for (const xSign of [-1, 1]) {
+            const iris = new THREE.Mesh(irisGeo, eyeIrisMat.clone());
+            iris.position.set(xSign * 0.22, 1.24, 0.55);
+            group.add(iris);
+            const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+            pupil.position.set(xSign * 0.22, 1.24, 0.61);
+            group.add(pupil);
+        }
+
+        // WHISKERS -- 6 total. 3 per side. emanating from muzzle area. never existed here before.
+        // this is their world premiere. give them a round of applause.
+        const wGeo = new THREE.BoxGeometry(0.55, 0.016, 0.016);
+        for (const [xSign, yOff, ry] of [
+            [-1, 0.04, 0.12], [-1, 0, 0], [-1, -0.04, -0.12],
+            [1, 0.04, -0.12], [1, 0, 0], [1, -0.04, 0.12]
+        ] as [number, number, number][]) {
+            const w = new THREE.Mesh(wGeo, whiskerMat);
+            w.position.set(xSign * 0.4, 1.02 + yOff, 0.52);
+            w.rotation.y = ry;
+            group.add(w);
+        }
+
+        // LEGS + PAWS -- four actual legs. the cats touch the ground now.
+        // never before. today. this historic moment. four legs. revolutionary.
+        const legGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.5, 8);
+        for (const [lx, lz] of [[-0.27, 0.2], [0.27, 0.2], [-0.27, -0.2], [0.27, -0.2]] as [number, number][]) {
+            const leg = new THREE.Mesh(legGeo, bodyMat);
+            leg.position.set(lx, -0.9, lz);
+            leg.castShadow = true;
+            group.add(leg);
+            // paw -- a lil squished sphere. very cute. don't argue.
+            const paw = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 7), bodyMat);
+            paw.scale.set(1.1, 0.62, 1.15);
+            paw.position.set(lx, -1.17, lz + 0.05);
+            group.add(paw);
+        }
+
+        // TAIL -- curved torus arc. NOT a rotated cone. we are past that.
+        // the old tail was a crime against geometry. this is justice.
+        const tailGeo = new THREE.TorusGeometry(0.44, 0.09, 7, 16, Math.PI * 0.75);
+        const tail = new THREE.Mesh(tailGeo, bodyMat);
+        tail.position.set(0.1, -0.18, -0.54);
+        tail.rotation.set(-1.57, 0, 0.85);
         group.add(tail);
 
-        // Eyes
-        const eyeGeometry = new THREE.SphereGeometry(0.15, 8, 8);
-        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        leftEye.position.set(-0.2, 1.3, 0.5);
-        group.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        rightEye.position.set(0.2, 1.3, 0.5);
-        group.add(rightEye);
-
         return group;
+    }
+
+    private createNormalCat(group: THREE.Group): THREE.Group {
+        // orange tabby. the original. now with ears, legs, whiskers, muzzle, proper eyes.
+        // it was always going to come to this. took a while. we're here now. meow.
+        return this.buildCatBase(group, 0xff8844, 0x44cc44);
     }
 
     private createJesusCat(group: THREE.Group): THREE.Group {
@@ -243,39 +324,54 @@ export class CatNPC extends BaseNPC {
     }
 
     private createRobotCat(group: THREE.Group): THREE.Group {
-        const bodyGeometry = new THREE.BoxGeometry(1, 1.5, 0.8);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x888888,
-            metalness: 0.8,
-            roughness: 0.2
-        });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.castShadow = true;
-        body.receiveShadow = true;
-        group.add(body);
+        // BEEP BOOP ROBOT CAT. UPGRADED. EARS: INSTALLED. LEGS: OPERATIONAL. CHEST PANEL: ADDED.
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.85, roughness: 0.15 });
+        const accentMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.9, roughness: 0.1 });
+        const glowRedMat = new THREE.MeshBasicMaterial({ color: 0xff2200 });
+        const glowCyanMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
 
-        // Head with antenna
-        const headGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-        const head = new THREE.Mesh(headGeometry, bodyMaterial);
-        head.position.y = 1.2;
-        head.castShadow = true;
-        group.add(head);
+        // torso -- boxy robot body, this one's supposed to be boxy, trust
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), bodyMat);
+        body.castShadow = true; body.receiveShadow = true; group.add(body);
+        // chest screen/vent panel
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.32, 0.05), new THREE.MeshBasicMaterial({ color: 0x001a1a }));
+        panel.position.set(0, 0.05, 0.43); group.add(panel);
+        const scanLine = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.04, 0.02), glowCyanMat);
+        scanLine.position.set(0, 0.05, 0.46); group.add(scanLine);
 
-        // Antenna
-        const antennaGeometry = new THREE.ConeGeometry(0.1, 0.8, 8);
-        const antenna = new THREE.Mesh(antennaGeometry, bodyMaterial);
-        antenna.position.y = 2.2;
-        group.add(antenna);
+        // head -- box head, appropriately mechanical
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.82, 0.82), bodyMat);
+        head.position.y = 1.22; head.castShadow = true; group.add(head);
 
-        // Eyes - LEDs
-        const eyeGeometry = new THREE.SphereGeometry(0.15, 8, 8);
-        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        leftEye.position.set(-0.2, 1.3, 0.5);
-        group.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        rightEye.position.set(0.2, 1.3, 0.5);
-        group.add(rightEye);
+        // ROBOT EARS -- angular box ears, the mechanized feline signature look
+        const earGeo = new THREE.BoxGeometry(0.22, 0.3, 0.18);
+        const earL = new THREE.Mesh(earGeo, accentMat); earL.position.set(-0.55, 1.48, 0); group.add(earL);
+        const earR = earL.clone(); earR.position.set(0.55, 1.48, 0); group.add(earR);
+        // ear indicator lights -- one per ear
+        const earLightGeo = new THREE.BoxGeometry(0.08, 0.08, 0.22);
+        const earLightL = new THREE.Mesh(earLightGeo, glowCyanMat); earLightL.position.set(-0.55, 1.5, 0.06); group.add(earLightL);
+        const earLightR = earLightL.clone(); earLightR.position.set(0.55, 1.5, 0.06); group.add(earLightR);
+
+        // antenna
+        const antStick = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.65, 6), bodyMat);
+        antStick.position.y = 2.06; group.add(antStick);
+        const antBall = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+        antBall.position.y = 2.44; group.add(antBall);
+
+        // LED eyes -- glowing rectangular, not spheres, this is a robot
+        const eyeGeo = new THREE.BoxGeometry(0.24, 0.15, 0.06);
+        const eyeL = new THREE.Mesh(eyeGeo, glowRedMat); eyeL.position.set(-0.19, 1.32, 0.44); group.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.set(0.19, 1.32, 0.44); group.add(eyeR);
+
+        // LEGS -- mechanical joint legs. the robot cat stands on actual legs now.
+        const upperLeg = new THREE.CylinderGeometry(0.14, 0.12, 0.45, 6);
+        const lowerLeg = new THREE.CylinderGeometry(0.1, 0.13, 0.38, 6);
+        const footGeo = new THREE.BoxGeometry(0.28, 0.1, 0.38);
+        for (const [lx, lz] of [[-0.3, 0.2], [0.3, 0.2], [-0.3, -0.2], [0.3, -0.2]] as [number, number][]) {
+            const ul = new THREE.Mesh(upperLeg, bodyMat); ul.position.set(lx, -0.85, lz); group.add(ul);
+            const ll = new THREE.Mesh(lowerLeg, accentMat); ll.position.set(lx, -1.2, lz); group.add(ll);
+            const ft = new THREE.Mesh(footGeo, bodyMat); ft.position.set(lx, -1.42, lz + 0.05); group.add(ft);
+        }
 
         return group;
     }
@@ -443,44 +539,19 @@ export class CatNPC extends BaseNPC {
     }
 
     private createShadowCat(group: THREE.Group): THREE.Group {
-        // Dark, shadowy version of normal cat
-        const bodyGeometry = new THREE.BoxGeometry(1, 1.5, 0.8);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x1a1a1a,
-            metalness: 0.4,
-            roughness: 0.8
+        // dark. barely there. now with ears, legs, muzzle -- shadow cat has FORM now.
+        // the inner ears are dark so it stays ominous. not cute. never cute. shadow cat refuses.
+        this.buildCatBase(group, 0x1a1a1a, 0xff3333, 0x0a0808);
+        // the whiskers on shadow cat should be dark too -- white whiskers would break the vibe
+        group.children.forEach(c => {
+            if (c instanceof THREE.Mesh) {
+                const mat = c.material as THREE.MeshBasicMaterial;
+                if (mat?.color?.getHex() === 0xffffff) mat.color.setHex(0x222222);
+            }
         });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.castShadow = true;
-        body.receiveShadow = true;
-        group.add(body);
-
-        // Head
-        const headGeometry = new THREE.SphereGeometry(0.6, 16, 16);
-        const head = new THREE.Mesh(headGeometry, bodyMaterial);
-        head.position.y = 1;
-        head.castShadow = true;
-        head.receiveShadow = true;
-        group.add(head);
-
-        // Tail
-        const tailGeometry = new THREE.ConeGeometry(0.2, 1.5, 8);
-        const tail = new THREE.Mesh(tailGeometry, bodyMaterial);
-        tail.position.set(0, 0.3, -0.6);
-        tail.rotation.z = 0.5;
-        tail.castShadow = true;
-        group.add(tail);
-
-        // Evil glowing eyes
-        const eyeGeometry = new THREE.SphereGeometry(0.15, 8, 8);
-        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff3333 });
-        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        leftEye.position.set(-0.2, 1.3, 0.5);
-        group.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        rightEye.position.set(0.2, 1.3, 0.5);
-        group.add(rightEye);
-
+        // ethereal dark aura -- barely visible, barely real, barely here
+        const aura = new THREE.Mesh(new THREE.SphereGeometry(1.4, 12, 12), new THREE.MeshBasicMaterial({ color: 0x220000, transparent: true, opacity: 0.09 }));
+        group.add(aura);
         return group;
     }
 
@@ -601,7 +672,7 @@ export class CatNPC extends BaseNPC {
     }
 
     private createZombieCat(group: THREE.Group): THREE.Group {
-        // this ran on every frame. every. single. frame. and now its undead too. great.
+        // this ran on every frame. every. single. frame. and now its undead AND has ears. great.
         const mat = new THREE.MeshStandardMaterial({ color: 0x7a9e7e, roughness: 0.95 });
         const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.8), mat);
         body.castShadow = true;
@@ -609,6 +680,10 @@ export class CatNPC extends BaseNPC {
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 12), mat);
         head.position.y = 1.0;
         group.add(head);
+        // ZOMBIE EARS -- tattered and misshapen. still ears. they count.
+        const earGeo = new THREE.ConeGeometry(0.22, 0.42, 5);
+        const earL = new THREE.Mesh(earGeo, mat); earL.position.set(-0.28, 1.52, 0.04); earL.rotation.z = -0.25; group.add(earL);
+        const earR = new THREE.Mesh(earGeo, mat); earR.position.set(0.28, 1.52, 0.04); earR.rotation.z = 0.22; group.add(earR);
         // droopy arm sticking out
         const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 1.0, 6), mat);
         arm.position.set(0.6, 0.9, 0.5);
@@ -621,6 +696,12 @@ export class CatNPC extends BaseNPC {
         const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffff00 }));
         eyeR.position.set(0.2, 1.2, 0.53);
         group.add(eyeR);
+        // ZOMBIE LEGS -- shambling. uneven. but they are LEGS and they EXIST.
+        const legGeo = new THREE.CylinderGeometry(0.13, 0.1, 0.52, 6);
+        const zl1 = new THREE.Mesh(legGeo, mat); zl1.position.set(-0.27, -0.88, 0.18); zl1.rotation.z = 0.1; group.add(zl1);
+        const zl2 = new THREE.Mesh(legGeo, mat); zl2.position.set(0.27, -0.9, 0.18); group.add(zl2);
+        const zl3 = new THREE.Mesh(legGeo, mat); zl3.position.set(-0.27, -0.9, -0.18); group.add(zl3);
+        const zl4 = new THREE.Mesh(legGeo, mat); zl4.position.set(0.27, -0.88, -0.18); zl4.rotation.z = -0.08; group.add(zl4);
         const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.5, 8), mat);
         tail.position.set(0, 0.3, -0.6);
         tail.rotation.z = 0.5;
@@ -1078,9 +1159,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createIceWizardCat(group: THREE.Group): THREE.Group {
-        // Tired of being warm?? ICE WIZARD CAT changes everything!!
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0xaaddff });
+        // Tired of being warm?? ICE WIZARD CAT changes everything!! now with icy blue fur and EARS
+        this.buildCatBase(group, 0xaaddff, 0x88ddff, 0xccf0ff);
         const hat = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.3, 8), new THREE.MeshStandardMaterial({ color: 0x0044cc }));
         hat.position.y = 2.1; group.add(hat);
         for (let i = 0; i < 4; i++) {
@@ -1120,9 +1200,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createThunderGodCat(group: THREE.Group): THREE.Group {
-        // henceforth: lightning does not miss. verily.
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0xffdd00, emissive: 0x443300 });
+        // henceforth: lightning does not miss. verily. the thunder god now has golden ears.
+        this.buildCatBase(group, 0xffdd00, 0xffffff, 0xffeeaa);
         const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.25, 5), new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.9 }));
         crown.position.y = 1.7; group.add(crown);
         for (let i = 0; i < 5; i++) {
@@ -1154,9 +1233,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createHackerCat(group: THREE.Group): THREE.Group {
-        // they dont want you to know this cat has root access. (it does)
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x002200 });
+        // they dont want you to know this cat has root access. and ears. definitely ears.
+        this.buildCatBase(group, 0x002200, 0x00ff44, 0x002200);
         const laptop = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.05), new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8 }));
         laptop.position.set(0, 0.7, 0.6); group.add(laptop);
         const screen = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.43, 0.01), new THREE.MeshBasicMaterial({ color: 0x00ff44, transparent: true, opacity: 0.9 }));
@@ -1212,9 +1290,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createFallenAngelCat(group: THREE.Group): THREE.Group {
-        // used to be an angel. made some choices. wings are still there but they're dark now.
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x222233 });
+        // used to be an angel. made some choices. dark wings. dark ears. dark everything.
+        this.buildCatBase(group, 0x222233, 0x4444aa, 0x110022);
         for (const [xSign, rotZ] of [[-1, 0.85], [1, -0.85]] as [number, number][]) {
             const wing = new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0x1a0022, transparent: true, opacity: 0.85 }));
             wing.rotation.z = rotZ; wing.position.set(xSign * 1.0, 1.2, -0.3); group.add(wing);
@@ -1254,9 +1331,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createCloudSurferCat(group: THREE.Group): THREE.Group {
-        // this cat rides clouds. nobody gave it permission. still happening.
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x88ccff });
+        // this cat rides clouds. nobody gave it permission. still happening. now has sky-blue ears.
+        this.buildCatBase(group, 0x88ccff, 0x4499ff, 0xbbddff);
         const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.8, 10, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0 }));
         cloud.scale.set(1.5, 0.35, 1.0); cloud.position.y = -0.9; group.add(cloud);
         const cloud2 = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0 }));
@@ -1271,9 +1347,8 @@ export class CatNPC extends BaseNPC {
     }
 
     private createPlumberCat(group: THREE.Group): THREE.Group {
-        // its a me. a cat. this entire method is a copyright risk. moving on.
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x2244aa });
+        // its a me. a cat. this entire method is a copyright risk. now with blue overalls and ears.
+        this.buildCatBase(group, 0x2244aa, 0xffcc00, 0xff99cc);
         const straps = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.4, 0.32), new THREE.MeshStandardMaterial({ color: 0x1133aa }));
         straps.position.set(0, 0.1, 0.55); group.add(straps);
         const capBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.08, 12), new THREE.MeshStandardMaterial({ color: 0xcc0000 }));
@@ -1314,8 +1389,8 @@ export class CatNPC extends BaseNPC {
 
     private createOracleCat(group: THREE.Group): THREE.Group {
         // the future is: more cats. it was always going to be more cats. this was inevitable.
-        this.createNormalCat(group);
-        (group.children[0] as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: 0x331155 });
+        // the oracle sees all. including the ears it never had. they exist now. it saw this coming.
+        this.buildCatBase(group, 0x331155, 0xff00ff, 0x220033);
         const ball = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0x8844ff, transparent: true, opacity: 0.7 }));
         ball.position.set(0, 0.7, 0.7); group.add(ball);
         const ballGlow = new THREE.Mesh(new THREE.SphereGeometry(0.45, 12, 12), new THREE.MeshBasicMaterial({ color: 0x6600ff, transparent: true, opacity: 0.18 }));
@@ -1384,7 +1459,14 @@ export class CatNPC extends BaseNPC {
         // eyes -- the fury
         const eyeM = new THREE.MeshBasicMaterial({ color: 0xff6600 });
         const eL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeM); eL.position.set(-0.22, 1.35, 0.58); group.add(eL);
-        const eR = eL.clone(); eR.position.set(0.22, 1.35, 0.58); group.add(eR);
+        // viking legs -- sturdy. boots included. ready to charge.
+        const vLegGeo = new THREE.CylinderGeometry(0.15, 0.13, 0.55, 8);
+        const vLegMat = new THREE.MeshStandardMaterial({ color: 0x4488cc });
+        const vBootMat = new THREE.MeshStandardMaterial({ color: 0x5c3a1e });
+        for (const [lx, lz] of [[-0.28, 0.22], [0.28, 0.22], [-0.28, -0.22], [0.28, -0.22]] as [number, number][]) {
+            const vl = new THREE.Mesh(vLegGeo, vLegMat); vl.position.set(lx, -0.88, lz); group.add(vl);
+            const boot = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 7), vBootMat); boot.scale.set(1.1, 0.65, 1.2); boot.position.set(lx, -1.18, lz + 0.06); group.add(boot);
+        }
         return group;
     }
 
@@ -1433,7 +1515,19 @@ export class CatNPC extends BaseNPC {
         donut.position.set(0.7, 0.0, 0.3); donut.rotation.x = 0.5; group.add(donut);
         const eyeM = new THREE.MeshBasicMaterial({ color: 0x222255 });
         const eL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeM); eL.position.set(-0.22, 1.25, 0.55); group.add(eL);
-        const eR = eL.clone(); eR.position.set(0.22, 1.25, 0.55); group.add(eR);
+        // cop ears -- just below the cap brim, flesh tone, on duty at all times
+        const cEarMat = new THREE.MeshStandardMaterial({ color: 0xffd4a8 });
+        const cEarGeo = new THREE.ConeGeometry(0.2, 0.4, 5);
+        const cEarL = new THREE.Mesh(cEarGeo, cEarMat); cEarL.position.set(-0.54, 1.55, 0); cEarL.rotation.z = -0.3; group.add(cEarL);
+        const cEarR = cEarL.clone(); cEarR.position.set(0.54, 1.55, 0); cEarR.rotation.z = 0.3; group.add(cEarR);
+        // cop legs -- standing at attention. or slouching by the donut stand. either way, legs.
+        const cLegGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.5, 8);
+        const cLegMat = new THREE.MeshStandardMaterial({ color: 0x1a3a6e });
+        const cBootMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        for (const [lx, lz] of [[-0.27, 0.2], [0.27, 0.2], [-0.27, -0.2], [0.27, -0.2]] as [number, number][]) {
+            const cl = new THREE.Mesh(cLegGeo, cLegMat); cl.position.set(lx, -0.9, lz); group.add(cl);
+            const cb = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, 0.33), cBootMat); cb.position.set(lx, -1.17, lz + 0.04); group.add(cb);
+        }
         return group;
     }
 
@@ -1459,7 +1553,13 @@ export class CatNPC extends BaseNPC {
         group.add(glow);
         const eyeM = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const eL2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeM); eL2.position.set(-0.22, 1.30, 0.57); group.add(eL2);
-        const eR2 = eL2.clone(); eR2.position.set(0.22, 1.30, 0.57); group.add(eR2);
+        // demon legs -- dark, clawed, touch the ground now. the corruption is complete.
+        const dLegGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.52, 8);
+        const dLegMat = new THREE.MeshStandardMaterial({ color: 0x220000, roughness: 0.8 });
+        for (const [lx, lz] of [[-0.27, 0.2], [0.27, 0.2], [-0.27, -0.2], [0.27, -0.2]] as [number, number][]) {
+            const dl = new THREE.Mesh(dLegGeo, dLegMat); dl.position.set(lx, -0.9, lz); group.add(dl);
+            const df = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), dLegMat); df.scale.set(1.1, 0.65, 1.1); df.position.set(lx, -1.17, lz + 0.05); group.add(df);
+        }
         return group;
     }
 
@@ -1504,7 +1604,11 @@ export class CatNPC extends BaseNPC {
         // wise eyes -- glowing faint green
         const eyeM = new THREE.MeshBasicMaterial({ color: 0xaaffaa });
         const eL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), eyeM); eL.position.set(-0.2, 1.18, 0.54); group.add(eL);
-        const eR = eL.clone(); eR.position.set(0.2, 1.18, 0.54); group.add(eR);
+        // elder cat ears -- ancient, slightly droopy with age, grey like the rest of this veteran
+        const eldEarGeo = new THREE.ConeGeometry(0.2, 0.38, 5);
+        const eldEarMat = new THREE.MeshStandardMaterial({ color: 0x888880, roughness: 1.0 });
+        const eldEarL = new THREE.Mesh(eldEarGeo, eldEarMat); eldEarL.position.set(-0.3, 1.5, 0.04); eldEarL.rotation.z = -0.28; group.add(eldEarL);
+        const eldEarR = eldEarL.clone(); eldEarR.position.set(0.3, 1.5, 0.04); eldEarR.rotation.z = 0.28; group.add(eldEarR);
         return group;
     }
 
