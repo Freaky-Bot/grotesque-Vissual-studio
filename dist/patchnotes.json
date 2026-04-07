@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.3.1 chore: replaced ugandan-knuckles.glb with new model from user. bigger file, same wey. meow.",
+    "date": "2026-04-06",
+    "hash": "22b200b"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "1fd6d5d"
+  },
+  {
     "msg": "v3.3.0 feat: REBUILT ALL 10 NPC MODELS FROM SCRATCH meow~~ new proportions, new geometry, new everything. VoidCat=phantom tendrils, Shrek=proper ogre, BuffCat=COMICALLY BIG ARMS, Emo=goth boots+stand, Obama=presidential suit, Trump=legendary TIE, Barney=T-rex round boi, Dio=vampire cape, UgandanKnuckles=meme-accurate, CatGod=even more divine. nyaaaa 🐱✨",
     "date": "2026-04-06",
     "hash": "2318f60"
