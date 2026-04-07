@@ -41,6 +41,9 @@ export class TrumpNPC extends BaseNPC {
         this.mesh = this.buildMesh();
         this.mesh.position.copy(this.position);
         console.log('%c🍊 TRUMP HAS ENTERED THE GAME. IT\'S GOING TO BE TREMENDOUS.', 'color: #FF7733; font-weight: bold; font-size: 13px');
+
+        // tremendous model. best model. everyone says so. loading GLB now.
+        this.tryLoadGLBModel(3.2);
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
@@ -216,6 +219,7 @@ export class TrumpNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         // waddles around with purpose
         this.randomWalk(deltaTime, 1.9);
 

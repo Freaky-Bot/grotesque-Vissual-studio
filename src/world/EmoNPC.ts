@@ -53,6 +53,10 @@ export class EmoNPC extends BaseNPC {
         this.stand.visible = false;
 
         console.log('%c🖤 emo npc spawned... nobody cares... *sigh*', 'color: #9933cc; font-style: italic');
+
+        // tryLoadGLBModel for emo. no GLB exists for emo yet. it wont find one. it will be alone.
+        // just like the emo. fitting. whatever.
+        this.tryLoadGLBModel(2.5);
     }
 
     // give emo a reference to player pos so stand can hunt them lol
@@ -316,6 +320,7 @@ export class EmoNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         // sadly wanders the world
         this.randomWalk(deltaTime, 2.8);
 

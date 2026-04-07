@@ -244,7 +244,8 @@ export const MODEL_NAMES: Record<string, string> = {
     'barney':        'barney.glb',
     'elmo':          'elmo.glb',
     'dio':           'dio.glb',
-    'ugandan':       'ugandan-knuckles.glb',
+    'ugandan':           'ugandan-knuckles.glb',
+    'ugandan_knuckles':   'ugandan-knuckles.glb',
     'buffcat':       'buffcat.glb',
     // mobs
     'bird':          'bird.glb',

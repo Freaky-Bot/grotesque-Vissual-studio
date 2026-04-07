@@ -102,6 +102,9 @@ export class UgandanKnucklesNPC extends BaseNPC {
         ];
         // kick off the buffer load -- no-ops if already loading/loaded
         loadClickBuffer();
+
+        // u kno da wey to da GLB folder now brudda
+        this.tryLoadGLBModel(3.5);
     }
 
     // called by UgandanKnucklesEvent to crown one as leader
@@ -361,6 +364,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         if (!this.hasLanded) {
             // raining from sky, spinning down
             this.position.y -= this.fallSpeed * deltaTime;

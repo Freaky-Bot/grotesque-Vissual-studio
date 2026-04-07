@@ -29,6 +29,9 @@ export class BuffCatNPC extends BaseNPC {
         ];
         this.bubbleHeadOffset = 4.5;
         this.dialogueTimer = Math.random() * 5;
+
+        // THE PUMP IS REAL...AND SO IS THIS GLB MODEL. loading now.
+        this.tryLoadGLBModel(5.5);
     }
 
     private buildBuffCat(): THREE.Group {
@@ -112,6 +115,7 @@ export class BuffCatNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         this.armSwing += deltaTime * 3;
 
         if (this.isDoingZoomies) {
@@ -127,9 +131,11 @@ export class BuffCatNPC extends BaseNPC {
             // spin wildly because zoomies
             this.mesh.rotation.y += deltaTime * 7;
 
-            // arms flapping like crazy during zoomies
-            this.leftArmGroup.rotation.x = Math.sin(this.armSwing * 6) * 1.5;
-            this.rightArmGroup.rotation.x = -Math.sin(this.armSwing * 6) * 1.5;
+            // arms flapping like crazy during zoomies -- only if procedural mesh is still active
+            if (!this.glbLoaded) {
+                this.leftArmGroup.rotation.x = Math.sin(this.armSwing * 6) * 1.5;
+                this.rightArmGroup.rotation.x = -Math.sin(this.armSwing * 6) * 1.5;
+            }
 
             if (this.zoomieTimer <= 0) {
                 this.isDoingZoomies = false;
@@ -141,9 +147,11 @@ export class BuffCatNPC extends BaseNPC {
         } else {
             this.randomWalk(deltaTime, 2.5);
 
-            // normal arm sway while walking
-            this.leftArmGroup.rotation.x = Math.sin(this.armSwing) * 0.45;
-            this.rightArmGroup.rotation.x = -Math.sin(this.armSwing) * 0.45;
+            // normal arm sway while walking -- only if procedural mesh is still active
+            if (!this.glbLoaded) {
+                this.leftArmGroup.rotation.x = Math.sin(this.armSwing) * 0.45;
+                this.rightArmGroup.rotation.x = -Math.sin(this.armSwing) * 0.45;
+            }
 
             this.zoomiesCooldown -= deltaTime;
             if (this.zoomiesCooldown <= 0) {

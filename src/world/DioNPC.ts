@@ -64,6 +64,9 @@ export class DioNPC extends BaseNPC {
         // DIO arrives hostile. he was hostile before he got here. he was hostile in utero.
         this.markHostileToPlayer();
         this.markHostileToNpc();
+
+        // KONO GLB DA!!! loading the model. ZA WARUDO of 3D assets.
+        this.tryLoadGLBModel(6.5);
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
@@ -328,6 +331,7 @@ export class DioNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         if (!this.isAlive_) return;
 
         // DIO hates EVERYONE. always. no exceptions. refresh every frame so timers never expire.

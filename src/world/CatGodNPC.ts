@@ -1,4 +1,5 @@
 ﻿import * as THREE from 'three';
+import { loadModel, applyModel } from './ModelLoader';
 
 // THE CAT GOD. REMASTERED. DIVINE. ETERNAL.
 // took way longer to build than anything else in this project. do not question. do not touch.
@@ -13,6 +14,10 @@ export class CatGodNPC {
     private aiState: 'idle' | 'curious' | 'dominant' | 'smiting' | 'healing' = 'idle';
     private aiTimer: number = 0;
     private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+
+    // GLB swap fields -- the cat god finally gets a real model, as a treat
+    private glbMixer: THREE.AnimationMixer | null = null;
+    private glbLoaded: boolean = false;
 
     // these arms deserve their own names. they have been through a lot.
     private leftArm: THREE.Group = new THREE.Group();
@@ -57,6 +62,18 @@ export class CatGodNPC {
         this.mesh = this.buildCatGod();
         this.mesh.position.copy(this.position);
         scene.add(this.mesh);
+
+        // the cat god transcends procedural geometry. loading divine GLB now. henceforth it shall be glorious.
+        this.loadGLB();
+    }
+
+    private async loadGLB(): Promise<void> {
+        const loaded = await loadModel('catgod.glb');
+        if (!loaded) return; // fallback to procedural if file not found. cat god is gracious.
+        while (this.mesh.children.length > 0) this.mesh.remove(this.mesh.children[0]);
+        const mixer = applyModel(this.mesh, loaded, 14.0); // cat god is BIG. appropriately divine scale.
+        if (mixer) this.glbMixer = mixer;
+        this.glbLoaded = true;
     }
 
     public takeDamage(_dmg: number): void {}
@@ -461,6 +478,7 @@ export class CatGodNPC {
 
     // UPDATE LOOP
     public update(deltaTime: number, playerPosition: THREE.Vector3): void {
+        if (this.glbMixer) this.glbMixer.update(deltaTime);
         this.playerPosition.copy(playerPosition);
         const dist = this.playerPosition.distanceTo(this.position);
         const time = Date.now() * 0.001;

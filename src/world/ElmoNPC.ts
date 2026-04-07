@@ -96,6 +96,9 @@ export class ElmoNPC extends BaseNPC {
         this.lightStand.visible = false; // stand starts hidden -- dormant. waiting. patient. like elmo.
 
         console.log('%c☀️ ELMO SPAWNED. ETERNAL SUNSHINE STAND: READY. THE EMO SHOULD BE AFRAID.', 'color: #ffaa00; font-weight: bold');
+
+        // la la la la la! elmo's world now has a GLB model!!
+        this.tryLoadGLBModel(2.5);
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
@@ -376,6 +379,7 @@ export class ElmoNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         this.sceneTimer += deltaTime;
 
         // stand cooldown ticks

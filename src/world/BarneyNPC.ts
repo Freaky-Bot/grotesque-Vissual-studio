@@ -49,6 +49,9 @@ export class BarneyNPC extends BaseNPC {
         } catch (e) {
             // no audio, barney sings silently into the void
         }
+
+        // TIME TO LOAD DA GLB. barney deserves better than a box. he is a LEGEND.
+        this.tryLoadGLBModel(6.0);
     }
 
     private buildMesh(): { group: THREE.Group; leftArm: THREE.Group; rightArm: THREE.Group } {
@@ -273,6 +276,7 @@ export class BarneyNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         // barney WALKS, not runs -- he's a friendly gentle giant
         this.randomWalk(deltaTime, 3.5);
 
@@ -291,8 +295,8 @@ export class BarneyNPC extends BaseNPC {
             this.armWaveTimer = 0;
         }
 
-        // wave arms when singing, settle back after
-        if (this.isWaving) {
+        // wave arms when singing -- skip if GLB took over the mesh, those pivots are gone
+        if (!this.glbLoaded && this.isWaving) {
             this.armWaveTimer += deltaTime * 4;
             const wave = Math.sin(this.armWaveTimer) * 0.6;
             this.leftArm.rotation.z = Math.PI / 12 + wave;
