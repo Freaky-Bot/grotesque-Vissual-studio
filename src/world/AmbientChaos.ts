@@ -80,6 +80,23 @@ export class AmbientChaos {
     public onDeathParticles: ((pos: THREE.Vector3) => void) | null = null;
     public isNight: (() => boolean) | null = null;
 
+    // blood moon -- every 8-12 min. sky goes red, npcs glow evil, everything is worse.
+    private bloodMoonTimer: number = 480 + Math.random() * 240;
+    private bloodMoonActive: boolean = false;
+    private bloodMoonDuration: number = 0;
+    private bloodMoonSphere: THREE.Mesh | null = null;
+
+    // ghost invasion -- every 90-120s. translucent ghost npcs appear and drift around.
+    private ghostInvasionTimer: number = 90 + Math.random() * 60;
+    private ghostMeshes: { mesh: THREE.Group; drift: THREE.Vector3; timer: number }[] = [];
+
+    // npc civil war -- every 3-5 min. npcs are split into two factions. they fight each other.
+    private civilWarTimer: number = 180 + Math.random() * 120;
+    private civilWarActive: boolean = false;
+    private civilWarDuration: number = 0;
+    private factionA: BaseNPC[] = [];
+    private factionB: BaseNPC[] = [];
+
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this._buildStalker();
@@ -210,6 +227,9 @@ export class AmbientChaos {
         this._updateStalker(dt);
         this._updateCursedMoon(dt);
         this._updateFloorLava(dt);
+        this._updateBloodMoon(dt);
+        this._updateGhostInvasion(dt);
+        this._updateCivilWar(dt);
     }
 
     // ---- UFO ----
@@ -569,6 +589,316 @@ export class AmbientChaos {
         this.floorLavaPanel = panel;
 
         document.body.style.filter = 'sepia(0.8) saturate(3) hue-rotate(340deg) brightness(1.2)';
+    }
+
+    // ---- BLOOD MOON ----
+    private _updateBloodMoon(dt: number): void {
+        this.bloodMoonTimer -= dt;
+
+        if (this.bloodMoonTimer <= 0 && !this.bloodMoonActive) {
+            this.bloodMoonTimer = 480 + Math.random() * 240;
+            this._triggerBloodMoon();
+        }
+
+        if (this.bloodMoonActive) {
+            this.bloodMoonDuration -= dt;
+
+            // pulse the moon
+            if (this.bloodMoonSphere) {
+                const s = 8 + Math.sin(Date.now() * 0.002) * 1.5;
+                this.bloodMoonSphere.scale.setScalar(s / 8);
+            }
+
+            if (this.bloodMoonDuration <= 0) {
+                this._endBloodMoon();
+            }
+        }
+    }
+
+    // expose so WildCards can also trigger it manually (';' key)
+    public triggerBloodMoonManual(): void {
+        if (this.bloodMoonActive) {
+            this.onChat?.('🔴 BLOOD MOON ALREADY ACTIVE!! the sky cannot get redder. it is trying anyway.');
+            this.bloodMoonDuration = Math.max(this.bloodMoonDuration, 40);
+            return;
+        }
+        this._triggerBloodMoon();
+    }
+
+    private _triggerBloodMoon(): void {
+        this.bloodMoonActive = true;
+        this.bloodMoonDuration = 60;
+
+        // build a giant blood red moon orb in the sky
+        if (!this.bloodMoonSphere) {
+            const geo = new THREE.SphereGeometry(8, 18, 18);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            this.bloodMoonSphere = new THREE.Mesh(geo, mat);
+            this.scene.add(this.bloodMoonSphere);
+        }
+        this.bloodMoonSphere.visible = true;
+        this.bloodMoonSphere.position.set(-60, 130, -120);
+
+        // tint all npcs red glowing and make them emit danger aura
+        const npcs = this.getNPCs?.() ?? [];
+        for (const npc of npcs) {
+            (npc.getMesh() as THREE.Object3D).traverse(child => {
+                const m = child as THREE.Mesh;
+                if (!m.material) return;
+                const mat = m.material as THREE.MeshPhongMaterial;
+                if (mat?.emissive) mat.emissive.setHex(0x880000);
+                if (mat?.color) mat.color.multiplyScalar(0.7);
+            });
+        }
+
+        document.body.style.filter = 'sepia(0.5) hue-rotate(330deg) saturate(2.5) brightness(0.85)';
+        setTimeout(() => { if (this.bloodMoonActive) return; document.body.style.filter = ''; }, 2000);
+
+        this.onChat?.('🔴 BLOOD MOON RISES!! the sky is bleeding!! ALL NPCs are EMPOWERED!! run!! or dont!! ur choice!!');
+        this.onChat?.('🔴 they are faster. angrier. glowing. this lasts 60 seconds. ur welcome.');
+    }
+
+    private _endBloodMoon(): void {
+        this.bloodMoonActive = false;
+        if (this.bloodMoonSphere) this.bloodMoonSphere.visible = false;
+
+        // restore npc emissives
+        const npcs = this.getNPCs?.() ?? [];
+        for (const npc of npcs) {
+            (npc.getMesh() as THREE.Object3D).traverse(child => {
+                const m = child as THREE.Mesh;
+                if (!m.material) return;
+                const mat = m.material as THREE.MeshPhongMaterial;
+                if (mat?.emissive) mat.emissive.setHex(0x000000);
+            });
+        }
+
+        document.body.style.filter = '';
+        this.onChat?.('🔴 blood moon fades. the sky is normal again. the npcs remember what they did. some of them feel bad probably. meow.');
+    }
+
+    // ---- GHOST INVASION ----
+    private _updateGhostInvasion(dt: number): void {
+        this.ghostInvasionTimer -= dt;
+        if (this.ghostInvasionTimer <= 0) {
+            this.ghostInvasionTimer = 90 + Math.random() * 70;
+            this._triggerGhostInvasion();
+        }
+
+        // update existing ghosts
+        for (let i = this.ghostMeshes.length - 1; i >= 0; i--) {
+            const g = this.ghostMeshes[i];
+            g.timer -= dt;
+
+            // drift
+            g.mesh.position.addScaledVector(g.drift, dt);
+            g.mesh.position.y = 2 + Math.sin(Date.now() * 0.002 + i) * 1.5; // float up and down
+            g.mesh.rotation.y += 0.8 * dt;
+
+            // pulse opacity
+            const opc = 0.25 + Math.sin(Date.now() * 0.004 + i * 0.7) * 0.2;
+            g.mesh.children.forEach(c => {
+                const mat = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+                if (mat?.transparent) mat.opacity = opc;
+            });
+
+            // occasionally deal damage to nearby NPCs (ghost touches = bad vibes)
+            if (Math.random() < 0.01) {
+                const npcs = this.getNPCs?.() ?? [];
+                for (const npc of npcs) {
+                    if (!npc.isAlive()) continue;
+                    if (npc.getPosition().distanceTo(g.mesh.position) < 3) {
+                        npc.takeDamage(8);
+                        break;
+                    }
+                }
+            }
+
+            if (g.timer <= 0) {
+                this.scene.remove(g.mesh);
+                g.mesh.children.forEach(c => {
+                    (c as THREE.Mesh).geometry?.dispose();
+                    ((c as THREE.Mesh).material as THREE.Material)?.dispose();
+                });
+                this.ghostMeshes.splice(i, 1);
+            }
+        }
+    }
+
+    // expose for manual triggering ('  key in WildCards)
+    public triggerGhostInvasionManual(): void {
+        this._triggerGhostInvasion();
+    }
+
+    private _triggerGhostInvasion(): void {
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const count = 8 + Math.floor(Math.random() * 6);
+        this.onChat?.(`👻 GHOST INVASION!! ${count} spectral entities have entered the world!! they drift!! they haunt!! they deal chip damage!!`);
+
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 10 + Math.random() * 40;
+            const spawnPos = new THREE.Vector3(
+                pp.x + Math.cos(angle) * dist,
+                3 + Math.random() * 4,
+                pp.z + Math.sin(angle) * dist
+            );
+
+            const g = new THREE.Group();
+            const ghostMat = new THREE.MeshBasicMaterial({ color: 0x99ccff, transparent: true, opacity: 0.3 });
+
+            // ghost body -- stretched sphere
+            const bodyGeo = new THREE.SphereGeometry(0.7, 10, 8);
+            const body = new THREE.Mesh(bodyGeo, ghostMat);
+            body.scale.set(1, 1.6, 0.8);
+            g.add(body);
+
+            // ghost head
+            const headGeo = new THREE.SphereGeometry(0.55, 10, 8);
+            const head = new THREE.Mesh(headGeo, ghostMat);
+            head.position.y = 1.4;
+            g.add(head);
+
+            // creepy eyes -- hollow black
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000033, transparent: true, opacity: 0.9 });
+            for (const sx of [-1, 1]) {
+                const eyeGeo = new THREE.SphereGeometry(0.1, 6, 6);
+                const eye = new THREE.Mesh(eyeGeo, eyeMat);
+                eye.position.set(sx * 0.2, 1.5, 0.48);
+                g.add(eye);
+            }
+
+            // glow
+            const gLight = new THREE.PointLight(0x6699ff, 1.5, 8);
+            gLight.position.y = 1;
+            g.add(gLight);
+
+            g.position.copy(spawnPos);
+            this.scene.add(g);
+
+            // random drift direction
+            const driftAngle = Math.random() * Math.PI * 2;
+            const drift = new THREE.Vector3(Math.cos(driftAngle) * 1.8, 0, Math.sin(driftAngle) * 1.8);
+
+            this.ghostMeshes.push({ mesh: g, drift, timer: 18 + Math.random() * 8 });
+        }
+    }
+
+    // ---- NPC CIVIL WAR ----
+    private _updateCivilWar(dt: number): void {
+        this.civilWarTimer -= dt;
+
+        if (this.civilWarTimer <= 0 && !this.civilWarActive) {
+            this.civilWarTimer = 180 + Math.random() * 120;
+            this._startCivilWar();
+        }
+
+        if (this.civilWarActive) {
+            this.civilWarDuration -= dt;
+
+            // make factions attack each other
+            const fA = this.factionA.filter(n => n.isAlive());
+            const fB = this.factionB.filter(n => n.isAlive());
+
+            for (const npc of fA) {
+                if (fB.length === 0) break;
+                const myPos = npc.getPosition();
+                const nearest = fB.reduce((best, n) =>
+                    n.getPosition().distanceTo(myPos) < best.getPosition().distanceTo(myPos) ? n : best, fB[0]);
+                const toTarget = nearest.getPosition().sub(myPos).normalize();
+                npc.setPosition(myPos.add(toTarget.multiplyScalar(4 * dt)));
+                if (npc.getPosition().distanceTo(nearest.getPosition()) < 2) {
+                    nearest.takeDamage(12 * dt);
+                }
+            }
+
+            for (const npc of fB) {
+                if (fA.length === 0) break;
+                const myPos = npc.getPosition();
+                const nearest = fA.reduce((best, n) =>
+                    n.getPosition().distanceTo(myPos) < best.getPosition().distanceTo(myPos) ? n : best, fA[0]);
+                const toTarget = nearest.getPosition().sub(myPos).normalize();
+                npc.setPosition(myPos.add(toTarget.multiplyScalar(4 * dt)));
+                if (npc.getPosition().distanceTo(nearest.getPosition()) < 2) {
+                    nearest.takeDamage(12 * dt);
+                }
+            }
+
+            if (this.civilWarDuration <= 0 || fA.length === 0 || fB.length === 0) {
+                this._endCivilWar(fA.length === 0 ? 'B' : fB.length === 0 ? 'A' : 'none');
+            }
+        }
+    }
+
+    // expose for manual triggering via WildCards
+    public triggerCivilWarManual(): void {
+        if (this.civilWarActive) {
+            this.onChat?.('⚔️ war is already happening!! two factions fighting!! this cannot be escalated. maybe.');
+            this.civilWarDuration = Math.max(this.civilWarDuration, 30);
+            return;
+        }
+        this._startCivilWar();
+    }
+
+    private _startCivilWar(): void {
+        const npcs = this.getNPCs?.() ?? [];
+        const alive = npcs.filter(n => n.isAlive());
+        if (alive.length < 4) { return; } // not enough npcs for a real war
+
+        // split 50/50 -- faction A = first half, faction B = second half
+        const shuffled = [...alive].sort(() => Math.random() - 0.5);
+        const mid = Math.floor(shuffled.length / 2);
+        this.factionA = shuffled.slice(0, mid);
+        this.factionB = shuffled.slice(mid);
+
+        // tint A = orange, B = blue
+        for (const n of this.factionA) {
+            (n.getMesh() as THREE.Object3D).traverse(c => {
+                const m = c as THREE.Mesh;
+                if (m.material && (m.material as THREE.MeshPhongMaterial)?.emissive) {
+                    (m.material as THREE.MeshPhongMaterial).emissive.setHex(0x884400);
+                }
+            });
+        }
+        for (const n of this.factionB) {
+            (n.getMesh() as THREE.Object3D).traverse(c => {
+                const m = c as THREE.Mesh;
+                if (m.material && (m.material as THREE.MeshPhongMaterial)?.emissive) {
+                    (m.material as THREE.MeshPhongMaterial).emissive.setHex(0x004488);
+                }
+            });
+        }
+
+        this.civilWarActive = true;
+        this.civilWarDuration = 45;
+        this.onChat?.(`⚔️ NPC CIVIL WAR!! ${this.factionA.length} vs ${this.factionB.length}!! orange vs blue!! they attack each other now!! pick a side! (u cant pick a side)`);
+    }
+
+    private _endCivilWar(winner: string): void {
+        this.civilWarActive = false;
+
+        // restore emissives
+        const all = [...this.factionA, ...this.factionB];
+        for (const n of all) {
+            if (!n.isAlive()) continue;
+            (n.getMesh() as THREE.Object3D).traverse(c => {
+                const m = c as THREE.Mesh;
+                if (m.material && (m.material as THREE.MeshPhongMaterial)?.emissive) {
+                    (m.material as THREE.MeshPhongMaterial).emissive.setHex(0x000000);
+                }
+            });
+        }
+
+        this.factionA = [];
+        this.factionB = [];
+
+        if (winner === 'A') {
+            this.onChat?.('⚔️ ORANGE FACTION WINS!! blue npcs are mostly dead. orange npcs stand victorious. this was avoidable.');
+        } else if (winner === 'B') {
+            this.onChat?.('⚔️ BLUE FACTION WINS!! orange npcs are mostly dead. the war is over. for now. meow.');
+        } else {
+            this.onChat?.('⚔️ civil war ends. no side won. everyone is tired. the world goes back to normal. whatever that means.');
+        }
     }
 
     // cleanup everything -- call on game shutdown if ever needed

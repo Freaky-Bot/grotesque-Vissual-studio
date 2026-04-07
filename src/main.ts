@@ -778,6 +778,24 @@ class CatGodWorld {
                 this.wildCards.activateWormhole();
                 return;
             }
+
+            // ; = NPC CIVIL WAR -- npcs split into two factions and fight each other for 45s.
+            if (e.key === ';' && !this.chat.isInputOpen()) {
+                this.ambientChaos.triggerCivilWarManual();
+                return;
+            }
+
+            // ' = GHOST INVASION -- 8-13 ghost npcs appear and haunt the world for 18s.
+            if (e.key === "'" && !this.chat.isInputOpen()) {
+                this.ambientChaos.triggerGhostInvasionManual();
+                return;
+            }
+
+            // ` = BLOOD MOON -- manually trigger blood moon. 60s of red sky and angry npcs.
+            if (e.key === '`' && !this.chat.isInputOpen()) {
+                this.ambientChaos.triggerBloodMoonManual();
+                return;
+            }
         });
 
         document.addEventListener('keyup', (e) => {
