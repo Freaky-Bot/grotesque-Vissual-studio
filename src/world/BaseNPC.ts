@@ -183,8 +183,7 @@ export abstract class BaseNPC {
             this.targetAngle = Math.atan2(this.velocity.x, this.velocity.z);
             this.applyGravity(deltaTime);
             this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
-            this.position.x = Math.max(-200, Math.min(200, this.position.x));
-            this.position.z = Math.max(-200, Math.min(200, this.position.z));
+            // walls are GONE. flee wherever u want. freedom tastes like tuna. meow.
             this.mesh.position.copy(this.position);
             if (this.mesh.rotation) this.mesh.rotation.y += (this.targetAngle - this.mesh.rotation.y) * 0.15;
             return;
@@ -222,9 +221,7 @@ export abstract class BaseNPC {
 
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
-        // keep em from escaping :)
-        this.position.x = Math.max(-200, Math.min(200, this.position.x));
-        this.position.z = Math.max(-200, Math.min(200, this.position.z));
+        // the cage is open. the npcs are free. whatever. mrrrow.
 
         // update the mesh cuz three.js demands it
         this.mesh.position.copy(this.position);

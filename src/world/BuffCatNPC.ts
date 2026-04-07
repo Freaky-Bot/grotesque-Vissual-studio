@@ -172,8 +172,7 @@ export class BuffCatNPC extends BaseNPC {
             // ZOOM at ludicrous speed
             this.applyGravity(deltaTime);
             this.position.addScaledVector(this.zoomiesDir, 24 * deltaTime);
-            this.position.x = Math.max(-200, Math.min(200, this.position.x));
-            this.position.z = Math.max(-200, Math.min(200, this.position.z));
+            // no walls can stop the ZOOMIES. nothing can. its physics. its nature. purrr.
             this.mesh.position.copy(this.position);
 
             // spin wildly because zoomies

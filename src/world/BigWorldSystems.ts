@@ -163,9 +163,9 @@ export class BigWorldSystems {
             island.mesh.position.add(island.vel.clone().multiplyScalar(dt));
             // gentle bob
             island.mesh.position.y += Math.sin(t * 0.5 + island.mesh.position.x * 0.01) * 0.02;
-            // bounce off world edges
-            if (Math.abs(island.mesh.position.x) > 200) island.vel.x *= -1;
-            if (Math.abs(island.mesh.position.z) > 200) island.vel.z *= -1;
+            // bounce off far edges -- islands drift but come back eventually. lazy. whatever.
+            if (Math.abs(island.mesh.position.x) > 2000) island.vel.x *= -1;
+            if (Math.abs(island.mesh.position.z) > 2000) island.vel.z *= -1;
         }
     }
 

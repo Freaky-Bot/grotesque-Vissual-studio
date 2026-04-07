@@ -242,8 +242,7 @@ export class DioNPC extends BaseNPC {
             this.velocity.z = dir.z * speed;
             this.applyGravity(deltaTime);
             this.position.addScaledVector(this.velocity, deltaTime);
-            this.position.x = Math.max(-200, Math.min(200, this.position.x));
-            this.position.z = Math.max(-200, Math.min(200, this.position.z));
+            // DIO transcends all boundaries. you thought it was a wall but it was ME, DIO. gone now.
         } else {
             this.applyGravity(deltaTime);
         }

@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.13.1 fix: ACTUALLY destroyed ALL da invisible walls this time. BaseNPC, CatGodNPC, CatNPC, DioNPC, BuffCatNPC, BigWorldSystems all had their own sneaky -200/+200 barriers. found em. killed em. nobody mourns walls. meow.",
+    "date": "2026-04-06",
+    "hash": "e943ffb"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "95b9c2d"
+  },
+  {
     "msg": "v3.13.0 feat: DESTROYED da invisible walls. world is infinite now meow. added 6 sprawling forest biomes (dense pine, ancient oak, birch grove, autumn maple, weeping willow swamp, enchanted mixed) with detailed trees undergrowth mushrooms vines rocks flowers. the empty space is FILLED. nobody asked. we delivered anyway. mrrrow.",
     "date": "2026-04-06",
     "hash": "c1d5da8"
@@ -988,15 +998,5 @@
     "msg": "chore: rebuild dist/ [skip ci]",
     "date": "2026-04-05",
     "hash": "2556899"
-  },
-  {
-    "msg": "feat: add mobile support, rebuild-dist instructions, GitHub Actions workflow",
-    "date": "2026-04-04",
-    "hash": "97d7865"
-  },
-  {
-    "msg": "fix: add new NPC and event for it",
-    "date": "2026-04-04",
-    "hash": "410dd70"
   }
 ]

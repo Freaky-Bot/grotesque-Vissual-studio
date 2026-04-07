@@ -696,8 +696,9 @@ export class CatGodNPC {
 
     private randomWalk(deltaTime: number, speed: number = 1.6): void {
         if (Math.random() < 0.018) this.targetAngle = Math.random() * Math.PI * 2;
-        this.position.x = Math.max(-200, Math.min(200, this.position.x + Math.cos(this.targetAngle) * speed * deltaTime));
-        this.position.z = Math.max(-200, Math.min(200, this.position.z + Math.sin(this.targetAngle) * speed * deltaTime));
+        // god walks wherever god pleases. no walls can contain divinity. ugh.
+        this.position.x += Math.cos(this.targetAngle) * speed * deltaTime;
+        this.position.z += Math.sin(this.targetAngle) * speed * deltaTime;
     }
 
     private speakAI(dist: number): void {

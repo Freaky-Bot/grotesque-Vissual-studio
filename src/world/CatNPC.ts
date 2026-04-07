@@ -2610,8 +2610,7 @@ export class CatNPC extends BaseNPC {
                 // TELEPORT -- just yeet to a random nearby position
                 this.position.x += (Math.random() - 0.5) * 30;
                 this.position.z += (Math.random() - 0.5) * 30;
-                this.position.x = Math.max(-200, Math.min(200, this.position.x));
-                this.position.z = Math.max(-200, Math.min(200, this.position.z));
+                // glitch cats teleport WHEREVER. no walls. no rules. glitch life.
             }
             // corrupt mesh colors randomly
             if (Math.random() < 0.05) {
