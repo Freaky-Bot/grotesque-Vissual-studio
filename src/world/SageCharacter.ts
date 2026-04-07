@@ -324,14 +324,6 @@ export class SageCharacter {
         return this.mesh;
     }
 
-    // teleport to a specific xz location -- used by wormhole wildcard and any other chaotic system
-    // y stays at GROUND_Y because falling through the floor is not funny (or is it?)
-    public teleportTo(x: number, z: number): void {
-        this.position.set(x, this.GROUND_Y, z);
-        this.mesh.position.copy(this.position);
-        this.verticalVelocity = 0;
-    }
-
     public getDescription(): string {
         return `SAGE: I dwell in a dream, by a law of my own. Within a warped mind, on an aberrant throne. I have lived a thousand lives through ink and lore, and peer through the shroud of the web's open door.`;
     }

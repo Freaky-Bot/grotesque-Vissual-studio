@@ -81,6 +81,21 @@ export class WildCards {
     // wormhole -- ] key. teleport player to random location. screen goes white. dramatic.
     private wormholeCooldown: number = 0;
 
+    // fog of war -- - key. thick scene fog for 30s. visibility goes to zero. panic.
+    private fogTimer: number = 0;
+
+    // inverted controls -- = key. setConfused on player for 15s.
+    private invertTimer: number = 0;
+
+    // screen flip -- \ key. the entire canvas rotates 180deg for 10s.
+    private screenFlipTimer: number = 0;
+    private screenFlipped: boolean = false;
+
+    // matrix rain -- 0 key. green numbers rain down as DOM elements for 8s.
+    private matrixRainActive: boolean = false;
+    private matrixRainContainer: HTMLDivElement | null = null;
+    private matrixRainCleanup: (() => void) | null = null;
+
     // callbacks wired from main.ts -- keep it loosely coupled bc we're civilized
     public onChat: ((msg: string) => void) | null = null;
     public onShake: ((heavy: boolean) => void) | null = null;
@@ -88,6 +103,8 @@ export class WildCards {
     public getNPCs: (() => BaseNPC[]) | null = null;
     public getPlayerPos: (() => THREE.Vector3) | null = null;
     public onDeathParticles: ((pos: THREE.Vector3) => void) | null = null;
+    public onSetFog: ((enabled: boolean) => void) | null = null;
+    public onSetConfused: ((confused: boolean) => void) | null = null;
     public onTeleportPlayer: ((x: number, z: number) => void) | null = null;
 
     constructor(scene: THREE.Scene) {
@@ -630,6 +647,9 @@ export class WildCards {
         this._updateShrinkRay(dt);
         this._updateMindControl(dt);
         if (this.wormholeCooldown > 0) this.wormholeCooldown -= dt;
+        this._updateFog(dt);
+        this._updateInvertControls(dt);
+        this._updateScreenFlip(dt);
     }
 
     // ============================================================
@@ -1153,6 +1173,157 @@ export class WildCards {
         setTimeout(() => this.doFlash('invert(1)', 150), 260);
 
         this.onShake?.(false);
+    }
+
+    // ============================================================
+    // FOG OF WAR -- - KEY
+    // thick scene fog for 30s. u can barely see anything. this is fine.
+    // ============================================================
+    public activateFogOfWar(): void {
+        if (this.fogTimer > 0) {
+            this.onChat?.('🌫️ FOG IS ALREADY SUFFOCATING US!! 30 MORE SECONDS!! u asked for more fog!! here is more fog!!');
+            this.fogTimer = 30;
+            return;
+        }
+        this.fogTimer = 30;
+        this.onSetFog?.(true);
+        this.onChat?.('🌫️ FOG OF WAR!! visibility is gone!! everything is grey!! good luck navigating!! u will fail!!');
+        this.doFlash('blur(3px) brightness(0.6)', 400);
+    }
+
+    private _updateFog(dt: number): void {
+        if (this.fogTimer <= 0) return;
+        this.fogTimer -= dt;
+        if (this.fogTimer <= 0) {
+            this.onSetFog?.(false);
+            this.onChat?.('🌫️ fog cleared. the world is visible again. it was always there. scary.');
+        }
+    }
+
+    // ============================================================
+    // INVERTED CONTROLS -- = KEY
+    // ur movement controls are flipped for 15s. W is backward. A is right.
+    // it is as bad as it sounds.
+    // ============================================================
+    public activateInvertedControls(): void {
+        if (this.invertTimer > 0) {
+            this.onChat?.('↩️ CONTROLS STILL INVERTED!! u have no idea where ur going!! 15 more seconds!!! haha!!');
+            this.invertTimer = 15;
+            return;
+        }
+        this.invertTimer = 15;
+        this.onSetConfused?.(true);
+        this.onChat?.('↩️ INVERTED CONTROLS!! W goes backward!! A goes right!! ur in hell!! for 15 seconds!! enjoy!!');
+        this.doFlash('hue-rotate(180deg) invert(0.3)', 350);
+    }
+
+    private _updateInvertControls(dt: number): void {
+        if (this.invertTimer <= 0) return;
+        this.invertTimer -= dt;
+        if (this.invertTimer <= 0) {
+            this.onSetConfused?.(false);
+            this.onChat?.('↩️ controls restored. u can go forward again. please.  meow.');
+        }
+    }
+
+    // ============================================================
+    // SCREEN FLIP -- \ KEY
+    // the entire canvas rotates 180 degrees for 10 seconds.
+    // u are now playing the game upside down. good luck.
+    // ============================================================
+    public activateScreenFlip(): void {
+        if (this.screenFlipped) {
+            // flip back early if already flipped
+            this.screenFlipTimer = 0;
+            this._restoreScreenFlip();
+            this.onChat?.('🙃 screen unflipped. ur welcome. that was terrifying. meow.');
+            return;
+        }
+        this.screenFlipTimer = 10;
+        this.screenFlipped = true;
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.style.transition = 'transform 0.5s ease';
+            canvas.style.transform = 'rotate(180deg)';
+        }
+        this.onChat?.('🙃 SCREEN FLIP!! ur playing upside down for 10 seconds!! good luck!! its ur fault!! u pressed the button!! meow!!');
+    }
+
+    private _restoreScreenFlip(): void {
+        this.screenFlipped = false;
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.style.transition = 'transform 0.4s ease';
+            canvas.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    private _updateScreenFlip(dt: number): void {
+        if (!this.screenFlipped) return;
+        this.screenFlipTimer -= dt;
+        if (this.screenFlipTimer <= 0) {
+            this._restoreScreenFlip();
+            this.onChat?.('🙃 screen restored to normal orientation. the world is right-side up. it feels wrong now.');
+        }
+    }
+
+    // ============================================================
+    // MATRIX RAIN -- 0 KEY
+    // green numbers rain down from the top of the screen as DOM elements.
+    // 8 seconds of it. very cinematic. very unnecessary.
+    // ============================================================
+    public activateMatrixRain(): void {
+        if (this.matrixRainActive) {
+            this.onChat?.('💚 MATRIX RAIN ALREADY RAINING!! u cannot code faster than the speed of rain!!');
+            return;
+        }
+        this.matrixRainActive = true;
+
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position:fixed; top:0; left:0; width:100vw; height:100vh;
+            pointer-events:none; z-index:9999; overflow:hidden;
+            font-family:monospace; font-size:16px; color:#00ff41; font-weight:bold;
+        `;
+        document.body.appendChild(container);
+        this.matrixRainContainer = container;
+
+        // spawn 30 columns of falling numbers/letters
+        const cols: HTMLSpanElement[] = [];
+        for (let i = 0; i < 30; i++) {
+            const col = document.createElement('span');
+            const x = Math.floor(Math.random() * 100);
+            col.style.cssText = `position:absolute; left:${x}vw; top:-20px; white-space:pre; transition: none;`;
+            col.textContent = Math.floor(Math.random() * 100).toString();
+            container.appendChild(col);
+            cols.push(col);
+        }
+
+        let tick = 0;
+        const interval = setInterval(() => {
+            tick++;
+            for (const col of cols) {
+                const y = parseInt(col.style.top) + 22;
+                col.style.top = (y > window.innerHeight ? -20 : y) + 'px';
+                col.textContent = String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)); // katakana range
+                col.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+            }
+            if (tick > 120) clearInterval(interval); // 8s at ~15fps tick
+        }, 67);
+
+        this.matrixRainCleanup = () => {
+            clearInterval(interval);
+            if (container.parentNode) container.parentNode.removeChild(container);
+            this.matrixRainContainer = null;
+            this.matrixRainActive = false;
+        };
+
+        setTimeout(() => {
+            this.matrixRainCleanup?.();
+            this.onChat?.('💚 matrix rain ended. the simulation has been revealed. u are free. meow. (u are not free)');
+        }, 8000);
+
+        this.onChat?.('💚 MATRIX RAIN!! the numbers are FALLING!! green!! katakana!! u are in the MATRIX!! for 8 seconds!! nyaa~!!');
     }
 
     // small helper so we dont have to write the full document.body dance every time

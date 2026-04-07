@@ -560,7 +560,19 @@ class CatGodWorld {
         };
         // wormhole teleports the player -- sagcharacter needs teleportTo
         this.wildCards.onTeleportPlayer = (x, z) => {
-            this.sageCharacter.teleportTo(x, z);
+            this.sageCharacter.teleportTo(new THREE.Vector3(x, 0, z));
+        };
+        // fog of war -- enable/disable scene fog
+        this.wildCards.onSetFog = (enabled) => {
+            if (enabled) {
+                this.scene.fog = new THREE.FogExp2(0x111111, 0.055);
+            } else {
+                this.scene.fog = null;
+            }
+        };
+        // inverted controls -- wire through sageCharacter.setConfused
+        this.wildCards.onSetConfused = (c) => {
+            this.sageCharacter.setConfused(c);
         };
 
         // AMBIENT CHAOS -- the world just does stuff without being asked. UFOs, portals, rain, stalker, etc.
@@ -794,6 +806,30 @@ class CatGodWorld {
             // ` = BLOOD MOON -- manually trigger blood moon. 60s of red sky and angry npcs.
             if (e.key === '`' && !this.chat.isInputOpen()) {
                 this.ambientChaos.triggerBloodMoonManual();
+                return;
+            }
+
+            // - = FOG OF WAR -- thick scene fog for 30s. good luck seeing anything.
+            if (e.key === '-' && !this.chat.isInputOpen()) {
+                this.wildCards.activateFogOfWar();
+                return;
+            }
+
+            // = = INVERTED CONTROLS -- ur WASD is backwards for 15 seconds.
+            if (e.key === '=' && !this.chat.isInputOpen()) {
+                this.wildCards.activateInvertedControls();
+                return;
+            }
+
+            // \ = SCREEN FLIP -- canvas rotates 180 degrees for 10 seconds.
+            if (e.key === '\\' && !this.chat.isInputOpen()) {
+                this.wildCards.activateScreenFlip();
+                return;
+            }
+
+            // 0 = MATRIX RAIN -- 8 seconds of falling katakana numbers. very cinematic.
+            if (e.key === '0' && !this.chat.isInputOpen()) {
+                this.wildCards.activateMatrixRain();
                 return;
             }
         });
