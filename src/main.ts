@@ -549,6 +549,10 @@ class CatGodWorld {
             setTimeout(() => { document.body.style.filter = ''; }, ms);
         };
         this.wildCards.onDeathParticles = (pos) => this.spawnDeathParticles(pos);
+        // clone flood needs to spawn real NPCs via npcManager
+        this.wildCards.onSpawnNPC = (_type, pos) => {
+            this.npcManager.forceSpawnAt(pos);
+        };
 
         // Start the world
         this.start();
@@ -700,6 +704,42 @@ class CatGodWorld {
             // U = GIANT MODE -- player grows to 3.5x for 15 seconds.
             if (e.key.toLowerCase() === 'u' && !this.chat.isInputOpen()) {
                 this.wildCards.activateGiantMode(this.sageCharacter.getMesh());
+                return;
+            }
+
+            // C = FREEZE RAY -- flash-freeze all nearby npcs for 8 seconds.
+            if (e.key.toLowerCase() === 'c' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerFreezeRay();
+                return;
+            }
+
+            // J = TORNADO -- a spinning vortex that yeeets npcs into the air.
+            if (e.key.toLowerCase() === 'j' && !this.chat.isInputOpen()) {
+                this.wildCards.spawnTornado();
+                return;
+            }
+
+            // I = CLONE FLOOD -- spawns 20 random npcs in a spiral.
+            if (e.key.toLowerCase() === 'i' && !this.chat.isInputOpen()) {
+                this.wildCards.triggerCloneFlood();
+                return;
+            }
+
+            // O = DISCO MODE -- 20 seconds of rainbow light + spinning npcs.
+            if (e.key.toLowerCase() === 'o' && !this.chat.isInputOpen()) {
+                this.wildCards.activateDiscoMode();
+                return;
+            }
+
+            // Y = TIME BOMB -- plant at feet, 5 second countdown, 35u blast.
+            if (e.key.toLowerCase() === 'y' && !this.chat.isInputOpen()) {
+                this.wildCards.plantTimeBomb();
+                return;
+            }
+
+            // D = SHRINK RAY -- every npc becomes 0.15x size for 30 seconds.
+            if (e.key.toLowerCase() === 'd' && !this.chat.isInputOpen()) {
+                this.wildCards.activateShrinkRay();
                 return;
             }
         });

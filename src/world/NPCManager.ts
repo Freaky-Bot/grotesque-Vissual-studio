@@ -649,6 +649,16 @@ export class NPCManager {
         for (let i = 0; i < count; i++) this.spawnNewNPC();
     }
 
+    // forceSpawnAt -- spawn one random cat NPC at a specific world position. clone flood needs this.
+    public forceSpawnAt(pos: THREE.Vector3): void {
+        const catTypes = Object.values(CatType);
+        const randomType = catTypes[Math.floor(Math.random() * catTypes.length)] as CatType;
+        const npc = new CatNPC(randomType, pos.clone());
+        if (this.bubbleCb) npc.setSpeakCallback(this.bubbleCb);
+        this.addNPC(npc);
+        this.scene.add(npc.getMesh());
+    }
+
     // force barney into the world -- barney_ticket item
     public forceSpawnBarney(): void {
         this.spawnBarney();

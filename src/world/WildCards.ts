@@ -49,6 +49,27 @@ export class WildCards {
     // random earthquakes -- nobody pressed anything. the world is just angry.
     private earthquakeTimer: number = 100 + Math.random() * 120;
 
+    // freeze ray -- C key. everything stops. peaceful. terrifying.
+    private frozenNPCTimers: Map<BaseNPC, number> = new Map();
+    private freezeIceChunks: THREE.Mesh[] = [];
+
+    // tornado -- J key. spinning vortex that yeets npcs into the stratosphere.
+    private tornado: { mesh: THREE.Group; pos: THREE.Vector3; timer: number; angle: number } | null = null;
+
+    // clone flood -- I key. spawns 15 clones of random npc types. the world is overpopulated now.
+    public onSpawnNPC: ((type: string | null, pos: THREE.Vector3) => void) | null = null;
+
+    // disco mode -- O key. 20 seconds of complete audiovisual betrayal.
+    private discoModeTimer: number = 0;
+    private discoLights: THREE.PointLight[] = [];
+    private discoHueAngle: number = 0;
+
+    // time bomb -- Y key. plant it, run, 5 seconds, boom.
+    private timeBombs: { mesh: THREE.Mesh; pos: THREE.Vector3; timer: number; warningLight: THREE.PointLight }[] = [];
+
+    // shrink ray -- D key. shrinks every npc to 0.15x. adorable+pathetic. 30s duration.
+    private shrinkRayTimer: number = 0;
+
     // callbacks wired from main.ts -- keep it loosely coupled bc we're civilized
     public onChat: ((msg: string) => void) | null = null;
     public onShake: ((heavy: boolean) => void) | null = null;
@@ -589,11 +610,388 @@ export class WildCards {
             this.earthquakeTimer = 90 + Math.random() * 150; // next quake in 1.5-4 minutes
             this.triggerEarthquake();
         }
+
+        // ---- NEW CHAOS SYSTEMS TICK ----
+        this._updateTornado(dt);
+        this._updateDiscoMode(dt);
+        this._updateTimeBombs(dt);
+        this._updateShrinkRay(dt);
+    }
+
+    // ============================================================
+    // FREEZE RAY -- C KEY
+    // encases all nearby NPCs in ice for 8 seconds.
+    // they literally cannot move. it's peaceful. for you.
+    // ============================================================
+    public triggerFreezeRay(): void {
+        const npcs = this.getNPCs?.() ?? [];
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        let frozen = 0;
+
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            const d = npc.getPosition().distanceTo(pp);
+            if (d > 50) continue;
+
+            // stun via the npc's own stun system
+            npc.stun(8);
+            this.frozenNPCTimers.set(npc, 8);
+            frozen++;
+
+            // ice chunk visual -- pale blue semi-transparent sphere around the npc
+            const iceGeo = new THREE.IcosahedronGeometry(1.2, 1);
+            const iceMat = new THREE.MeshPhongMaterial({
+                color: 0x88ccff,
+                transparent: true,
+                opacity: 0.45,
+                shininess: 140,
+            });
+            const ice = new THREE.Mesh(iceGeo, iceMat);
+            ice.position.copy(npc.getPosition());
+            ice.position.y += 1;
+            ice.scale.set(1.2, 1.8, 1.2);
+            this.scene.add(ice);
+            this.freezeIceChunks.push(ice);
+
+            // remove the ice mesh when freeze wears off
+            setTimeout(() => {
+                this.scene.remove(ice);
+                ice.geometry.dispose();
+                (ice.material as THREE.Material).dispose();
+                const idx = this.freezeIceChunks.indexOf(ice);
+                if (idx >= 0) this.freezeIceChunks.splice(idx, 1);
+            }, 8000);
+        }
+
+        if (frozen === 0) {
+            this.onChat?.('❄️ nobody in range. the freeze ray misses into the void. embarrassing.');
+        } else {
+            this.onChat?.(`❄️ FREEZE RAY!! ${frozen} NPCs flash-frozen!! they look so peaceful!! 8s!!`);
+            this.doFlash('brightness(2) saturate(0) hue-rotate(190deg)', 300);
+            this.onShake?.(false);
+        }
+    }
+
+    // ============================================================
+    // TORNADO -- J KEY
+    // a GIANT spinning vortex spawns. npcs near it get yeeted radially.
+    // lasts 8 seconds. moves slowly. you cannot stop it.
+    // ============================================================
+    public spawnTornado(): void {
+        if (this.tornado) {
+            this.onChat?.('🌪️ theres ALREADY a tornado!! two would destroy everything!! (adding 4s anyway)');
+            this.tornado.timer += 4;
+            return;
+        }
+
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const startPos = new THREE.Vector3(pp.x + 15, 0, pp.z);
+
+        const g = new THREE.Group();
+
+        // tornado body -- stack of increasingly-wide tori going up
+        const segmentColors = [0x999988, 0xaaaaaa, 0xbbbbcc, 0xccccdd];
+        for (let i = 0; i < 8; i++) {
+            const radius = 1.5 + i * 1.1;
+            const y = i * 2.8;
+            const torusGeo = new THREE.TorusGeometry(radius, 0.38, 8, 16);
+            const torusMat = new THREE.MeshPhongMaterial({
+                color: segmentColors[i % segmentColors.length],
+                transparent: true,
+                opacity: 0.55 - i * 0.03,
+            });
+            const torus = new THREE.Mesh(torusGeo, torusMat);
+            torus.position.y = y;
+            torus.rotation.x = Math.PI / 2;
+            g.add(torus);
+        }
+
+        g.position.copy(startPos);
+        this.scene.add(g);
+
+        // suction wind sound effect -- just chat spam since no audio system
+        this.tornado = { mesh: g, pos: startPos, timer: 8, angle: 0 };
+        this.onChat?.('🌪️ TORNADO!! the spinning column of doom has arrived!! get out of the way!! too late!!');
+        this.doFlash('brightness(1.3) saturate(0.4)', 200);
+    }
+
+    private _updateTornado(dt: number): void {
+        if (!this.tornado) return;
+
+        this.tornado.timer -= dt;
+        this.tornado.angle += dt;
+
+        // tornado drifts forward AND rotates
+        this.tornado.pos.x += Math.cos(this.tornado.angle * 0.3) * 4 * dt;
+        this.tornado.pos.z += Math.sin(this.tornado.angle * 0.5) * 3 * dt;
+        this.tornado.mesh.position.copy(this.tornado.pos);
+        this.tornado.mesh.rotation.y += 4 * dt; // spin the whole group
+
+        // inner rings spin faster creating the funnel effect
+        this.tornado.mesh.children.forEach((child, i) => {
+            (child as THREE.Mesh).rotation.z += (2 + i * 0.5) * dt;
+        });
+
+        // throw NPCs radially outward AND upward when close
+        const npcs = this.getNPCs?.() ?? [];
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            const nPos = npc.getPosition();
+            const dx = nPos.x - this.tornado.pos.x;
+            const dz = nPos.z - this.tornado.pos.z;
+            const d = Math.sqrt(dx * dx + dz * dz);
+            if (d < 14) {
+                const strength = (1 - d / 14) * 22;
+                const newPos = nPos.clone();
+                newPos.x += (dx / Math.max(d, 0.1)) * strength * dt;
+                newPos.z += (dz / Math.max(d, 0.1)) * strength * dt;
+                newPos.y += (1 - d / 14) * 18 * dt; // YEETED upward in the funnel
+                npc.setPosition(newPos);
+            }
+        }
+
+        if (this.tornado.timer <= 0) {
+            this.scene.remove(this.tornado.mesh);
+            this.tornado.mesh.children.forEach(c => {
+                (c as THREE.Mesh).geometry.dispose();
+                ((c as THREE.Mesh).material as THREE.Material).dispose();
+            });
+            this.tornado = null;
+            this.onChat?.('🌪️ tornado dissipated. the NPCs that were in the air are now... elsewhere.');
+        }
+    }
+
+    // ============================================================
+    // CLONE FLOOD -- I KEY
+    // spawns 20 random NPC clones everywhere near the player.
+    // the world just got more crowded. on purpose.
+    // ============================================================
+    public triggerCloneFlood(): void {
+        if (!this.onSpawnNPC) {
+            this.onChat?.('🐱 clone flood not wired up. the clones are lost in the void. sorry clones.');
+            return;
+        }
+
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const types = ['normal', 'robot', 'angel', 'jesus', 'orb', 'shadow', 'pirate', 'wizard', 'vampire'];
+        const count = 20;
+
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2 + Math.random() * 0.8;
+            const dist = 8 + Math.random() * 28;
+            const spawnPos = new THREE.Vector3(
+                pp.x + Math.cos(angle) * dist,
+                0,
+                pp.z + Math.sin(angle) * dist
+            );
+            const type = types[Math.floor(Math.random() * types.length)];
+            setTimeout(() => this.onSpawnNPC?.(type, spawnPos), i * 80);
+        }
+
+        this.onChat?.(`🐱 CLONE FLOOD!! 20 NPCs spawning in a spiral!! the population just doubled!! oh no!!`);
+        this.doFlash('saturate(4) brightness(1.5)', 300);
+    }
+
+    // ============================================================
+    // DISCO MODE -- O KEY
+    // 20 seconds of seizure-inducing colored light spamming.
+    // 6 point lights cycle through rainbow. hue rotates on the screen.
+    // the world is a nightclub now. it was never not a nightclub.
+    // ============================================================
+    public activateDiscoMode(): void {
+        if (this.discoModeTimer > 0) {
+            this.onChat?.('🪩 DISCO IS ALREADY ACTIVE!! u cant double-disco!! the bounce doesnt go!!');
+            this.discoModeTimer = Math.max(this.discoModeTimer, 20); // extend
+            return;
+        }
+
+        this.discoModeTimer = 20;
+
+        // spawn 6 rainbow point lights dancing around at head height
+        const discoColors = [0xff0000, 0xff8800, 0xffff00, 0x00ff00, 0x0088ff, 0xff00ff];
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+
+        for (let i = 0; i < 6; i++) {
+            const light = new THREE.PointLight(discoColors[i], 5, 25);
+            const angle = (i / 6) * Math.PI * 2;
+            light.position.set(pp.x + Math.cos(angle) * 8, 5, pp.z + Math.sin(angle) * 8);
+            this.scene.add(light);
+            this.discoLights.push(light);
+        }
+
+        this.onChat?.('🪩 DISCO MODE ACTIVATED!! 20 seconds!! nobody is leaving this club!! NOBODY!!');
+        this.onChat?.('🪩 the lights are on the ceiling. the ceiling is the sky. this is fine.');
+    }
+
+    private _updateDiscoMode(dt: number): void {
+        if (this.discoModeTimer <= 0) return;
+        this.discoModeTimer -= dt;
+
+        this.discoHueAngle += dt * 140; // spin hue 140 deg/sec
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+
+        // orbit the lights around the player in a spinning ring
+        this.discoLights.forEach((light, i) => {
+            const angle = ((i / 6) * Math.PI * 2) + (Date.now() * 0.002);
+            light.position.set(
+                pp.x + Math.cos(angle) * 9,
+                4 + Math.sin(Date.now() * 0.003 + i) * 2,
+                pp.z + Math.sin(angle) * 9
+            );
+            // cycle color
+            const hue = ((i / 6) + Date.now() * 0.001) % 1;
+            const col = new THREE.Color().setHSL(hue, 1, 0.5);
+            light.color.set(col);
+            light.intensity = 4 + Math.sin(Date.now() * 0.008 + i * 1.3) * 2;
+        });
+
+        // hue-rotate screen filter in sync
+        document.body.style.filter = `hue-rotate(${this.discoHueAngle % 360}deg) saturate(2.2)`;
+
+        // animate NPCs -- make them spin (rotate mesh) because they're dancing obviously
+        const npcs = this.getNPCs?.() ?? [];
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            (npc.getMesh() as THREE.Object3D).rotation.y += 2.5 * dt;
+        }
+
+        if (this.discoModeTimer <= 0) {
+            this._endDiscoMode();
+        }
+    }
+
+    private _endDiscoMode(): void {
+        document.body.style.filter = '';
+        for (const light of this.discoLights) {
+            this.scene.remove(light);
+        }
+        this.discoLights.length = 0;
+        this.onChat?.('🪩 disco mode over. the lights are dark. the NPCs stopped spinning. life is grey again.');
+    }
+
+    // ============================================================
+    // TIME BOMB -- Y KEY
+    // plants a bomb at player pos. 5 second countdown. 35 unit blast.
+    // glows red. beeps (via chat spam). DO NOT STAND IN IT.
+    // ============================================================
+    public plantTimeBomb(): void {
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+
+        // bomb mesh -- a menacing red sphere with a glowing cap
+        const bombGeo = new THREE.SphereGeometry(0.5, 12, 10);
+        const bombMat = new THREE.MeshPhongMaterial({ color: 0x222222, shininess: 40 });
+        const bomb = new THREE.Mesh(bombGeo, bombMat);
+        bomb.position.copy(pp);
+        bomb.position.y = 0.5;
+        this.scene.add(bomb);
+
+        // warning light -- starts dim red, intensifies as countdown drops
+        const warnLight = new THREE.PointLight(0xff2200, 2, 12);
+        warnLight.position.copy(bomb.position);
+        warnLight.position.y += 0.5;
+        this.scene.add(warnLight);
+
+        this.timeBombs.push({ mesh: bomb, pos: pp.clone(), timer: 5, warningLight: warnLight });
+
+        this.onChat?.('💣 TIME BOMB PLANTED!! 5 seconds!! run!! or dont!! ur call!! (run)');
+        setTimeout(() => { this.onChat?.('💣 4... the bomb is thinking about it'); }, 1000);
+        setTimeout(() => { this.onChat?.('💣 3... it has committed'); }, 2000);
+        setTimeout(() => { this.onChat?.('💣 2... please leave'); }, 3000);
+        setTimeout(() => { this.onChat?.('💣 1... GOODBYE'); }, 4000);
+    }
+
+    private _updateTimeBombs(dt: number): void {
+        for (let i = this.timeBombs.length - 1; i >= 0; i--) {
+            const bomb = this.timeBombs[i];
+            bomb.timer -= dt;
+
+            // intensify warning light as timer drops -- more panic = more glow
+            const t = Math.max(bomb.timer, 0);
+            bomb.warningLight.intensity = 2 + (1 - t / 5) * 14;
+            bomb.warningLight.color.setHSL((1 - t / 5) * 0.05, 1, 0.5); // green to pure red
+            bomb.mesh.rotation.y += 2 * dt;
+
+            if (bomb.timer <= 0) {
+                // BOOM -- 35 unit AoE, kills all NPCs in range
+                const blastRadius = 35;
+                const npcs = this.getNPCs?.() ?? [];
+                let bodyCount = 0;
+                for (const npc of npcs) {
+                    if (!npc.isAlive()) continue;
+                    if (npc.getPosition().distanceTo(bomb.pos) < blastRadius) {
+                        npc.takeDamage(99999);
+                        this.onDeathParticles?.(npc.getPosition());
+                        bodyCount++;
+                    }
+                }
+
+                // full nuclear-level screen effect
+                document.body.style.filter = 'brightness(20) saturate(0)';
+                setTimeout(() => { document.body.style.filter = 'brightness(5) sepia(0.5)'; }, 80);
+                setTimeout(() => { document.body.style.filter = ''; }, 600);
+
+                this.onShake?.(true);
+                this.onChat?.(`💥 BOOM!! ${bodyCount} NPCs obliterated!! the crater is real!! the trauma is real!!`);
+
+                // blast light flash
+                const blastLight = new THREE.PointLight(0xff8800, 25, blastRadius * 2);
+                blastLight.position.copy(bomb.pos);
+                blastLight.position.y = 3;
+                this.scene.add(blastLight);
+                setTimeout(() => this.scene.remove(blastLight), 300);
+
+                // cleanup bomb
+                this.scene.remove(bomb.warningLight);
+                this.scene.remove(bomb.mesh);
+                bomb.mesh.geometry.dispose();
+                (bomb.mesh.material as THREE.Material).dispose();
+                this.timeBombs.splice(i, 1);
+            }
+        }
+    }
+
+    // ============================================================
+    // SHRINK RAY -- D KEY
+    // every NPC shrinks to 0.15x. adorable. pathetic. they're still hostile.
+    // 30 seconds. then they snap back to whatever size scramble left them.
+    // ============================================================
+    public activateShrinkRay(): void {
+        if (this.shrinkRayTimer > 0) {
+            this.onChat?.('🔬 they\'re already tiny!! the shrink ray keeps winning!! 30 MORE SECONDS!!');
+            this.shrinkRayTimer = Math.max(this.shrinkRayTimer, 30);
+            return;
+        }
+
+        this.shrinkRayTimer = 30;
+        const npcs = this.getNPCs?.() ?? [];
+        let count = 0;
+        for (const npc of npcs) {
+            if (!npc.isAlive()) continue;
+            (npc.getMesh() as THREE.Object3D).scale.set(0.15, 0.15, 0.15);
+            count++;
+        }
+
+        this.onChat?.(`🔬 SHRINK RAY!! ${count} NPCs are now MICROSCOPIC!! they are still angry!! 30s!!`);
+        this.doFlash('invert(0.6) hue-rotate(110deg) brightness(1.8)', 300);
+    }
+
+    private _updateShrinkRay(dt: number): void {
+        if (this.shrinkRayTimer <= 0) return;
+        this.shrinkRayTimer -= dt;
+
+        if (this.shrinkRayTimer <= 0) {
+            // restore everyone to normal 1x scale when it wears off
+            const npcs = this.getNPCs?.() ?? [];
+            for (const npc of npcs) {
+                if (!npc.isAlive()) continue;
+                (npc.getMesh() as THREE.Object3D).scale.set(1, 1, 1);
+            }
+            this.onChat?.('🔬 shrink ray wore off. everybody is back to normal. normal is relative. u know what i mean.');
+        }
     }
 
     // small helper so we dont have to write the full document.body dance every time
-    private doFlash(filter: string, ms: number): void {
-        if (this.onFlash) {
+    private doFlash(filter: string, ms: number): void {        if (this.onFlash) {
             this.onFlash(filter, ms);
         } else {
             document.body.style.filter = filter;
