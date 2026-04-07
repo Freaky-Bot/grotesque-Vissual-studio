@@ -13,7 +13,7 @@ export class CatGodNPC {
     private targetAngle: number = 0;
     private playerPosition: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     private aiTimer: number = 0;
-    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void) | null = null;
 
     // GLB swap fields -- the cat god finally gets a real model, as a treat
     private glbMixer: THREE.AnimationMixer | null = null;
@@ -78,7 +78,7 @@ export class CatGodNPC {
     public isAlive(): boolean { return true; }
     public isIndestructible(): boolean { return true; }
 
-    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, h: number) => void): void {
+    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, h: number, npcType?: string) => void): void {
         this.speakCallback = fn;
     }
 
@@ -638,7 +638,7 @@ export class CatGodNPC {
         flash.position.copy(targetPos);
         this.scene.add(flash);
         setTimeout(() => this.scene.remove(flash), 300);
-        this.speakCallback?.(this.position, '⚡ SMITE!!', 11);
+        this.speakCallback?.(this.position, '⚡ SMITE!!', 11, 'jesus');
     }
 
     // HEAL -- god is kind to those who approach
@@ -671,7 +671,7 @@ export class CatGodNPC {
         this.scene.add(ring);
         this.healRing = ring;
         this.healRingTimer = 1.2;
-        this.speakCallback?.(this.position, `✨ +${this.HEAL_AMOUNT} HP. you are blessed.`, 11);
+        this.speakCallback?.(this.position, `✨ +${this.HEAL_AMOUNT} HP. you are blessed.`, 11, 'jesus');
     }
 
     private moveTowardPlayer(deltaTime: number, speed: number): void {
@@ -706,6 +706,6 @@ export class CatGodNPC {
         const curious = ['you approach the divine. bold.','come closer if you dare, little mortal.','i sense your footsteps on my domain.','what brings you before the cat god?'];
         const dominant = ['*hiss* you are TOO close to divinity.','BACK. the divine requires personal space.','i will smite you if you continue this.','your presence disturbs my meditation.','*divine slap incoming*'];
         const pool = dist < 9 ? dominant : dist < 32 ? curious : idle;
-        this.speakCallback?.(this.position, pool[Math.floor(Math.random() * pool.length)], 11);
+        this.speakCallback?.(this.position, pool[Math.floor(Math.random() * pool.length)], 11, 'jesus');
     }
 }

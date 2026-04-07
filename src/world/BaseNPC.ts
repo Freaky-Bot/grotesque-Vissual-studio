@@ -11,7 +11,7 @@ export abstract class BaseNPC {
     protected dialogues: string[] = [];
     protected dialogueTimer: number = 0;
     protected bubbleHeadOffset: number = 3.5; // how high above position to show bubble, override per npc type
-    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+    private speakCallback: ((pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void) | null = null;
 
     // health -- everyone has hp now. welcome to combat zone.
     protected hp: number = 40;
@@ -245,11 +245,12 @@ export abstract class BaseNPC {
         if (this.dialogues.length > 0) {
             const dialogue = this.dialogues[Math.floor(Math.random() * this.dialogues.length)];
             console.log(`🐱 ${dialogue}`); // MEOW broadcast
-            this.speakCallback?.(this.position, dialogue, this.bubbleHeadOffset);
+            // now passes npc type so voice system knows WHO is talking. identity matters. meow.
+            this.speakCallback?.(this.position, dialogue, this.bubbleHeadOffset, this.getType());
         }
     }
 
-    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+    public setSpeakCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void): void {
         this.speakCallback = fn; // hook in the bubble manager
     }
 

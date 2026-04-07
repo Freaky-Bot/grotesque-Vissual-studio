@@ -207,8 +207,14 @@ class CatGodWorld {
         this.ugandanKnucklesEvent.setAnnounceCallback((msg) => this.chat.announceKnuckles(msg));
 
         // chat bubbles above heads -- the roblox experience
+        // NOW WITH PROXIMITY VOICE!! if ur near an npc u can HEAR them talk!! revolutionary!! 📺✨
         this.bubbles = new ChatBubbleManager(this.renderEngine.getCamera());
-        const bubbleFn = (pos: THREE.Vector3, text: string, h: number) => this.bubbles.showBubbleLive(pos, text, h);
+        this.voice.setPlayerPositionGetter(() => this.sageCharacter.getPosition());
+        const bubbleFn = (pos: THREE.Vector3, text: string, h: number, npcType?: string) => {
+            this.bubbles.showBubbleLive(pos, text, h);
+            // if we know the npc type, speak with proximity check!! voices from the void~
+            if (npcType) this.voice.speakChat(text, npcType, pos);
+        };
         this.npcManager.setBubbleCallback(bubbleFn);
         this.catGod.setSpeakCallback(bubbleFn);
         this.sageCharacter.setBubbleCallback(bubbleFn);
@@ -524,11 +530,15 @@ class CatGodWorld {
 
         // assign factions to all npcs as they spawn (wire via bubbleCb timing hack)
         // just assign on each NPC after it gets added -- would be cleaner but this is sloppy code land
-        const origBubbleFn = (pos: THREE.Vector3, text: string, h: number) => this.bubbles.showBubbleLive(pos, text, h);
-        this.npcManager.setBubbleCallback((pos, text, h) => {
-            origBubbleFn(pos, text, h);
+        // ALSO triggers proximity voice now!! the bubbles SPEAK!! they have SOUND!! uwu 💕
+        const origBubbleFn = (pos: THREE.Vector3, text: string, h: number, npcType?: string) => {
+            this.bubbles.showBubbleLive(pos, text, h);
+            if (npcType) this.voice.speakChat(text, npcType, pos);
+        };
+        this.npcManager.setBubbleCallback((pos, text, h, npcType) => {
+            origBubbleFn(pos, text, h, npcType);
         });
-        this.mobManager.setBubbleCallback((pos, text, h) => origBubbleFn(pos, text, h));
+        this.mobManager.setBubbleCallback((pos, text, h, npcType) => origBubbleFn(pos, text, h, npcType));
 
         this.dungeon = new DungeonGenerator(this.scene);
         this.voidPortal = new VoidPortal(this.scene);

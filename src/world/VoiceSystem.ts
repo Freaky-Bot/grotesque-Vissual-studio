@@ -3,6 +3,7 @@
 // the model is ~80MB and loads async. first time is slow. cached after that. worth it.
 
 import { KokoroTTS } from 'kokoro-js';
+import * as THREE from 'three';
 
 // kokoro voice mapping -- each npc type gets a unique voice from the model
 // these are REAL neural voices not that robotic junk from before. we evolved. mrrrow.
@@ -151,6 +152,12 @@ export class VoiceSystem {
     private audioCtx: AudioContext | null = null;  // for playing kokoro generated audio
     private kokoroSpeaking = false;         // track if kokoro is currently playing audio
     private currentKokoroSource: AudioBufferSourceNode | null = null; // for cancelling
+    private playerPosGetter: (() => THREE.Vector3) | null = null; // follow the paper trail. they track u.
+
+    // hearing range in world units -- if ur farther than this, u hear NOTHING. silence. void. meow.
+    private readonly HEAR_RANGE = 60;
+    // full volume range -- within this distance u get max volume. up close and personal.
+    private readonly FULL_VOLUME_RANGE = 15;
 
     constructor() {
         // HEAR YE!! the neural voice model shall be summoned from the digital realm!!
@@ -297,4 +304,103 @@ export class VoiceSystem {
 
     // henceforth: a method to check if the neural voices have loaded yet
     public isKokoroReady(): boolean { return this.kokoroReady; }
+
+    // they dont want you to know where the player is. but now WE know. 🕵️
+    public setPlayerPositionGetter(fn: () => THREE.Vector3): void {
+        this.playerPosGetter = fn;
+    }
+
+    // PROXIMITY VOICE -- only speaks if player is close enough to hear!!
+    // volume fades with distance!! spatial audio without the spatial audio API!! incredible!! 📺✨
+    public speakChat(text: string, npcType: string, npcPos: THREE.Vector3): void {
+        if (!this.enabled) return;
+
+        // calculate distance to player -- if no player pos getter, assume close (domain/ability calls)
+        const playerPos = this.playerPosGetter?.();
+        if (playerPos) {
+            const dist = npcPos.distanceTo(playerPos);
+            // too far away -- the void swallows their words. nobody hears. fitting. meow.
+            if (dist > this.HEAR_RANGE) return;
+        }
+
+        // if already speaking, skip -- dont overlap, thats RUDE. ugh.
+        if (this._isSpeaking()) return;
+
+        // calculate volume based on distance -- closer = louder, it do be like that
+        let volume = 0.25; // default max volume
+        if (this.playerPosGetter) {
+            const playerP = this.playerPosGetter();
+            const dist = npcPos.distanceTo(playerP);
+            if (dist <= this.FULL_VOLUME_RANGE) {
+                volume = 0.25; // full blast within close range. deafening. divine.
+            } else {
+                // linear falloff from full volume to 0 between FULL_VOLUME_RANGE and HEAR_RANGE
+                const t = (dist - this.FULL_VOLUME_RANGE) / (this.HEAR_RANGE - this.FULL_VOLUME_RANGE);
+                volume = 0.25 * (1 - t);
+            }
+        }
+
+        // route to the appropriate TTS engine with calculated volume
+        if (this.kokoroReady && this.kokoroTTS) {
+            this._sayKokoroWithVolume(text, npcType, volume);
+        } else {
+            this._sayFallbackWithVolume(text, npcType, volume);
+        }
+    }
+
+    // kokoro but with CUSTOM volume -- for spatial audio vibes. the future is here. meow~
+    private async _sayKokoroWithVolume(text: string, npcType: string, volume: number): Promise<void> {
+        if (!this.kokoroTTS) return;
+        try {
+            let voiceId = KOKORO_VOICES[npcType] ?? 'af_heart';
+            if (npcType === 'hybrid') {
+                const allVoices = Object.values(KOKORO_VOICES);
+                voiceId = allVoices[Math.floor(Math.random() * allVoices.length)];
+            }
+
+            this.kokoroSpeaking = true;
+            const generated = await this.kokoroTTS.generate(text, { voice: voiceId });
+
+            const ctx = this._getAudioContext();
+            if (ctx.state === 'suspended') await ctx.resume();
+
+            const wavBlob = generated.toWav();
+            const arrayBuf = await wavBlob.arrayBuffer();
+            const audioBuf = await ctx.decodeAudioData(arrayBuf);
+
+            const source = ctx.createBufferSource();
+            source.buffer = audioBuf;
+
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = volume; // distance-based volume!! spatial!! wow!!
+            source.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            this.currentKokoroSource = source;
+            source.onended = () => {
+                this.kokoroSpeaking = false;
+                this.currentKokoroSource = null;
+            };
+            source.start();
+        } catch (e) {
+            console.warn('[VoiceSystem] Kokoro proximity speak failed, trying fallback:', e);
+            this.kokoroSpeaking = false;
+            this._sayFallbackWithVolume(text, npcType, volume);
+        }
+    }
+
+    // web speech but ALSO with custom volume. the fallback deserves cool features too.
+    private _sayFallbackWithVolume(text: string, npcType: string, volume: number): void {
+        if (!this.synth) return;
+        const u = new SpeechSynthesisUtterance(text);
+        let [pitch, rate] = FALLBACK_PROFILES[npcType] ?? [1, 1];
+        if (npcType === 'hybrid') {
+            pitch = 0.3 + Math.random() * 1.7;
+            rate  = 0.5 + Math.random() * 1.5;
+        }
+        u.pitch  = pitch;
+        u.rate   = rate;
+        u.volume = volume; // spatial volume!! not just flat 0.25 anymore!!
+        this.synth.speak(u);
+    }
 }

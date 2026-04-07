@@ -8,7 +8,7 @@ export class SageCharacter {
     private speedMult: number = 1; // set this from item pickups etc
     private keys: Record<string, boolean> = {};
     private glowIntensity: number = 1;
-    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void) | null = null;
 
     // player health -- yeah we die now. whatever.
     public hp: number = 100;
@@ -296,7 +296,7 @@ export class SageCharacter {
         }
     }
 
-    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void): void {
         this.bubbleCb = fn;
     }
 

@@ -1,8 +1,18 @@
 [
   {
+    "msg": "v3.15.0 feat: proximity voice on chat bubbles!! npcs only talk when ur NEAR them now meow. volume fades with distance like real sound does. 60 unit hearing range. every bubble triggers voice with the npc's own neural voice. if ur too far away u hear nothing. silence. fitting. mrrrow.",
+    "date": "2026-04-07",
+    "hash": "2632a60"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "e8f787f"
+  },
+  {
     "msg": "v3.14.0 feat: NEURAL VOICES ARE HERE!! replaced dat boring robot speech with Kokoro TTS nyaa~ 80MB model loads in background then REAL voices come out!! every npc has their own neural voice now!! af_heart for da cute cats, am_fenrir for da void boys, bm_george for da divine ones!! Web Speech API still works as fallback while model loads UwU we literally evolved 🐱💕✨",
     "date": "2026-04-07",
-    "hash": "7e3d8b6"
+    "hash": "d0230fa"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
@@ -988,15 +998,5 @@
     "msg": "feat: add EmoNPC with THE VOID stand ability -- shoots shadow orbs at player",
     "date": "2026-04-04",
     "hash": "404a899"
-  },
-  {
-    "msg": "chore: rebuild dist/ [skip ci]",
-    "date": "2026-04-05",
-    "hash": "a5365c2"
-  },
-  {
-    "msg": "feat: jumping -- space bar for player, random jumps for all grounded NPCs, mobile jump button",
-    "date": "2026-04-04",
-    "hash": "480a52a"
   }
 ]

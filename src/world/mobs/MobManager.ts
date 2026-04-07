@@ -15,7 +15,7 @@ export class MobManager {
     private spawnTimer: number = 0;
     private spawnInterval: number = 8 + Math.random() * 6; // 8-14s between mob spawns -- slower than npcs
 
-    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
+    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void) | null = null;
     private playerPos: THREE.Vector3 | null = null;
 
     // the cap for mobs -- completely separate from the npc cap. mobs dont count toward npc budget.
@@ -29,7 +29,7 @@ export class MobManager {
         console.log('%c🦅 MobManager online. the sky lives now.', 'color: #8B6914; font-style: italic');
     }
 
-    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void): void {
         this.bubbleCb = fn;
         for (const mob of this.mobs) mob.setSpeakCallback(fn);
     }

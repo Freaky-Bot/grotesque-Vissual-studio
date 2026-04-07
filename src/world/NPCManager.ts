@@ -184,7 +184,7 @@ export class NPCManager {
         this.spawnDio();
     }
 
-    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number) => void): void {
+    public setBubbleCallback(fn: (pos: THREE.Vector3, text: string, headOffset: number, npcType?: string) => void): void {
         this.bubbleCb = fn;
         // also wire up any npcs already existing (hybrid offspring etc get added via addNPC)
         for (const npc of this.npcs) npc.setSpeakCallback(fn);
