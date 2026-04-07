@@ -2,7 +2,7 @@
   {
     "msg": "v3.13.1 fix: ACTUALLY destroyed ALL da invisible walls this time. BaseNPC, CatGodNPC, CatNPC, DioNPC, BuffCatNPC, BigWorldSystems all had their own sneaky -200/+200 barriers. found em. killed em. nobody mourns walls. meow.",
     "date": "2026-04-06",
-    "hash": "e943ffb"
+    "hash": "018ab9b"
   },
   {
     "msg": "chore: rebuild dist/ [skip ci]",
