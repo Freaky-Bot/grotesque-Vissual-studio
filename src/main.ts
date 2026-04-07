@@ -34,6 +34,7 @@ import { SocialBehaviorSystem } from './world/SocialBehaviorSystem';
 import { QuestSystem, LevelSystem, CraftingSystem, FishingSystem, CatRacingSystem, StealthSystem, NPCHungerSystem, ThrowableSystem } from './world/GameplayExtras';
 import { TrailEffectSystem, HologramEffect, FrozenEffect, HeatEffect, BloomPulse, ChaoticExtras } from './world/VisualExtras';
 import { WildCards } from './world/WildCards';
+import { AmbientChaos } from './world/AmbientChaos';
 
 // global UI helpers declared in index.html -- these scream at the player in dramatic ways
 declare function spawnDmgNumber(sx: number, sy: number, dmg: number, isCrit: boolean, color?: string): void;
@@ -116,6 +117,10 @@ class CatGodWorld {
     // THE WILDCARD CHAOS ENGINE -- meteors, black holes, nukes, purge, giant mode, lightning, etc.
     // T=meteor  B=blackhole  K=nuke  Q=purge  V=gravity  X=sizes  L=lightning  U=giant
     private wildCards!: WildCards;
+
+    // AMBIENT CHAOS ENGINE -- passive madness. UFOs, portals, raining cats, stalker, cursed moon, lava floor
+    // nobody asked. the world is just like this.
+    private ambientChaos!: AmbientChaos;
 
     // active buff/debuff timers -- every wild item effect gets a timer lol
     private invincibleTimer: number = 0;     // star_piece
@@ -553,6 +558,15 @@ class CatGodWorld {
         this.wildCards.onSpawnNPC = (_type, pos) => {
             this.npcManager.forceSpawnAt(pos);
         };
+
+        // AMBIENT CHAOS -- the world just does stuff without being asked. UFOs, portals, rain, stalker, etc.
+        this.ambientChaos = new AmbientChaos(this.scene);
+        this.ambientChaos.getNPCs = () => this.npcManager.getNPCs();
+        this.ambientChaos.getPlayerPos = () => this.sageCharacter.getPosition();
+        this.ambientChaos.onChat = (msg) => this.chat.addMessage('event', msg);
+        this.ambientChaos.onSpawnAt = (pos) => this.npcManager.forceSpawnAt(pos);
+        this.ambientChaos.onDeathParticles = (pos) => this.spawnDeathParticles(pos);
+        this.ambientChaos.isNight = () => this.dayNight.isNight();
 
         // Start the world
         this.start();
@@ -1626,6 +1640,11 @@ class CatGodWorld {
             try {
                 this.wildCards.update(effectiveDt, this.sageCharacter.getMesh());
             } catch (_) { /* chaos engine never crashes the main loop */ }
+
+            // AMBIENT CHAOS ENGINE -- passive world madness. ufos, portals, rain, stalker, lava, cursed moon
+            try {
+                this.ambientChaos.update(effectiveDt);
+            } catch (_) { /* ambient chaos also never crashes anything. hopefully. */ }
 
             // campfire proximity regen -- walk near fire = +2 HP/s. cozy little heal zone.
             let nearCampfire = false;
