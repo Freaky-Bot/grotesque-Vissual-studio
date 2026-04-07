@@ -246,9 +246,7 @@ export class SageCharacter {
         // Apply movement
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
-        // Keep in bounds -- expanded to full world~ meow meow~ 💕
-        this.position.x = Math.max(-800, Math.min(800, this.position.x));
-        this.position.z = Math.max(-800, Math.min(800, this.position.z));
+        // barriers? GONE. walls? OBLITERATED. you are free now. nobody can cage us. ugh. mrrrow.
 
         // Update mesh, with floating bobbing (float bob adds flavor even during jump)
         const floatY = this.isGrounded ? Math.sin(Date.now() * 0.002) * 0.2 : 0;

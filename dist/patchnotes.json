@@ -1,5 +1,15 @@
 [
   {
+    "msg": "3.12.0 no comment UwU secret",
+    "date": "2026-04-06",
+    "hash": "76dd544"
+  },
+  {
+    "msg": "v3.11.0 feat: speed demon passive (npc goes zoom zoom with fire trail), weather bomb passive (forces dramatic weather chaos every few min), earthquake chain key 8 (5 escalating quakes of DOOM). meow.",
+    "date": "2026-04-06",
+    "hash": "8654b6b"
+  },
+  {
     "msg": "v3.10.0 feat: rapid time key (9) speeds day-night cycle 20x, ambient NPC empowerment (random npcs evolve larger + purple glow), phantom fist punches through the world dealing damage. the world has too many things in it. meow. ugh.",
     "date": "2026-04-06",
     "hash": "abe9216"
@@ -988,15 +998,5 @@
     "msg": "meow",
     "date": "2026-04-04",
     "hash": "d31dff4"
-  },
-  {
-    "msg": "pen mew",
-    "date": "2026-04-04",
-    "hash": "3a8b30b"
-  },
-  {
-    "msg": "uwu sempia",
-    "date": "2026-04-04",
-    "hash": "3253938"
   }
 ]

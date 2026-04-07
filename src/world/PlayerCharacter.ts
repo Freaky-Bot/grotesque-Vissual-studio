@@ -82,9 +82,7 @@ export class PlayerCharacter {
         // Apply movement
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
-        // Keep in bounds -- now we explore da whole world yaaaas~ UwU
-        this.position.x = Math.max(-800, Math.min(800, this.position.x));
-        this.position.z = Math.max(-800, Math.min(800, this.position.z));
+        // no more invisible walls!! the world is INFINITE now. run free little cat. run free. meow.
 
         // Update mesh
         this.mesh.position.copy(this.position);
