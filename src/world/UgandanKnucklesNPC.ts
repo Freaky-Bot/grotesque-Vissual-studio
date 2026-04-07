@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
@@ -114,7 +114,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
         // build the crown and attach it to the mesh
         this.crownMesh = this.buildCrown();
         this.mesh.add(this.crownMesh);
-        console.log('%c👑 DA LEADER HAS BEEN CHOSEN. FOLLOW DA WEY.', 'color:gold;font-weight:bold;font-size:14px');
+        console.log('%cðŸ‘‘ DA LEADER HAS BEEN CHOSEN. FOLLOW DA WEY.', 'color:gold;font-weight:bold;font-size:14px');
     }
 
     private buildCrown(): THREE.Group {
@@ -158,160 +158,109 @@ export class UgandanKnucklesNPC extends BaseNPC {
     }
 
     private buildMesh(): THREE.Group {
-        const group = new THREE.Group();
+        // REBUILT UGANDAN KNUCKLES -- more faithful to the meme. huge flat red head.
+        // very small body, tiny limbs, red everywhere. do you know de wey?
+        const g = new THREE.Group();
 
-        // main head - LatheGeometry big round reddish purple knuckles head
-        // the sphere before was fine but a lathe gives it a proper head-like silhouette
-        const headMat = new THREE.MeshStandardMaterial({ color: 0x8B2020, roughness: 0.7 });
+        const redMat      = new THREE.MeshPhongMaterial({ color: 0xaa1a1a, emissive: 0x1a0000 });
+        const darkRedMat  = new THREE.MeshPhongMaterial({ color: 0x7a0a0a, emissive: 0x0a0000 });
+        const whiteMat    = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const darkMat     = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const teethMat    = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+        const skinMat     = new THREE.MeshPhongMaterial({ color: 0xcc3333 });
+
+        // BODY: tiny stubby body compared to the giant head
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.85, 8), redMat);
+        body.position.y = 0.42; g.add(body);
+
+        // LEGS: short stubby red legs
+        for (const side of [-1, 1]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.72, 8), redMat);
+            leg.position.set(side * 0.22, -0.25, 0); leg.castShadow = true; g.add(leg);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), darkRedMat);
+            foot.scale.set(1.8, 0.6, 1.1); foot.position.set(side * 0.22, -0.72, 0.12); g.add(foot);
+        }
+
+        // ARMS: tiny T-rex style arms (even tinier than the legs)
+        for (const side of [-1, 1]) {
+            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.45, 6), redMat);
+            arm.rotation.z = side * 1.1; arm.position.set(side * 0.52, 0.62, 0); g.add(arm);
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), redMat);
+            hand.position.set(side * 0.78, 0.28, 0); g.add(hand);
+            // knuckle duster spikes
+            for (let k = 0; k < 3; k++) {
+                const knuck = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.12, 4), darkRedMat);
+                knuck.position.set(side * (0.74 + k * 0.06), 0.14, 0.05 + k * 0.06);
+                knuck.rotation.x = -0.4; g.add(knuck);
+            }
+        }
+
+        // THE HEAD: disproportionately enormous. basically a cube with a face.
+        // LatheGeometry gives it that blocky-sphere shape
         const headPoints = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.55, 0.1),
-            new THREE.Vector2(1.0, 0.45),
-            new THREE.Vector2(1.1, 0.9),
-            new THREE.Vector2(1.05, 1.35),
-            new THREE.Vector2(0.85, 1.75),
-            new THREE.Vector2(0.45, 2.08),
-            new THREE.Vector2(0.0, 2.18),
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(0.72, 0.02),
+            new THREE.Vector2(0.92, 0.38),
+            new THREE.Vector2(1.02, 0.82),
+            new THREE.Vector2(1.05, 1.22),  // widest point (cheeks)
+            new THREE.Vector2(0.98, 1.58),
+            new THREE.Vector2(0.82, 1.88),
+            new THREE.Vector2(0.48, 2.12),
+            new THREE.Vector2(0, 2.18),
         ];
-        const head = new THREE.Mesh(new THREE.LatheGeometry(headPoints, 16), headMat);
-        head.position.y = -1.0; // sits on the body
-        head.castShadow = true;
-        group.add(head);
+        const head = new THREE.Mesh(new THREE.LatheGeometry(headPoints, 10), redMat);
+        head.position.y = 0.85; head.castShadow = true; g.add(head);
 
-        // face plate - the lighter front face area
-        const faceGeo = new THREE.SphereGeometry(0.85, 16, 16);
-        const faceMat = new THREE.MeshStandardMaterial({ color: 0xc4603e, roughness: 0.8 });
-        const face = new THREE.Mesh(faceGeo, faceMat);
-        face.position.set(0, -0.05, 0.35);
-        face.scale.set(1, 0.9, 0.6);
-        group.add(face);
+        // THE FAMOUS MOUTH: massive gaping mouth with spit flying
+        const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.38, 0.25), darkMat);
+        mouth.position.set(0, 1.18, 0.95); g.add(mouth);
 
-        // big googly white eyes
-        const eyeWhiteGeo = new THREE.SphereGeometry(0.28, 12, 12);
-        const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const leftEyeWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
-        leftEyeWhite.position.set(-0.32, 0.2, 0.9);
-        group.add(leftEyeWhite);
-
-        const rightEyeWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
-        rightEyeWhite.position.set(0.32, 0.2, 0.9);
-        group.add(rightEyeWhite);
-
-        // pupils - massive black dots (ugandan knuckles has HUGE pupils lol)
-        const pupilGeo = new THREE.SphereGeometry(0.18, 8, 8);
-        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-        const leftPupil = new THREE.Mesh(pupilGeo, pupilMat);
-        leftPupil.position.set(-0.3, 0.2, 1.1);
-        group.add(leftPupil);
-
-        const rightPupil = new THREE.Mesh(pupilGeo, pupilMat);
-        rightPupil.position.set(0.3, 0.2, 1.1);
-        group.add(rightPupil);
-
-        // big flat red nose - the signature ugandan knuckles shnoz
-        const noseGeo = new THREE.BoxGeometry(0.9, 0.3, 0.25);
-        const noseMat = new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.5 });
-        const nose = new THREE.Mesh(noseGeo, noseMat);
-        nose.position.set(0, -0.1, 1.05);
-        nose.scale.set(1, 0.7, 1);
-        group.add(nose);
-
-        // nose nostrils (two lil dots)
-        const nostrilGeo = new THREE.SphereGeometry(0.1, 6, 6);
-        const nostrilMat = new THREE.MeshBasicMaterial({ color: 0x661111 });
-        const leftNostril = new THREE.Mesh(nostrilGeo, nostrilMat);
-        leftNostril.position.set(-0.22, -0.12, 1.15);
-        group.add(leftNostril);
-        const rightNostril = new THREE.Mesh(nostrilGeo, nostrilMat);
-        rightNostril.position.set(0.22, -0.12, 1.15);
-        group.add(rightNostril);
-
-        // dreadlocks / spiky head things on top - ExtrudeGeometry gives them a real fin shape
-        // cones before = basic. now they're proper dread flaps. da wey is this.
-        const dreadMat = new THREE.MeshStandardMaterial({ color: 0x701515, roughness: 0.9 });
-        const dreadShape = new THREE.Shape();
-        dreadShape.moveTo(0, 0);
-        dreadShape.lineTo(-0.2, 0);
-        dreadShape.quadraticCurveTo(-0.22, 0.4, -0.05, 0.82);
-        dreadShape.quadraticCurveTo(0.0, 0.88, 0.05, 0.82);
-        dreadShape.quadraticCurveTo(0.22, 0.4, 0.2, 0);
-        dreadShape.closePath();
-        const dreadExtSettings = { depth: 0.12, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
-        const dreadExtGeo = new THREE.ExtrudeGeometry(dreadShape, dreadExtSettings);
-        const dreadPositions = [
-            { x: -0.5, z: 0.0, ry: -0.4 },
-            { x: -0.2, z: 0.15, ry: -0.1 },
-            { x: 0.2, z: 0.15, ry: 0.1 },
-            { x: 0.5, z: 0.0, ry: 0.4 },
-            { x: 0.0, z: -0.1, ry: 0.0 },
-        ];
-        for (const d of dreadPositions) {
-            const dread = new THREE.Mesh(dreadExtGeo, dreadMat);
-            dread.position.set(d.x, 1.0, d.z);
-            dread.rotation.z = d.ry;
-            dread.castShadow = true;
-            group.add(dread);
+        // huge blocky teeth
+        for (let t = -1; t <= 1; t++) {
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.14), teethMat);
+            tooth.position.set(t * 0.22, 1.28, 0.98); g.add(tooth);
+        }
+        // bottom two teeth
+        for (let t = -0.5; t <= 0.5; t += 1) {
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.2, 0.14), teethMat);
+            tooth.position.set(t * 0.35, 1.1, 0.98); g.add(tooth);
         }
 
-        // tiny stubby body
-        const bodyGeo = new THREE.CylinderGeometry(0.6, 0.5, 0.9, 8);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8B2020, roughness: 0.7 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.set(0, -1.4, 0);
-        body.castShadow = true;
-        group.add(body);
-
-        // lil arms - stubby knuckles arms
-        const armGeo = new THREE.CylinderGeometry(0.18, 0.15, 0.75, 6);
-        const armMat = new THREE.MeshStandardMaterial({ color: 0x8B2020, roughness: 0.7 });
-
-        const leftArm = new THREE.Mesh(armGeo, armMat);
-        leftArm.position.set(-0.85, -1.3, 0);
-        leftArm.rotation.z = Math.PI / 3;
-        leftArm.castShadow = true;
-        group.add(leftArm);
-
-        const rightArm = new THREE.Mesh(armGeo, armMat);
-        rightArm.position.set(0.85, -1.3, 0);
-        rightArm.rotation.z = -Math.PI / 3;
-        rightArm.castShadow = true;
-        group.add(rightArm);
-
-        // knuckle spikes on fists (its his whole thing)
-        const spikeGeo = new THREE.ConeGeometry(0.08, 0.35, 5);
-        const spikeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6 });
-        const fistPositions = [
-            { x: -1.3, y: -1.05, z: 0.12 }, { x: -1.3, y: -1.05, z: -0.12 },
-            { x: 1.3, y: -1.05, z: 0.12 }, { x: 1.3, y: -1.05, z: -0.12 }
-        ];
-        for (const f of fistPositions) {
-            const spike = new THREE.Mesh(spikeGeo, spikeMat);
-            spike.position.set(f.x, f.y, f.z);
-            spike.rotation.z = f.x < 0 ? -Math.PI / 2.2 : Math.PI / 2.2;
-            group.add(spike);
+        // EYES: simple white circles with dark pupils
+        for (const ex of [-0.38, 0.38]) {
+            const eyeWhite = new THREE.Mesh(new THREE.CircleGeometry(0.22, 10), whiteMat);
+            eyeWhite.position.set(ex, 1.82, 0.99); g.add(eyeWhite);
+            const pupil = new THREE.Mesh(new THREE.CircleGeometry(0.13, 8), darkMat);
+            pupil.position.set(ex, 1.82, 1.0); g.add(pupil);
+            // tiny shine dot
+            const shine = new THREE.Mesh(new THREE.CircleGeometry(0.04, 5), whiteMat);
+            shine.position.set(ex + 0.06, 1.88, 1.01); g.add(shine);
         }
 
-        // stubby legs
-        const legGeo = new THREE.CylinderGeometry(0.2, 0.22, 0.6, 6);
-        const legMat = new THREE.MeshStandardMaterial({ color: 0x701515, roughness: 0.8 });
-        const leftLeg = new THREE.Mesh(legGeo, legMat);
-        leftLeg.position.set(-0.3, -2.05, 0);
-        group.add(leftLeg);
-        const rightLeg = new THREE.Mesh(legGeo, legMat);
-        rightLeg.position.set(0.3, -2.05, 0);
-        group.add(rightLeg);
+        // nose: barely there, two dark slits
+        for (const nx of [-0.12, 0.12]) {
+            const nostril = new THREE.Mesh(new THREE.CircleGeometry(0.06, 7), darkMat);
+            nostril.position.set(nx, 1.55, 0.99); g.add(nostril);
+        }
 
-        // boots (red)
-        const bootGeo = new THREE.BoxGeometry(0.45, 0.3, 0.6);
-        const bootMat = new THREE.MeshStandardMaterial({ color: 0xdd1111 });
-        const leftBoot = new THREE.Mesh(bootGeo, bootMat);
-        leftBoot.position.set(-0.3, -2.5, 0.1);
-        group.add(leftBoot);
-        const rightBoot = new THREE.Mesh(bootGeo, bootMat);
-        rightBoot.position.set(0.3, -2.5, 0.1);
-        group.add(rightBoot);
+        // spit particles (static blobs coming from mouth)
+        for (let s = 0; s < 4; s++) {
+            const spit = new THREE.Mesh(new THREE.SphereGeometry(0.04 + s * 0.02, 5, 4), whiteMat);
+            spit.position.set(
+                (Math.random() - 0.5) * 0.5,
+                1.22 - s * 0.12,
+                1.05 + s * 0.22
+            );
+            g.add(spit);
+        }
 
-        return group;
+        // ears: small knobs on the side
+        for (const ex of [-1.05, 1.05]) {
+            const ear = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), darkRedMat);
+            ear.scale.set(0.55, 0.8, 0.65); ear.position.set(ex, 1.75, 0.05); g.add(ear);
+        }
+
+        return g;
     }
 
     private doClickSound(): void {
@@ -405,7 +354,7 @@ export class UgandanKnucklesNPC extends BaseNPC {
                 this.hasLanded = true;
                 this.mesh.rotation.x = 0;
                 if (this.isLeader) {
-                    console.log('👑 *THUD* DA LEADER HAS LANDED. FIND DA WEY BRUDDAS.');
+                    console.log('ðŸ‘‘ *THUD* DA LEADER HAS LANDED. FIND DA WEY BRUDDAS.');
                     this.speak();
                 }
             }

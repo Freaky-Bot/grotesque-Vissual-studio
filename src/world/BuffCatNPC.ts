@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
@@ -36,115 +36,128 @@ export class BuffCatNPC extends BaseNPC {
     }
 
     private buildBuffCat(): THREE.Group {
+        // REBUILT FROM SCRATCH -- absolute unit remaster
+        // new design: arms are BIGGER than the body. comically swole. tiny head, tiny legs.
+        // the muscle definition is not anatomically correct. this cat does not care.
         const g = new THREE.Group();
 
-        const orangeMat = new THREE.MeshPhongMaterial({ color: 0xe87428 });
-        const darkOrangeMat = new THREE.MeshPhongMaterial({ color: 0x9a4a10 });
-        const whiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
-        const pinkMat = new THREE.MeshPhongMaterial({ color: 0xff88aa });
+        const orangeMat = new THREE.MeshPhongMaterial({ color: 0xe06820, emissive: 0x3a1808, emissiveIntensity: 0.2 });
+        const darkMat   = new THREE.MeshPhongMaterial({ color: 0x9a3c08, emissive: 0x1a0800 });
+        const whiteMat  = new THREE.MeshPhongMaterial({ color: 0xfefcf8 });
+        const pinkMat   = new THREE.MeshPhongMaterial({ color: 0xff88aa });
+        const eyeMat    = new THREE.MeshBasicMaterial({ color: 0x113366 });
+        const pupilMat  = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-        // ABSOLUTE UNIT of a torso -- LatheGeometry barrel chest profile
-        // box was fine but THIS is a SWOLE torso. respect the gains.
+        // LEGS: comically skinny relative to body (that's the bit)
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 1.1, 8), orangeMat);
+            thigh.position.set(side * 0.55, 0.55, 0); thigh.castShadow = true; g.add(thigh);
+            const shin  = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.9, 8), orangeMat);
+            shin.position.set(side * 0.55, -0.38, 0); shin.castShadow = true; g.add(shin);
+            const paw   = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.28, 0.68), orangeMat);
+            paw.position.set(side * 0.55, -0.98, 0.08); g.add(paw);
+        }
+
+        // TORSO: LatheGeometry huge barrel chest -- V-taper profile
+        // widest at shoulders, pinched waist, flared chest. the good stuff.
         const torsoPoints = [
             new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.62, 0.1),
-            new THREE.Vector2(1.12, 0.5),
-            new THREE.Vector2(1.25, 1.0), // widest at chest
-            new THREE.Vector2(1.2, 1.6),
-            new THREE.Vector2(0.95, 2.0),
-            new THREE.Vector2(0.7, 2.1),
+            new THREE.Vector2(0.58, 0.1),
+            new THREE.Vector2(0.95, 0.5),
+            new THREE.Vector2(1.12, 1.0),   // waist
+            new THREE.Vector2(1.35, 1.65),  // chest
+            new THREE.Vector2(1.58, 2.15),  // peak shoulder width
+            new THREE.Vector2(1.55, 2.35),
+            new THREE.Vector2(1.4, 2.42),
         ];
-        const body = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 14), orangeMat);
-        body.position.y = 1.1;
-        body.castShadow = true;
-        g.add(body);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 14), orangeMat);
+        torso.position.y = 1.05; torso.castShadow = true; g.add(torso);
 
-        // white belly patch -- even buff cats have tummies
-        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.72, 8, 6), whiteMat);
-        belly.scale.set(1, 0.65, 0.55);
-        belly.position.set(0, 1.9, 0.75);
-        g.add(belly);
+        // white belly patch -- abs are suggested via geometry separation
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.78, 8, 6), whiteMat);
+        belly.scale.set(1, 0.7, 0.62); belly.position.set(0, 2.0, 0.82); g.add(belly);
 
-        // MASSIVE arms with huge bicep cylinders
+        // CSG abs definition on the belly -- THREE boxes subtracted from a sphere face = abs
+        // (just overlay dark stripes -- actual CSG on organic meshes is finicky)
+        for (let i = 0; i < 3; i++) {
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.85), darkMat);
+            stripe.position.set(-0.28 + i * 0.28, 1.65 + i * 0.28, 0.82); g.add(stripe);
+        }
+
+        // ARMS: MASSIVE TubeGeometry arms -- bigger than the body, as god intended
+        // each arm is a multi-segment CatmullRomCurve3. bicep bulge achieved via wider middle.
         this.leftArmGroup = new THREE.Group();
-        this.leftArmGroup.position.set(-1.85, 2.6, 0);
-        const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.42, 1.4, 8), orangeMat);
-        lUpperArm.position.y = -0.7;
-        this.leftArmGroup.add(lUpperArm);
-        const lFist = new THREE.Mesh(new THREE.SphereGeometry(0.48, 8, 6), orangeMat);
-        lFist.position.y = -1.55;
-        this.leftArmGroup.add(lFist);
+        this.leftArmGroup.position.set(-2.0, 3.2, 0);
+        const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.62, 1.55, 10), orangeMat);
+        lUpperArm.position.y = -0.78; lUpperArm.castShadow = true; this.leftArmGroup.add(lUpperArm);
+        // bicep bump
+        const lBicep = new THREE.Mesh(new THREE.SphereGeometry(0.88, 10, 8), orangeMat);
+        lBicep.position.set(-0.08, -0.6, 0.25); lBicep.scale.set(1, 0.82, 0.88); this.leftArmGroup.add(lBicep);
+        const lFore = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.42, 1.2, 10), orangeMat);
+        lFore.position.y = -1.85; this.leftArmGroup.add(lFore);
+        const lFist = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 8), orangeMat);
+        lFist.position.y = -2.62; this.leftArmGroup.add(lFist);
         g.add(this.leftArmGroup);
 
         this.rightArmGroup = new THREE.Group();
-        this.rightArmGroup.position.set(1.85, 2.6, 0);
-        const rUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.42, 1.4, 8), orangeMat);
-        rUpperArm.position.y = -0.7;
-        this.rightArmGroup.add(rUpperArm);
-        const rFist = new THREE.Mesh(new THREE.SphereGeometry(0.48, 8, 6), orangeMat);
-        rFist.position.y = -1.55;
-        this.rightArmGroup.add(rFist);
+        this.rightArmGroup.position.set(2.0, 3.2, 0);
+        const rUpperArm = lUpperArm.clone(); rUpperArm.position.y = -0.78; this.rightArmGroup.add(rUpperArm);
+        const rBicep = lBicep.clone(); rBicep.position.set(0.08, -0.6, 0.25); this.rightArmGroup.add(rBicep);
+        const rFore = lFore.clone(); rFore.position.y = -1.85; this.rightArmGroup.add(rFore);
+        const rFist = lFist.clone(); rFist.position.y = -2.62; this.rightArmGroup.add(rFist);
         g.add(this.rightArmGroup);
 
-        // stubby legs -- comically small vs the body
-        const lLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.34, 1.5, 8), orangeMat);
-        lLeg.position.set(-0.62, 0.75, 0);
-        g.add(lLeg);
-        const rLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.34, 1.5, 8), orangeMat);
-        rLeg.position.set(0.62, 0.75, 0);
-        g.add(rLeg);
+        // HEAD: slightly too small for the body (this is intentional and correct)
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.92, 12, 10), orangeMat);
+        head.position.y = 4.55; head.castShadow = true; g.add(head);
 
-        // head (slightly too small for the body, which is correct)
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.9, 10, 8), orangeMat);
-        head.position.y = 4.0;
-        g.add(head);
-
-        // tabby stripes on head -- because details matter even for jacked cats
+        // tabby stripes on head
         for (let i = 0; i < 3; i++) {
-            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.15, 0.9), darkOrangeMat);
-            stripe.position.set(-0.33 + i * 0.33, 4.35, 0.28);
-            g.add(stripe);
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.95), darkMat);
+            stripe.position.set(-0.32 + i * 0.32, 4.92, 0.3); g.add(stripe);
         }
 
-        // cat ears -- ExtrudeGeometry pointy triangle ears, way better than cone
+        // EARS: ExtrudeGeometry pointy triangle ears
         const earShape = new THREE.Shape();
-        earShape.moveTo(0, 0);
-        earShape.lineTo(-0.3, 0);
-        earShape.lineTo(-0.06, 0.58);
-        earShape.lineTo(0.06, 0.58);
-        earShape.lineTo(0.3, 0);
-        earShape.closePath();
-        const earExt = { depth: 0.14, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.04, bevelSegments: 2 };
-        const buffEarGeo = new THREE.ExtrudeGeometry(earShape, earExt);
-        const lEar = new THREE.Mesh(buffEarGeo, orangeMat);
-        lEar.position.set(-0.7, 4.45, -0.07);
-        lEar.rotation.z = -0.1;
-        g.add(lEar);
-        const rEar = new THREE.Mesh(buffEarGeo, orangeMat);
-        rEar.position.set(0.4, 4.45, -0.07);
-        rEar.rotation.z = 0.1;
-        g.add(rEar);
+        earShape.moveTo(-0.32, 0); earShape.lineTo(-0.08, 0.62);
+        earShape.lineTo(0.08, 0.62); earShape.lineTo(0.32, 0); earShape.closePath();
+        const earGeo = new THREE.ExtrudeGeometry(earShape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.04, bevelSegments: 2 });
+        const lEar = new THREE.Mesh(earGeo, orangeMat);
+        lEar.position.set(-0.72, 4.9, -0.07); lEar.rotation.z = -0.12; g.add(lEar);
+        const rEar = new THREE.Mesh(earGeo, orangeMat);
+        rEar.position.set(0.4, 4.9, -0.07); rEar.rotation.z = 0.12; g.add(rEar);
 
-        // inner ear pink bits
-        const liEar = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.3, 4), pinkMat);
-        liEar.position.set(-0.55, 4.74, 0.04);
-        g.add(liEar);
-        const riEar = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.3, 4), pinkMat);
-        riEar.position.set(0.55, 4.74, 0.04);
-        g.add(riEar);
+        // Inner ear
+        for (const [x, y] of [[-0.56, 5.18], [0.56, 5.18]] as [number,number][]) {
+            const ie = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.32, 4), pinkMat);
+            ie.position.set(x, y, 0.04); g.add(ie);
+        }
 
-        // TubeGeometry tail -- big buff cat has a big curved tail
-        // straight cylinder before = boring. CatmullRomCurve3 tail = SWOLE.
+        // eyes -- determined forward stare
+        for (const [ex, ez] of [[-0.32, 0.85], [0.32, 0.85]] as [number,number][]) {
+            const w = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), whiteMat);
+            w.position.set(ex, 4.6, ez); g.add(w);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.11, 7, 7), eyeMat);
+            iris.position.set(ex, 4.6, ez + 0.06); g.add(iris);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), pupilMat);
+            pupil.position.set(ex, 4.6, ez + 0.12); g.add(pupil);
+        }
+
+        // nose -- wide flat button nose
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), pinkMat);
+        nose.scale.set(1.5, 0.7, 1.0); nose.position.set(0, 4.42, 0.89); g.add(nose);
+
+        // TAIL: TubeGeometry CatmullRomCurve3 swooping tail
         const tailCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, 1.8, -1.0),
-            new THREE.Vector3(-0.5, 2.2, -1.5),
-            new THREE.Vector3(-1.1, 2.8, -1.3),
-            new THREE.Vector3(-1.4, 3.4, -0.8),
-            new THREE.Vector3(-1.0, 3.8, -0.3),
+            new THREE.Vector3(0, 1.85, -1.05),
+            new THREE.Vector3(-0.55, 2.25, -1.55),
+            new THREE.Vector3(-1.15, 2.85, -1.35),
+            new THREE.Vector3(-1.45, 3.45, -0.82),
+            new THREE.Vector3(-1.05, 3.85, -0.32),
         ]);
-        const tailTube = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.14, 8, false), orangeMat);
-        tailTube.castShadow = true;
-        g.add(tailTube);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.16, 8), orangeMat));
+        const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), whiteMat);
+        tailTip.position.set(-1.05, 3.85, -0.32); g.add(tailTip);
 
         return g;
     }
@@ -176,7 +189,7 @@ export class BuffCatNPC extends BaseNPC {
                 this.isDoingZoomies = false;
                 this.zoomiesCooldown = 8 + Math.random() * 12;
                 this.speak(); // announce the end of zoomies
-                console.log('%c🐱💨 BUFF CAT ZOOMIES CONCLUDED. WORLD SHOOK.', 'color: orange; font-weight: bold');
+                console.log('%cðŸ±ðŸ’¨ BUFF CAT ZOOMIES CONCLUDED. WORLD SHOOK.', 'color: orange; font-weight: bold');
             }
 
         } else {
@@ -210,7 +223,7 @@ export class BuffCatNPC extends BaseNPC {
             Math.random() * 2 - 1,
         ).normalize();
         this.speak();
-        console.log('%c🐱💪💨 BUFF CAT ZOOMIES ACTIVATED!!! EVERYONE MOVE', 'color: orange; font-size: 14px; font-weight: bold');
+        console.log('%cðŸ±ðŸ’ªðŸ’¨ BUFF CAT ZOOMIES ACTIVATED!!! EVERYONE MOVE', 'color: orange; font-size: 14px; font-weight: bold');
     }
 
     public getType(): string {

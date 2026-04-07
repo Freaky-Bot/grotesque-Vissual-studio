@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
@@ -52,7 +52,7 @@ export class DioNPC extends BaseNPC {
             'I have discarded my humanity, JOJO!!',
             'the power of THE WORLD... is absolute!',
             'you are nothing but a puzzle piece. and I decide where it goes.',
-            'ゴゴゴゴゴゴゴゴ',
+            'ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´',
             'gimme your best shot. if you\'re gonna pull the trigger, pull it.',
             'five seconds. did you feel it pass?',
             'how could you possibly hope to touch DIO?',
@@ -75,269 +75,141 @@ export class DioNPC extends BaseNPC {
     }
 
     private buildDio(): THREE.Group {
+        // REBUILT DIO -- more imposing. vampiric proportions. tall, lean, deadly.
+        // must keep 'dio-cape' name for the cape geometry -- update loop uses it
         const g = new THREE.Group();
 
-        // DIO's palette -- gold coat, purple pants, pale dead-man skin, glowing blonde hair
-        const goldMat     = new THREE.MeshPhongMaterial({ color: 0xc8940a, emissive: 0x332200, emissiveIntensity: 0.5 });
-        const darkGoldMat = new THREE.MeshPhongMaterial({ color: 0x9a6f00, emissive: 0x221100, emissiveIntensity: 0.3 });
-        const purpleMat   = new THREE.MeshPhongMaterial({ color: 0x3d0070 });
-        const skinMat     = new THREE.MeshPhongMaterial({ color: 0xe8daba }); // vampire pale -- not dead but not alive
-        const hairMat     = new THREE.MeshPhongMaterial({ color: 0xf0d800, emissive: 0x554400, emissiveIntensity: 0.8 });
-        const eyeMat      = new THREE.MeshPhongMaterial({ color: 0xff2200, emissive: 0xdd0000, emissiveIntensity: 3.0 });
-        const capeMat     = new THREE.MeshPhongMaterial({ color: 0x180028, side: THREE.DoubleSide, transparent: true, opacity: 0.93 });
-        const bootMat     = new THREE.MeshPhongMaterial({ color: 0xb8860b, emissive: 0x221100, emissiveIntensity: 0.2 });
-        const heartMat    = new THREE.MeshPhongMaterial({ color: 0xff2255, emissive: 0xcc0033, emissiveIntensity: 2.5 });
-        const whiteMat    = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x444444, emissiveIntensity: 0.3 });
-        const boneMat     = new THREE.MeshPhongMaterial({ color: 0xddccaa }); // bone necklace
+        const skinMat    = new THREE.MeshPhongMaterial({ color: 0xd4d0c8, emissive: 0x080810 });  // pale vampire
+        const goldMat    = new THREE.MeshPhongMaterial({ color: 0xd4a012, emissive: 0x3a2400, emissiveIntensity: 0.55 });
+        const purpleMat  = new THREE.MeshPhongMaterial({ color: 0x4a0a6a, emissive: 0x0a0015 });
+        const darkGoldMat= new THREE.MeshPhongMaterial({ color: 0x9a7208, emissive: 0x1a1000 });
+        const hairMat    = new THREE.MeshPhongMaterial({ color: 0xffe868, emissive: 0x2a2000 });
+        const heartMat   = new THREE.MeshBasicMaterial({ color: 0xdd0033 });
+        const whiteMat   = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const darkMat    = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const capeMat    = new THREE.MeshPhongMaterial({ color: 0x1a0545, emissive: 0x060010, side: THREE.DoubleSide });
 
-        // ========== LEGS ==========
-        const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.78, 2.3, 0.78), purpleMat);
-        lLeg.position.set(-0.52, 1.15, 0);
-        g.add(lLeg);
-        const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.78, 2.3, 0.78), purpleMat);
-        rLeg.position.set(0.52, 1.15, 0);
-        g.add(rLeg);
-
-        // gold boots with defined soles -- DIO has ICONIC boots
-        const lBoot = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.7, 1.0), bootMat);
-        lBoot.position.set(-0.52, 0.35, 0.06);
-        g.add(lBoot);
-        const rBoot = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.7, 1.0), bootMat);
-        rBoot.position.set(0.52, 0.35, 0.06);
-        g.add(rBoot);
-        // boot toe caps -- little gold tips pointing forward. menacing.
-        const lToe = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.4), darkGoldMat);
-        lToe.position.set(-0.52, 0.18, 0.54);
-        g.add(lToe);
-        const rToe = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.4), darkGoldMat);
-        rToe.position.set(0.52, 0.18, 0.54);
-        g.add(rToe);
-
-        // ========== TORSO ==========
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(2.1, 2.6, 1.1), goldMat);
-        torso.position.y = 3.55;
-        g.add(torso);
-
-        // belt -- dark gold, wide, separates the jacket properly
-        const belt = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.32, 1.15), darkGoldMat);
-        belt.position.y = 2.25;
-        g.add(belt);
-        // belt buckle -- heart
-        const buckle = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 6), heartMat);
-        buckle.position.set(0, 2.25, 0.58);
-        g.add(buckle);
-
-        // HEART on chest -- DIO's iconic chest heart medallion. THE signature detail.
-        // two overlapping spheres make a heart shape lol
-        const heartL = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), heartMat);
-        heartL.position.set(-0.17, 4.0, 0.57);
-        g.add(heartL);
-        const heartR = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), heartMat);
-        heartR.position.set(0.17, 4.0, 0.57);
-        g.add(heartR);
-        // bottom point of heart
-        const heartPoint = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.35, 5), heartMat);
-        heartPoint.position.set(0, 3.65, 0.57);
-        heartPoint.rotation.z = Math.PI;
-        g.add(heartPoint);
-
-        // v-cut neckline -- dark plunge collar
-        const vMat = new THREE.MeshPhongMaterial({ color: 0x1a0028 });
-        const vNeck = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.8, 3), vMat);
-        vNeck.position.set(0, 4.6, 0.52);
-        vNeck.rotation.z = Math.PI;
-        g.add(vNeck);
-
-        // ========== SHOULDER PADS ==========
-        // DIO has HUGE shoulder ornaments -- ExtrudeGeometry gives them actual form
-        // cylinder discs before = flat as a pancake. now they're 3D geometric shields.
-        const shoulderShape = new THREE.Shape();
-        shoulderShape.absellipse(0, 0, 0.58, 0.42, 0, Math.PI * 2, false, 0);
-        const shoulderExt = { depth: 0.32, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 3 };
-        const shoulderGeo = new THREE.ExtrudeGeometry(shoulderShape, shoulderExt);
-        const lShoulderPad = new THREE.Mesh(shoulderGeo, goldMat);
-        lShoulderPad.position.set(-1.3, 4.45, -0.16);
-        lShoulderPad.rotation.z = 0.15;
-        g.add(lShoulderPad);
-        const rShoulderPad = new THREE.Mesh(shoulderGeo, goldMat);
-        rShoulderPad.position.set(1.0, 4.45, -0.16);
-        rShoulderPad.rotation.z = -0.15;
-        g.add(rShoulderPad);
-        // heart jewels on shoulder pads
-        const lShoulderGem = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), heartMat);
-        lShoulderGem.position.set(-1.3, 4.82, 0);
-        g.add(lShoulderGem);
-        const rShoulderGem = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), heartMat);
-        rShoulderGem.position.set(1.3, 4.82, 0);
-        g.add(rShoulderGem);
-
-        // ========== ARMS ==========
-        const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.64, 2.0, 0.64), goldMat);
-        lArm.position.set(-1.38, 3.35, 0);
-        g.add(lArm);
-        const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.64, 2.0, 0.64), goldMat);
-        rArm.position.set(1.38, 3.35, 0);
-        g.add(rArm);
-        // fingerless gloves -- pale skin showing through gold wristbands
-        const lGlove = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.7), darkGoldMat);
-        lGlove.position.set(-1.38, 2.35, 0);
-        g.add(lGlove);
-        const rGlove = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.7), darkGoldMat);
-        rGlove.position.set(1.38, 2.35, 0);
-        g.add(rGlove);
-        const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.32, 7, 5), skinMat);
-        lHand.position.set(-1.38, 2.08, 0);
-        g.add(lHand);
-        const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.32, 7, 5), skinMat);
-        rHand.position.set(1.38, 2.08, 0);
-        g.add(rHand);
-
-        // ========== BONE NECKLACE ==========
-        // DIO wears a necklace made of human vertebrae bc hes insane lol
-        for (let i = 0; i < 7; i++) {
-            const bone = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 4), boneMat);
-            const angle = (i / 7) * Math.PI - Math.PI * 0.5;
-            bone.position.set(Math.cos(angle) * 0.55, 4.78 + Math.sin(angle) * 0.12, 0.48);
-            g.add(bone);
+        // LEGS: tall lean vampire legs in purple
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 1.45, 8), purpleMat);
+            thigh.position.set(side * 0.3, 0.75, 0); thigh.castShadow = true; g.add(thigh);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 1.25, 8), purpleMat);
+            shin.position.set(side * 0.3, -0.62, 0); shin.castShadow = true; g.add(shin);
+            const boot = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.6, 8), goldMat);
+            boot.position.set(side * 0.3, -1.42, 0); g.add(boot);
+            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.1, 0.78), darkGoldMat);
+            sole.position.set(side * 0.3, -1.78, 0.1); g.add(sole);
         }
 
-        // ========== HEAD ==========
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.88, 12, 10), skinMat);
-        head.position.y = 5.65;
-        head.scale.set(1, 1.05, 0.95);
-        g.add(head);
-
-        // strong jawline -- DIO has an angular chad face
-        const jaw = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 0.82), skinMat);
-        jaw.position.set(0, 5.1, 0);
-        g.add(jaw);
-
-        // DIO's HAIR -- iconic swept-back blonde spikes. important.
-        // hair base -- big poofy back volume
-        const hairBase = new THREE.Mesh(new THREE.SphereGeometry(0.7, 9, 7), hairMat);
-        hairBase.position.set(0, 6.2, -0.25);
-        hairBase.scale.set(1.25, 0.7, 1.1);
-        g.add(hairBase);
-
-        // front swoop -- the hair that sweeps up from forehead
-        const hairFront = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 6), hairMat);
-        hairFront.position.set(0, 6.35, 0.4);
-        hairFront.scale.set(1.15, 0.55, 0.6);
-        g.add(hairFront);
-
-        // individual spikes -- swept back dramatically
-        const spikeDefs = [
-            { x: -0.55, y: 6.7, z: -0.1, rx: -0.3, rz: -0.5, sy: 0.75 },
-            { x: -0.28, y: 6.85, z: 0.1,  rx: -0.4, rz: -0.25, sy: 0.85 },
-            { x:  0,    y: 6.9,  z: 0.15, rx: -0.5, rz: 0,    sy: 0.9  },
-            { x:  0.28, y: 6.85, z: 0.1,  rx: -0.4, rz: 0.25, sy: 0.85 },
-            { x:  0.55, y: 6.7,  z: -0.1, rx: -0.3, rz: 0.5,  sy: 0.75 },
-            { x: -0.3,  y: 6.6,  z: -0.35, rx: -0.15, rz: -0.6, sy: 0.65 },
-            { x:  0.3,  y: 6.6,  z: -0.35, rx: -0.15, rz: 0.6,  sy: 0.65 },
+        // TORSO: LatheGeometry lean tall torso with impressive shoulder width
+        const torsoPoints = [
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(0.32, 0.05),
+            new THREE.Vector2(0.42, 0.52),
+            new THREE.Vector2(0.45, 0.95),
+            new THREE.Vector2(0.55, 1.45),
+            new THREE.Vector2(0.68, 1.82),  // chest
+            new THREE.Vector2(0.82, 2.18),  // shoulder
+            new THREE.Vector2(0.85, 2.42),
+            new THREE.Vector2(0.72, 2.55),
         ];
-        for (const sd of spikeDefs) {
-            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.65, 4), hairMat);
-            spike.position.set(sd.x, sd.y, sd.z);
-            spike.rotation.x = sd.rx;
-            spike.rotation.z = sd.rz;
-            spike.scale.y = sd.sy;
-            g.add(spike);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), goldMat);
+        torso.position.y = 1.55; torso.castShadow = true; g.add(torso);
+
+        // heart motif buttons on chest
+        for (let i = 0; i < 4; i++) {
+            const btn = new THREE.Mesh(new THREE.SphereGeometry(0.072, 7, 6), heartMat);
+            btn.position.set(0, 2.48 + i * 0.38, 0.7); g.add(btn);
         }
 
-        // TIARA -- the iconic DIO headband across the forehead
-        const tiara = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.88, 0.2, 16, 1, true,
-            -Math.PI * 0.5, Math.PI), darkGoldMat);
-        tiara.position.set(0, 5.88, 0);
-        tiara.rotation.x = Math.PI * 0.5;
-        g.add(tiara);
+        // shoulder armor pieces (pauldrons)
+        for (const side of [-1, 1]) {
+            const paul = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), goldMat);
+            paul.scale.set(0.78, 0.58, 0.72); paul.position.set(side * 1.08, 3.88, 0); g.add(paul);
+            // pointed spike on top of pauldron
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.52, 6), goldMat);
+            spike.position.set(side * 1.08, 4.28, 0); g.add(spike);
+        }
 
-        // heart gem on tiara center -- THE signature
-        const tiaraGem = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), heartMat);
-        tiaraGem.position.set(0, 5.92, 0.85);
-        g.add(tiaraGem);
-        // two side gems
-        const tiaraGemL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), goldMat);
-        tiaraGemL.position.set(-0.6, 5.9, 0.68);
-        g.add(tiaraGemL);
-        const tiaraGemR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), goldMat);
-        tiaraGemR.position.set(0.6, 5.9, 0.68);
-        g.add(tiaraGemR);
+        // ARMS: imposing lean arms
+        for (const side of [-1, 1]) {
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.21, 1.18, 8), goldMat);
+            upper.rotation.z = side * 0.2;
+            upper.position.set(side * 1.32, 3.3, 0); upper.castShadow = true; g.add(upper);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 1.0, 8), purpleMat);
+            fore.rotation.z = side * 0.12;
+            fore.position.set(side * 1.52, 2.28, 0); g.add(fore);
+            // wrist cuff gold
+            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.19, 0.28, 8), goldMat);
+            cuff.position.set(side * 1.6, 1.78, 0); g.add(cuff);
+            // hand: pale vampire hands
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 7), skinMat);
+            hand.position.set(side * 1.68, 1.52, 0); g.add(hand);
+        }
 
-        // RED GLOWING EYES -- DIO's stare burns through your soul
-        const lEye = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 5), eyeMat);
-        lEye.position.set(-0.3, 5.62, 0.76);
-        g.add(lEye);
-        const rEye = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 5), eyeMat);
-        rEye.position.set(0.3, 5.62, 0.76);
-        g.add(rEye);
-        // eye glow pupils -- white inner dot so they look less flat
-        const lPupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), whiteMat);
-        lPupil.position.set(-0.28, 5.62, 0.88);
-        g.add(lPupil);
-        const rPupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), whiteMat);
-        rPupil.position.set(0.28, 5.62, 0.88);
-        g.add(rPupil);
+        // neck
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.5, 8), skinMat);
+        neck.position.y = 4.12; g.add(neck);
 
-        // SMUG SMIRK -- half smile only. DIO doesn't fully smile for anyone.
-        const smirkMat = new THREE.MeshPhongMaterial({ color: 0x330000 });
-        const smirk = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.09, 0.1), smirkMat);
-        smirk.position.set(0.12, 5.28, 0.78);
-        smirk.rotation.z = 0.22;
-        g.add(smirk);
+        // HEAD: angular vampire face -- slightly narrower at jaw, wider at cheekbones
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.68, 12, 10), skinMat);
+        head.scale.set(0.9, 1.0, 0.9); head.position.y = 4.78; head.castShadow = true; g.add(head);
 
-        // brow ridge -- strong serious eyebrows angled inward. always judging.
-        const browMat = new THREE.MeshPhongMaterial({ color: 0xd4b800 }); // blonde brow
-        const lBrow = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.12), browMat);
-        lBrow.position.set(-0.28, 5.82, 0.74);
-        lBrow.rotation.z = 0.35;
-        g.add(lBrow);
-        const rBrow = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.12), browMat);
-        rBrow.position.set(0.28, 5.82, 0.74);
-        rBrow.rotation.z = -0.35;
-        g.add(rBrow);
+        // HAIR: ExtrudeGeometry iconic blonde swept up hair
+        const hairShape = new THREE.Shape();
+        hairShape.moveTo(-0.55, -0.08);
+        hairShape.quadraticCurveTo(-0.28, 0.48, 0, 0.62);
+        hairShape.quadraticCurveTo(0.28, 0.72, 0.55, 0.52);
+        hairShape.quadraticCurveTo(0.72, 0.28, 0.62, 0.0);
+        hairShape.quadraticCurveTo(0.35, -0.28, 0, -0.25);
+        hairShape.quadraticCurveTo(-0.35, -0.22, -0.55, -0.08);
+        const hairGeo = new THREE.ExtrudeGeometry(hairShape, { depth: 0.72, bevelEnabled: true, bevelSize: 0.05, bevelSegments: 2 });
+        const hairMesh = new THREE.Mesh(hairGeo, hairMat);
+        hairMesh.position.set(-0.28, 4.95, -0.32); g.add(hairMesh);
 
-        // ========== CAPE ==========
-        // the signature massive purple-black cape. MANDATORY. DIO without a cape is just a guy.
-        const capeMainGeo = new THREE.PlaneGeometry(3.0, 4.0, 1, 4);
-        const capeMain = new THREE.Mesh(capeMainGeo, capeMat);
-        capeMain.position.set(0, 2.8, -0.7);
-        capeMain.rotation.x = 0.1;
-        capeMain.name = 'dio-cape';
-        g.add(capeMain);
+        // EYES: piercing and pale
+        for (const ex of [-0.25, 0.25]) {
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.14, 9, 8), whiteMat);
+            white.position.set(ex, 4.82, 0.62); g.add(white);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), new THREE.MeshBasicMaterial({color:0x6611aa}));
+            iris.position.set(ex, 4.82, 0.68); g.add(iris);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 7, 6), darkMat);
+            pupil.position.set(ex, 4.82, 0.72); g.add(pupil);
+        }
 
-        // cape collar -- LatheGeometry standing collar, way more dramatic than cylinder
-        // a half-open funnel silhouette -- exactly how DIO's collar looks in the manga
-        const collarPoints = [
-            new THREE.Vector2(1.1, 0.0),
-            new THREE.Vector2(1.35, 0.2),
-            new THREE.Vector2(1.5, 0.45),
-            new THREE.Vector2(1.42, 0.6),
-        ];
-        const collar = new THREE.Mesh(new THREE.LatheGeometry(collarPoints, 14, -Math.PI * 0.6, Math.PI * 1.2), capeMat);
-        collar.position.set(0, 4.4, -0.1);
-        g.add(collar);
+        // nose: aristocratic
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 7), skinMat);
+        nose.scale.set(1.0, 0.85, 1.1); nose.position.set(0, 4.68, 0.65); g.add(nose);
 
-        // cape sides wrap forward slightly -- makes it feel 3D
-        const capeSideGeo = new THREE.PlaneGeometry(1.0, 3.5);
-        const capeL = new THREE.Mesh(capeSideGeo, capeMat);
-        capeL.position.set(-1.3, 2.7, -0.15);
-        capeL.rotation.y = 0.55;
-        g.add(capeL);
-        const capeR = new THREE.Mesh(capeSideGeo, capeMat);
-        capeR.position.set(1.3, 2.7, -0.15);
-        capeR.rotation.y = -0.55;
-        g.add(capeR);
+        // lips: thin contemptuous
+        const upperLip = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.055, 0.08), new THREE.MeshPhongMaterial({color:0xb08878}));
+        upperLip.position.set(0, 4.55, 0.64); g.add(upperLip);
+        const lowerLip = upperLip.clone(); lowerLip.position.y = 4.5; g.add(lowerLip);
 
-        // ========== AURA ==========
-        // THE WORLD radiates evil. it has a physical presence. it is red-orange and terrifying.
-        const aura = new THREE.PointLight(0xff3300, 1.8, 22);
-        aura.position.set(0, 4.5, 0);
-        g.add(aura);
+        // THE CAPE: ExtrudeGeometry dramatic flowing cape -- MUST keep name 'dio-cape'
+        // the update loop rotates/billows this using getObjectByName
+        const capeShape = new THREE.Shape();
+        capeShape.moveTo(-1.08, 0);
+        capeShape.quadraticCurveTo(-1.35, -1.2, -1.55, -2.55);
+        capeShape.quadraticCurveTo(-1.38, -3.55, -0.82, -4.05);
+        capeShape.lineTo(0, -4.28);
+        capeShape.lineTo(0.82, -4.05);
+        capeShape.quadraticCurveTo(1.38, -3.55, 1.55, -2.55);
+        capeShape.quadraticCurveTo(1.35, -1.2, 1.08, 0);
+        capeShape.closePath();
+        const capeGeo = new THREE.ExtrudeGeometry(capeShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.04 });
+        const cape = new THREE.Mesh(capeGeo, capeMat);
+        cape.name = 'dio-cape';
+        cape.position.set(0, 3.88, -0.72); g.add(cape);
 
-        // secondary gold glow -- the golden gleam of ambition and ego
-        const goldGlow = new THREE.PointLight(0xffaa00, 0.6, 12);
-        goldGlow.position.set(0, 5.5, 1.5);
-        g.add(goldGlow);
+        // collar: stiff gold collar standing up
+        const collarShape = new THREE.Shape();
+        collarShape.moveTo(-0.82, 0); collarShape.lineTo(-0.92, 0.52);
+        collarShape.lineTo(0, 0.62); collarShape.lineTo(0.92, 0.52);
+        collarShape.lineTo(0.82, 0); collarShape.closePath();
+        const collarGeo = new THREE.ExtrudeGeometry(collarShape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.03 });
+        const collar = new THREE.Mesh(collarGeo, goldMat);
+        collar.position.set(0, 3.82, 0.18); collar.rotation.x = -0.55; g.add(collar);
 
         return g;
     }
@@ -628,9 +500,9 @@ export class DioNPC extends BaseNPC {
     }
 
     private triggerZaWarudo(): void {
-        // ゴゴゴゴゴ time stops ゴゴゴゴゴ
+        // ã‚´ã‚´ã‚´ã‚´ã‚´ time stops ã‚´ã‚´ã‚´ã‚´ã‚´
         console.log('%cZA WARUDO!!! TOKI WO TOMARE!!!', 'color: gold; font-size: 22px; font-weight: bold; text-shadow: 0 0 10px yellow;');
-        console.log('%cゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ', 'color: purple; font-size: 14px;');
+        console.log('%cã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´', 'color: purple; font-size: 14px;');
         // THE WORLD manifests!! build lazily on first use so we don't waste memory until needed
         if (!this.standGroup) {
             this.standGroup = this.buildTheWorldStand();

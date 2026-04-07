@@ -1,4 +1,4 @@
-// BARNEY THE DINOSAUR -- i love you, you love me, we're a happy familieeee
+﻿// BARNEY THE DINOSAUR -- i love you, you love me, we're a happy familieeee
 // big purple T-rex looking homie who wanders around singing and hugging
 // the most dangerous entity in the cat god world frankly
 
@@ -28,8 +28,8 @@ export class BarneyNPC extends BaseNPC {
         'BIG PURPLE HUGS FOR EVERYONE!!',
         'TODAY IS A BEAUTIFUL DAY!!',
         "LET'S IMAGINE TOGETHER!!",
-        'SHARING AND CARING!! 💜',
-        'BARNEY IS YOUR DINOSAUR~ 🦕'
+        'SHARING AND CARING!! ðŸ’œ',
+        'BARNEY IS YOUR DINOSAUR~ ðŸ¦•'
     ];
 
     constructor(position: THREE.Vector3) {
@@ -56,233 +56,137 @@ export class BarneyNPC extends BaseNPC {
     }
 
     private buildMesh(): { group: THREE.Group; leftArm: THREE.Group; rightArm: THREE.Group } {
-        const group = new THREE.Group();
+        // REBUILT BARNEY -- tall, dopey, friendly dinosaur. T-rex proportions but rounder.
+        // tiny arms are a feature. big round tummy. wide face with dopey smile.
+        const g = new THREE.Group();
 
-        const purpleMat = new THREE.MeshStandardMaterial({ color: 0x6B2FA0, roughness: 0.75 });
-        const greenBellyMat = new THREE.MeshStandardMaterial({ color: 0x7AB648, roughness: 0.8 });
-        const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const blackMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-        const yellowMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.6 });
-        const pinkMat = new THREE.MeshBasicMaterial({ color: 0xff88aa });
+        const purpleMat = new THREE.MeshPhongMaterial({ color: 0x7b2d8b, emissive: 0x1a0518 });
+        const bellyMat  = new THREE.MeshPhongMaterial({ color: 0xd4b04a, emissive: 0x1a0c00 });
+        const whiteMat  = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const darkMat   = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const pinkMat   = new THREE.MeshPhongMaterial({ color: 0xff88bb });
+        const toeMat    = new THREE.MeshPhongMaterial({ color: 0x5a1f66 });
+        const loveMat   = new THREE.MeshBasicMaterial({ color: 0xff44aa, wireframe: false });
 
-        // ---- BODY ---- big round barrel chest
-        const bodyGeo = new THREE.SphereGeometry(1.3, 20, 16);
-        const body = new THREE.Mesh(bodyGeo, purpleMat);
-        body.scale.set(1, 1.2, 0.95);
-        body.position.set(0, 1.8, 0);
-        body.castShadow = true;
-        group.add(body);
+        // TAIL: thick dinosaur tail, TubeGeometry
+        const tailCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(0, 1.65, -1.2),
+            new THREE.Vector3(-0.45, 1.35, -1.85),
+            new THREE.Vector3(-1.15, 0.85, -2.15),
+            new THREE.Vector3(-2.05, 0.42, -1.95),
+            new THREE.Vector3(-2.55, 0.18, -1.35),
+        ]);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 14, 0.38, 10), purpleMat));
 
-        // green belly patch -- the signature lighter belly
-        const bellyGeo = new THREE.SphereGeometry(0.9, 16, 14);
-        const belly = new THREE.Mesh(bellyGeo, greenBellyMat);
-        belly.scale.set(0.9, 1.0, 0.35);
-        belly.position.set(0, 1.85, 1.05);
-        group.add(belly);
-
-        // ---- HEAD ---- big round dinosaur noggin
-        const headGeo = new THREE.SphereGeometry(1.0, 20, 16);
-        const head = new THREE.Mesh(headGeo, purpleMat);
-        head.scale.set(1, 0.9, 1);
-        head.position.set(0, 3.55, 0);
-        head.castShadow = true;
-        group.add(head);
-
-        // SNOUT -- forward jutting jaw like a real dino
-        const snoutGeo = new THREE.SphereGeometry(0.65, 16, 12);
-        const snout = new THREE.Mesh(snoutGeo, purpleMat);
-        snout.scale.set(1, 0.6, 0.9);
-        snout.position.set(0, 3.2, 0.85);
-        group.add(snout);
-
-        // big smile opening (using a flat disc, dark pink inside)
-        const mouthGeo = new THREE.CylinderGeometry(0.55, 0.5, 0.08, 20, 1, false, 0, Math.PI);
-        const mouth = new THREE.Mesh(mouthGeo, pinkMat);
-        mouth.rotation.x = -Math.PI / 2;
-        mouth.rotation.z = Math.PI;
-        mouth.position.set(0, 3.05, 1.15);
-        group.add(mouth);
-
-        // big TEETH -- barney has that big smile
-        const toothGeo = new THREE.BoxGeometry(0.18, 0.2, 0.1);
-        const toothMat = new THREE.MeshBasicMaterial({ color: 0xfff8f0 });
-        for (let i = -1; i <= 1; i++) {
-            const tooth = new THREE.Mesh(toothGeo, toothMat);
-            tooth.position.set(i * 0.25, 3.12, 1.42);
-            group.add(tooth);
+        // LEGS: thick stubby dino legs with 3 toes
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.48, 1.4, 9), purpleMat);
+            thigh.position.set(side * 0.62, 0.72, 0); thigh.castShadow = true; g.add(thigh);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 1.15, 9), purpleMat);
+            shin.position.set(side * 0.62, -0.65, 0.12); shin.castShadow = true; g.add(shin);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 9, 7), purpleMat);
+            foot.scale.set(0.88, 0.52, 1.3); foot.position.set(side * 0.62, -1.42, 0.35); g.add(foot);
+            // 3 toes
+            for (let t = -1; t <= 1; t++) {
+                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), toeMat);
+                toe.position.set(side * 0.62 + t * 0.22, -1.62, 0.65); g.add(toe);
+            }
         }
 
-        // big white eyes
-        const eyeGeo = new THREE.SphereGeometry(0.28, 12, 12);
-        const leftEye = new THREE.Mesh(eyeGeo, whiteMat);
-        leftEye.position.set(-0.42, 3.7, 0.82);
-        group.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeo, whiteMat);
-        rightEye.position.set(0.42, 3.7, 0.82);
-        group.add(rightEye);
+        // BODY: LatheGeometry big round pear-shaped dino body
+        const bodyPoints = [
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(0.72, 0.1),
+            new THREE.Vector2(1.05, 0.55),
+            new THREE.Vector2(1.22, 1.08),  // hips/butt
+            new THREE.Vector2(1.35, 1.62),  // round tummy
+            new THREE.Vector2(1.28, 2.12),
+            new THREE.Vector2(1.15, 2.52),
+            new THREE.Vector2(0.98, 2.82),  // shoulders
+            new THREE.Vector2(0.88, 3.0),
+        ];
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 12), purpleMat);
+        body.position.y = 1.42; body.castShadow = true; g.add(body);
 
-        // pupils -- round and friendly
-        const pupilGeo = new THREE.SphereGeometry(0.16, 8, 8);
-        const leftPupil = new THREE.Mesh(pupilGeo, blackMat);
-        leftPupil.position.set(-0.42, 3.7, 1.05);
-        group.add(leftPupil);
-        const rightPupil = new THREE.Mesh(pupilGeo, blackMat);
-        rightPupil.position.set(0.42, 3.7, 1.05);
-        group.add(rightPupil);
+        // round belly patch (yellow)
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(1.0, 10, 8), bellyMat);
+        belly.scale.set(0.82, 0.78, 0.55); belly.position.set(0, 2.85, 1.1); g.add(belly);
 
-        // lil heart-shape pupils because barney = love
-        const heartGeo = new THREE.SphereGeometry(0.07, 6, 6);
-        const heartMat = new THREE.MeshBasicMaterial({ color: 0xff4488 });
-        for (const x of [-0.42, 0.42]) {
-            const h = new THREE.Mesh(heartGeo, heartMat);
-            h.position.set(x, 3.72, 1.08);
-            group.add(h);
+        // TINY ARMS: T-rex arms, comically small for this huge round body
+        const leftArm = new THREE.Group();
+        leftArm.position.set(-1.0, 4.28, 0.45);
+        const lUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 8), purpleMat);
+        lUA.rotation.z = 0.9; lUA.position.set(-0.28, 0, 0); leftArm.add(lUA);
+        const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), purpleMat);
+        lHand.position.set(-0.56, -0.14, 0); leftArm.add(lHand);
+        // 2 finger nubs
+        for (let f of [-1, 1]) {
+            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 5, 4), toeMat);
+            fng.position.set(-0.58 + f * 0.11, -0.29, 0.12); leftArm.add(fng);
         }
+        g.add(leftArm);
+
+        const rightArm = new THREE.Group();
+        rightArm.position.set(1.0, 4.28, 0.45);
+        const rUA = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.62, 8), purpleMat);
+        rUA.rotation.z = -0.9; rUA.position.set(0.28, 0, 0); rightArm.add(rUA);
+        const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), purpleMat);
+        rHand.position.set(0.56, -0.14, 0); rightArm.add(rHand);
+        for (let f of [-1, 1]) {
+            const fng = new THREE.Mesh(new THREE.SphereGeometry(0.08, 5, 4), toeMat);
+            fng.position.set(0.58 + f * 0.11, -0.29, 0.12); rightArm.add(fng);
+        }
+        g.add(rightArm);
+
+        // NECK: thick barrel neck
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.72, 0.85, 9), purpleMat);
+        neck.position.y = 4.62; g.add(neck);
+
+        // HEAD: big round dinosaur noggin, slightly too big
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.88, 12, 10), purpleMat);
+        head.scale.set(1.1, 0.92, 1.05); head.position.y = 5.52; head.castShadow = true; g.add(head);
+
+        // SNOUT: big flat dino snout
+        const snout = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 8), purpleMat);
+        snout.scale.set(0.95, 0.68, 1.25); snout.position.set(0, 5.38, 0.82); g.add(snout);
 
         // nostrils
-        const nostrilGeo = new THREE.SphereGeometry(0.07, 6, 6);
-        const nl = new THREE.Mesh(nostrilGeo, blackMat);
-        nl.position.set(-0.2, 3.35, 1.38);
-        group.add(nl);
-        const nr = new THREE.Mesh(nostrilGeo, blackMat);
-        nr.position.set(0.2, 3.35, 1.38);
-        group.add(nr);
-
-        // ---- DINO SPIKES along the back ---- ExtrudeGeometry fins look legit
-        // cones before = triangle ice cream cones. now they're actual fin shapes.
-        const spikeMat = new THREE.MeshStandardMaterial({ color: 0x4a7c2b, roughness: 0.9 });
-        const spikeShape = new THREE.Shape();
-        spikeShape.moveTo(0, 0);
-        spikeShape.lineTo(-0.2, 0);
-        spikeShape.quadraticCurveTo(-0.15, 0.3, 0, 0.5);
-        spikeShape.quadraticCurveTo(0.15, 0.3, 0.2, 0);
-        spikeShape.closePath();
-        const spikeExtSettings = { depth: 0.1, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
-        const spikeExtGeo = new THREE.ExtrudeGeometry(spikeShape, spikeExtSettings);
-        const spikePositions = [
-            { pos: [0, 4.4, -0.3] as [number,number,number], rx: 0.1 },
-            { pos: [0, 3.35, -0.95] as [number,number,number], rx: 0.2 },
-            { pos: [0, 2.9, -1.25] as [number,number,number], rx: 0.15 },
-            { pos: [0, 2.45, -1.3] as [number,number,number], rx: 0.1 },
-            { pos: [0, 1.9, -1.2] as [number,number,number], rx: 0.05 },
-        ];
-        for (const { pos, rx } of spikePositions) {
-            const spike = new THREE.Mesh(spikeExtGeo, spikeMat);
-            spike.position.set(...pos);
-            spike.rotation.x = rx;
-            group.add(spike);
+        for (const nx of [-0.2, 0.2]) {
+            const nostril = new THREE.Mesh(new THREE.CircleGeometry(0.07, 7), darkMat);
+            nostril.position.set(nx, 5.52, 1.32); g.add(nostril);
         }
 
-        // ---- ARMS ---- stubby T-rex style arms in pivot groups for waving
-        const leftArmGroup = new THREE.Group();
-        leftArmGroup.position.set(-1.45, 2.5, 0);
-
-        const upperArmGeo = new THREE.CylinderGeometry(0.3, 0.25, 0.9, 10);
-        const luArm = new THREE.Mesh(upperArmGeo, purpleMat);
-        luArm.position.set(0, -0.45, 0);
-        luArm.castShadow = true;
-        leftArmGroup.add(luArm);
-
-        // forearm
-        const foreArmGeo = new THREE.CylinderGeometry(0.22, 0.18, 0.7, 10);
-        const lfArm = new THREE.Mesh(foreArmGeo, purpleMat);
-        lfArm.position.set(0, -1.1, 0.18);
-        lfArm.rotation.x = -0.4;
-        leftArmGroup.add(lfArm);
-
-        // lil clawed hand
-        const handGeo = new THREE.SphereGeometry(0.25, 8, 8);
-        const lHand = new THREE.Mesh(handGeo, purpleMat);
-        lHand.position.set(0, -1.55, 0.42);
-        leftArmGroup.add(lHand);
-
-        // fingers (3 lil stubs for T-rex authenticity)
-        const fingerGeo = new THREE.CylinderGeometry(0.07, 0.04, 0.28, 6);
-        for (let i = -1; i <= 1; i++) {
-            const f = new THREE.Mesh(fingerGeo, purpleMat);
-            f.position.set(i * 0.12, -1.8, 0.5);
-            f.rotation.x = -0.6;
-            leftArmGroup.add(f);
-        }
-        leftArmGroup.rotation.z = Math.PI / 12; // hang naturally
-        group.add(leftArmGroup);
-
-        // mirror for right arm
-        const rightArmGroup = leftArmGroup.clone();
-        rightArmGroup.position.set(1.45, 2.5, 0);
-        rightArmGroup.rotation.z = -Math.PI / 12;
-        rightArmGroup.scale.x = -1; // flip it
-        group.add(rightArmGroup);
-
-        // ---- LEGS ---- thick dino legs
-        const thighGeo = new THREE.CylinderGeometry(0.45, 0.4, 1.1, 12);
-        const shinGeo = new THREE.CylinderGeometry(0.38, 0.28, 0.9, 12);
-        const footGeo = new THREE.BoxGeometry(0.55, 0.35, 0.85);
-
-        for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(thighGeo, purpleMat);
-            thigh.position.set(side * 0.6, 0.5, 0);
-            thigh.castShadow = true;
-            group.add(thigh);
-
-            const shin = new THREE.Mesh(shinGeo, purpleMat);
-            shin.position.set(side * 0.6, -0.4, 0.12);
-            shin.rotation.x = 0.15;
-            shin.castShadow = true;
-            group.add(shin);
-
-            const foot = new THREE.Mesh(footGeo, purpleMat);
-            foot.position.set(side * 0.62, -1.05, 0.28);
-            foot.castShadow = true;
-            group.add(foot);
+        // eyes: big dopey friendly eyes
+        for (const ex of [-0.42, 0.42]) {
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 9), whiteMat);
+            white.position.set(ex, 5.72, 0.72); g.add(white);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.14, 9, 8), new THREE.MeshBasicMaterial({color:0x1a3a88}));
+            iris.position.set(ex, 5.72, 0.82); g.add(iris);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), darkMat);
+            pupil.position.set(ex, 5.72, 0.89); g.add(pupil);
         }
 
-        // ---- TAIL ---- TubeGeometry CatmullRomCurve3 -- the signature barney tail
-        // straight tapering cylinder before = log. now it curves back naturally. nice.
-        const barneyTailCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, 1.4, -1.2),
-            new THREE.Vector3(0.1, 1.0, -1.8),
-            new THREE.Vector3(0.2, 0.55, -2.2),
-            new THREE.Vector3(0.1, 0.3, -2.5),
-        ]);
-        const tailTube = new THREE.Mesh(new THREE.TubeGeometry(barneyTailCurve, 10, 0.32, 8, false), purpleMat);
-        tailTube.castShadow = true;
-        group.add(tailTube);
+        // the big dopey smile
+        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.055, 6, 16, Math.PI), pinkMat);
+        smile.rotation.z = Math.PI; smile.position.set(0, 5.22, 0.98); g.add(smile);
+        const teethBar = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.08, 0.12), whiteMat);
+        teethBar.position.set(0, 5.2, 1.0); g.add(teethBar);
 
-        // also add a LatheGeometry tail base section for extra volume
-        const tailBasePoints = [
-            new THREE.Vector2(0, 0), new THREE.Vector2(0.45, 0.08),
-            new THREE.Vector2(0.42, 0.5), new THREE.Vector2(0.28, 0.8), new THREE.Vector2(0, 0.88),
-        ];
-        const tailBase = new THREE.Mesh(new THREE.LatheGeometry(tailBasePoints, 10), purpleMat);
-        tailBase.position.set(0, 1.0, -1.1);
-        tailBase.rotation.x = Math.PI / 2.5;
-        group.add(tailBase);
-
-        // lil yellow star shapes on barney's body cuz the show had em
-        const starGeo = new THREE.SphereGeometry(0.12, 6, 6);
-        for (let i = 0; i < 6; i++) {
-            const star = new THREE.Mesh(starGeo, yellowMat);
-            star.position.set(
-                (Math.random() - 0.5) * 1.6,
-                1.2 + Math.random() * 1.8,
-                0.9 + Math.random() * 0.3
-            );
-            star.scale.set(1, 0.5, 0.5); // flat lil star blobs
-            group.add(star);
+        // dino ridge spikes down the back
+        for (let i = 0; i < 5; i++) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.1 - i*0.012, 0.38 - i*0.04, 5), toeMat);
+            spike.position.set(0, 4.6 - i * 0.35, -0.85 + i * 0.12);
+            spike.rotation.x = -0.4; g.add(spike);
         }
 
-        // TorusKnotGeometry love token floating above Barney -- because love is complicated
-        // nobody asked. barney woulda wanted it. rest in peace icon.
-        const loveKnot = new THREE.Mesh(
-            new THREE.TorusKnotGeometry(0.32, 0.08, 64, 8, 2, 3),
-            new THREE.MeshStandardMaterial({ color: 0xff55cc, emissive: 0x551122, emissiveIntensity: 0.8, roughness: 0.3 })
-        );
-        loveKnot.position.set(0, 5.6, 0);
+        // THE BARNEY LOVE KNOT: sacred geometry, do NOT remove this or it breaks
+        const knotMat = new THREE.MeshBasicMaterial({ color: 0xff44aa, wireframe: false });
+        const knotGeo = new THREE.TorusKnotGeometry(0.45, 0.1, 80, 10, 2, 3);
+        const loveKnot = new THREE.Mesh(knotGeo, knotMat);
         loveKnot.name = 'barney-love-knot';
-        group.add(loveKnot);
+        loveKnot.position.set(0, 5.6, 0); g.add(loveKnot);
 
-        return { group, leftArm: leftArmGroup, rightArm: rightArmGroup };
+        return { group: g, leftArm, rightArm };
     }
 
     // play a little jingle on barney's song trigger

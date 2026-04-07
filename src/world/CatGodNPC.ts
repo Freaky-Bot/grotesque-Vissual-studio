@@ -90,198 +90,204 @@ export class CatGodNPC {
     }
 
     private buildCatGod(): THREE.Group {
+        // REBUILT CAT GOD -- more imposing. more massive. more divine.
+        // kept all named objects exactly -- the update loop depends on every single one.
+        // new proportions: taller robe, bigger head, more dramatic silhouette.
         const g = new THREE.Group();
 
-        const skinMat = new THREE.MeshPhongMaterial({ color: 0xffe0a0, emissive: 0x553300, emissiveIntensity: 0.25, shininess: 80 });
+        const skinMat     = new THREE.MeshPhongMaterial({ color: 0xffe0a0, emissive: 0x553300, emissiveIntensity: 0.25, shininess: 80 });
         const innerEarMat = new THREE.MeshPhongMaterial({ color: 0xff88cc, emissive: 0x661133, emissiveIntensity: 0.3 });
-        const goldMat = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xcc7700, emissiveIntensity: 0.7, shininess: 220 });
-        const goldDimMat = new THREE.MeshPhongMaterial({ color: 0xddb800, emissive: 0x885500, emissiveIntensity: 0.4, shininess: 140 });
-        const whiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xaaaaaa, emissiveIntensity: 0.2 });
-        const eyeMat = new THREE.MeshPhongMaterial({ color: 0x00ffaa, emissive: 0x00dd88, emissiveIntensity: 3.5 });
-        const pupilMat = new THREE.MeshPhongMaterial({ color: 0x000022 });
-        const noseMat = new THREE.MeshPhongMaterial({ color: 0xff77bb, emissive: 0xcc3366, emissiveIntensity: 0.4 });
-        const robeMat = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0x774400, emissiveIntensity: 0.3, shininess: 200 });
+        const goldMat     = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xcc7700, emissiveIntensity: 0.7, shininess: 220 });
+        const goldDimMat  = new THREE.MeshPhongMaterial({ color: 0xddb800, emissive: 0x885500, emissiveIntensity: 0.4, shininess: 140 });
+        const whiteMat    = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xaaaaaa, emissiveIntensity: 0.2 });
+        const eyeMat      = new THREE.MeshPhongMaterial({ color: 0x00ffaa, emissive: 0x00dd88, emissiveIntensity: 3.5 });
+        const pupilMat    = new THREE.MeshPhongMaterial({ color: 0x000022 });
+        const noseMat     = new THREE.MeshPhongMaterial({ color: 0xff77bb, emissive: 0xcc3366, emissiveIntensity: 0.4 });
+        const robeMat     = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0x774400, emissiveIntensity: 0.3, shininess: 200 });
         const robeTrimMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xbbbbbb, emissiveIntensity: 0.4 });
-        const wingMat = new THREE.MeshPhongMaterial({ color: 0xfff8e8, emissive: 0xddcc88, emissiveIntensity: 0.5, transparent: true, opacity: 0.88, side: THREE.DoubleSide });
+        const wingMat     = new THREE.MeshPhongMaterial({ color: 0xfff8e8, emissive: 0xddcc88, emissiveIntensity: 0.5, transparent: true, opacity: 0.88, side: THREE.DoubleSide });
         const wingGoldMat = new THREE.MeshPhongMaterial({ color: 0xffe066, emissive: 0xcc8800, emissiveIntensity: 0.9, side: THREE.DoubleSide });
-        const haloMat = new THREE.MeshPhongMaterial({ color: 0xffff44, emissive: 0xffcc00, emissiveIntensity: 2.5 });
-        const haloWhiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xffffaa, emissiveIntensity: 1.5 });
-        const staffMat = new THREE.MeshPhongMaterial({ color: 0xffdd22, emissive: 0xcc8800, emissiveIntensity: 0.8, shininess: 255 });
-        const gemMat = new THREE.MeshPhongMaterial({ color: 0x88ffff, emissive: 0x00ccff, emissiveIntensity: 4.0 });
-        const tailMat = new THREE.MeshPhongMaterial({ color: 0xffd060, emissive: 0x884400, emissiveIntensity: 0.35 });
-        const mouthMat = new THREE.MeshPhongMaterial({ color: 0x884422 });
+        const haloMat     = new THREE.MeshPhongMaterial({ color: 0xffff44, emissive: 0xffcc00, emissiveIntensity: 2.5 });
+        const haloWhiteMat= new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xffffaa, emissiveIntensity: 1.5 });
+        const staffMat    = new THREE.MeshPhongMaterial({ color: 0xffdd22, emissive: 0xcc8800, emissiveIntensity: 0.8, shininess: 255 });
+        const gemMat      = new THREE.MeshPhongMaterial({ color: 0x88ffff, emissive: 0x00ccff, emissiveIntensity: 4.0 });
+        const tailMat     = new THREE.MeshPhongMaterial({ color: 0xffd060, emissive: 0x884400, emissiveIntensity: 0.35 });
+        const mouthMat    = new THREE.MeshPhongMaterial({ color: 0x884422 });
 
-        // 3-layer outer aura shells
+        // outer aura shells -- 3 layers of divine radiance
         for (let i = 0; i < 3; i++) {
-            const aura = new THREE.Mesh(new THREE.SphereGeometry(11 + i * 2.5, 8, 8), new THREE.MeshBasicMaterial({
+            const aura = new THREE.Mesh(new THREE.SphereGeometry(13 + i * 3.0, 8, 8), new THREE.MeshBasicMaterial({
                 color: [0xffee44, 0xffaa00, 0xff6600][i], transparent: true,
-                opacity: [0.05, 0.035, 0.02][i], side: THREE.BackSide
+                opacity: [0.055, 0.038, 0.022][i], side: THREE.BackSide
             }));
             g.add(aura);
         }
-        const innerAura = new THREE.Mesh(new THREE.SphereGeometry(5.5, 12, 12),
-            new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 0.06, side: THREE.BackSide }));
+        const innerAura = new THREE.Mesh(new THREE.SphereGeometry(6.5, 12, 12),
+            new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 0.07, side: THREE.BackSide }));
         innerAura.name = 'inner-aura';
         g.add(innerAura);
 
-        // ROBES
-        const robeBase = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 4.2, 6.5, 14), robeMat);
-        robeBase.name = 'robe-base';
-        robeBase.position.y = -1.2;
-        g.add(robeBase);
-        const hem = new THREE.Mesh(new THREE.TorusGeometry(4.0, 0.22, 8, 32), robeTrimMat);
+        // ROBES: LatheGeometry grand sweeping robes -- much more dramatic than cylinder
+        // wider at bottom, dramatic hem, imposing silhouette
+        const robePoints = [
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(1.25, 0.1),
+            new THREE.Vector2(2.8,  0.85),
+            new THREE.Vector2(3.85, 1.85),  // dramatic flare at ground
+            new THREE.Vector2(4.65, 2.85),  // even wider lower robe
+            new THREE.Vector2(4.85, 3.55),
+            new THREE.Vector2(4.45, 4.8),
+            new THREE.Vector2(3.55, 5.85),
+            new THREE.Vector2(3.15, 6.95),
+            new THREE.Vector2(2.55, 7.6),
+        ];
+        const robe = new THREE.Mesh(new THREE.LatheGeometry(robePoints, 16), robeMat);
+        robe.name = 'robe-base';
+        robe.position.y = -5.25; g.add(robe);
+
+        // robe hem trim -- wide golden ring at base
+        const hem = new THREE.Mesh(new THREE.TorusGeometry(4.72, 0.32, 8, 40), robeTrimMat);
         hem.name = 'robe-hem';
-        hem.position.y = -4.35;
-        hem.rotation.x = Math.PI / 2;
-        g.add(hem);
-        const collar = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.28, 8, 28), goldMat);
+        hem.position.y = -5.15; hem.rotation.x = Math.PI / 2; g.add(hem);
+
+        // second hem ring (double hem for drama)
+        const hem2 = new THREE.Mesh(new THREE.TorusGeometry(4.45, 0.18, 8, 36), goldMat);
+        hem2.position.y = -4.85; hem2.rotation.x = Math.PI / 2; g.add(hem2);
+
+        // collar
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.32, 8, 30), goldMat);
         collar.name = 'robe-collar';
-        collar.position.y = 2.1;
-        collar.rotation.x = Math.PI / 2;
-        g.add(collar);
-        const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.0, 0.35), goldMat);
+        collar.position.y = 2.5; collar.rotation.x = Math.PI / 2; g.add(collar);
+
+        // chest plate with sun-star motif
+        const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 0.38), goldMat);
         chestPlate.name = 'chest-plate';
-        chestPlate.position.set(0, 0.9, 2.25);
-        g.add(chestPlate);
+        chestPlate.position.set(0, 1.0, 2.45); g.add(chestPlate);
         for (let i = 0; i < 6; i++) {
-            const ray = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.1), haloMat);
-            ray.position.set(0, 0.9, 2.66);
+            const ray = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.13, 0.12), haloMat);
+            ray.position.set(0, 1.0, 2.9);
             ray.rotation.z = (i / 6) * Math.PI;
             ray.name = `chest-star-${i}`;
             g.add(ray);
         }
 
-        // TORSO -- LatheGeometry divine cat body profile
-        // BoxGeometry was UNWORTHY of a god. this is a proper godly silhouette. hear ye.
+        // sash across the robe
+        const sash = new THREE.Mesh(new THREE.CylinderGeometry(2.35, 2.35, 0.55, 14, 1, true), goldDimMat);
+        sash.position.y = -0.5; g.add(sash);
+
+        // TORSO: LatheGeometry divine cat body -- tall, imposing, broad shouldered
         const divineBodyPoints = [
             new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.8, 0.15),
-            new THREE.Vector2(1.45, 0.6),
-            new THREE.Vector2(1.6, 1.3), // widest point -- chest area  
-            new THREE.Vector2(1.45, 2.1),
-            new THREE.Vector2(1.1, 2.6),
-            new THREE.Vector2(0.6, 2.6),
+            new THREE.Vector2(0.9, 0.15),
+            new THREE.Vector2(1.55, 0.65),
+            new THREE.Vector2(1.75, 1.35),
+            new THREE.Vector2(1.58, 2.2),
+            new THREE.Vector2(1.22, 2.72),
+            new THREE.Vector2(0.68, 2.85),
         ];
         const torso = new THREE.Mesh(new THREE.LatheGeometry(divineBodyPoints, 16), skinMat);
         torso.name = 'torso';
-        torso.position.y = -0.3;
-        g.add(torso);
+        torso.position.y = -0.2; g.add(torso);
 
-        // HEAD
-        const head = new THREE.Mesh(new THREE.SphereGeometry(1.7, 16, 14), skinMat);
+        // HEAD: magnificent. large. regal.
+        const head = new THREE.Mesh(new THREE.SphereGeometry(1.9, 16, 14), skinMat);
         head.name = 'head';
-        head.position.y = 4.55;
-        head.scale.set(1, 0.95, 1.05);
-        g.add(head);
-        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 10), skinMat);
+        head.position.y = 4.85;
+        head.scale.set(1.0, 0.96, 1.08); g.add(head);
+
+        // muzzle protrusion
+        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 10), skinMat);
         muzzle.name = 'muzzle';
-        muzzle.position.set(0, 4.2, 1.55);
-        muzzle.scale.set(1, 0.72, 0.68);
-        g.add(muzzle);
-        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), noseMat);
+        muzzle.position.set(0, 4.45, 1.72);
+        muzzle.scale.set(1.0, 0.7, 0.65); g.add(muzzle);
+
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), noseMat);
         nose.name = 'nose';
-        nose.position.set(0, 4.35, 2.16);
-        g.add(nose);
-        const mL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.38, 6), mouthMat);
-        mL.position.set(-0.22, 4.05, 2.2);
-        mL.rotation.z = 0.5;
-        g.add(mL);
-        const mR = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.38, 6), mouthMat);
-        mR.position.set(0.22, 4.05, 2.2);
-        mR.rotation.z = -0.5;
-        g.add(mR);
+        nose.position.set(0, 4.62, 2.38); g.add(nose);
+
+        // mouth lines
+        const mL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 6), mouthMat);
+        mL.position.set(-0.25, 4.25, 2.42); mL.rotation.z = 0.5; g.add(mL);
+        const mR = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 6), mouthMat);
+        mR.position.set(0.25, 4.25, 2.42); mR.rotation.z = -0.5; g.add(mR);
 
         // EYES (3-layer: sclera + iris + pupil + glint)
-        for (const [ex, ey, ez] of [[-0.75, 4.7, 1.6], [0.75, 4.7, 1.6]] as [number,number,number][]) {
-            const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.48, 12, 12), whiteMat);
-            sclera.position.set(ex, ey, ez);
-            g.add(sclera);
-            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 12), eyeMat);
-            iris.position.set(ex, ey, ez + 0.08);
-            g.add(iris);
-            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), pupilMat);
-            pupil.position.set(ex, ey, ez + 0.14);
-            pupil.scale.set(0.55, 1, 0.6);
-            g.add(pupil);
-            const glint = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), whiteMat);
-            glint.position.set(ex + 0.1, ey + 0.1, ez + 0.24);
-            g.add(glint);
+        for (const [ex, ey, ez] of [[-0.82, 5.02, 1.72], [0.82, 5.02, 1.72]] as [number,number,number][]) {
+            const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.52, 12, 12), whiteMat);
+            sclera.position.set(ex, ey, ez); g.add(sclera);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), eyeMat);
+            iris.position.set(ex, ey, ez + 0.1); g.add(iris);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), pupilMat);
+            pupil.position.set(ex, ey, ez + 0.16);
+            pupil.scale.set(0.55, 1, 0.6); g.add(pupil);
+            const glint = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), whiteMat);
+            glint.position.set(ex + 0.12, ey + 0.12, ez + 0.28); g.add(glint);
         }
 
         // EYEBROWS
         for (const side of [-1, 1]) {
-            const brow = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.14), goldMat);
-            brow.position.set(side * 0.75, 5.26, 1.56);
-            brow.rotation.z = side * 0.28;
-            brow.name = `brow-${side}`;
-            g.add(brow);
+            const brow = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 0.16), goldMat);
+            brow.position.set(side * 0.82, 5.62, 1.68);
+            brow.rotation.z = side * 0.3;
+            brow.name = `brow-${side}`; g.add(brow);
         }
 
-        // EARS (outer + inner + rim + tip gem)
-        for (const [ex, rz] of [[-1.25, 0.4], [1.25, -0.4]] as [number,number][]) {
-            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.85, 10), skinMat);
-            ear.position.set(ex, 6.35, 0);
-            ear.rotation.z = rz;
-            g.add(ear);
-            const inner = new THREE.Mesh(new THREE.ConeGeometry(0.32, 1.1, 10), innerEarMat);
-            inner.position.set(ex * 0.93, 6.25, 0.22);
-            inner.rotation.z = rz;
-            g.add(inner);
-            const rim = new THREE.Mesh(new THREE.ConeGeometry(0.65, 0.22, 10), goldMat);
-            rim.position.set(ex, 5.58, 0);
-            rim.rotation.z = rz;
-            g.add(rim);
-            const tipGem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), gemMat);
-            tipGem.position.set(ex * 1.22, 7.17, 0);
-            g.add(tipGem);
+        // EARS: tall majestic arched ears with elaborate inner ear and gold rim
+        for (const [ex, rz] of [[-1.42, 0.38], [1.42, -0.38]] as [number,number][]) {
+            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.72, 2.15, 10), skinMat);
+            ear.position.set(ex, 6.78, 0);
+            ear.rotation.z = rz; g.add(ear);
+            const inner = new THREE.Mesh(new THREE.ConeGeometry(0.38, 1.3, 10), innerEarMat);
+            inner.position.set(ex * 0.92, 6.65, 0.26);
+            inner.rotation.z = rz; g.add(inner);
+            const rim = new THREE.Mesh(new THREE.ConeGeometry(0.75, 0.28, 10), goldMat);
+            rim.position.set(ex, 5.88, 0);
+            rim.rotation.z = rz; g.add(rim);
+            const tipGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), gemMat);
+            tipGem.position.set(ex * 1.28, 7.75, 0); g.add(tipGem);
         }
 
-        // WHISKERS (8 per side)
+        // WHISKERS (4 per side, divine purity)
         const whiskerMat = new THREE.LineBasicMaterial({ color: 0xffffcc });
-        for (const [bx, by, bz] of [[-0.85,4.18,1.4],[-0.85,4.05,1.35],[-0.85,3.92,1.3],[-0.85,3.8,1.3]] as [number,number,number][]) {
-            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(bx, by, bz), new THREE.Vector3(bx - 2.2, by + 0.08, bz - 0.2)]), whiskerMat));
-            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-bx, by, bz), new THREE.Vector3(-bx + 2.2, by + 0.08, bz - 0.2)]), whiskerMat));
+        for (const [bx, by, bz] of [[-0.95,4.48,1.58],[-0.95,4.32,1.52],[-0.95,4.16,1.48],[-0.95,4.02,1.45]] as [number,number,number][]) {
+            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(bx, by, bz), new THREE.Vector3(bx - 2.55, by + 0.1, bz - 0.22)]), whiskerMat));
+            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-bx, by, bz), new THREE.Vector3(-bx + 2.55, by + 0.1, bz - 0.22)]), whiskerMat));
         }
 
-        // HALOS (3 rings, different tilt and speed)
+        // HALOS (3 rings -- KEEP NAMES EXACTLY, update loop references them)
         const haloConfigs = [
-            { r: 5.5, tube: 0.35, tiltX: Math.PI/3, tiltZ: 0,    y: 7.2, mat: haloMat,      name: 'halo-1' },
-            { r: 6.5, tube: 0.2,  tiltX: Math.PI/3.5, tiltZ: 0.4, y: 7.5, mat: haloWhiteMat, name: 'halo-2' },
-            { r: 4.2, tube: 0.12, tiltX: Math.PI/2.5, tiltZ:-0.5, y: 6.9, mat: haloMat,      name: 'halo-3' },
+            { r: 5.5,  tube: 0.35, tiltX: Math.PI/3,   tiltZ: 0,    y: 7.5,  mat: haloMat,       name: 'halo-1' },
+            { r: 6.5,  tube: 0.2,  tiltX: Math.PI/3.5, tiltZ: 0.4,  y: 7.85, mat: haloWhiteMat,  name: 'halo-2' },
+            { r: 4.2,  tube: 0.12, tiltX: Math.PI/2.5, tiltZ: -0.5, y: 7.2,  mat: haloMat,       name: 'halo-3' },
         ];
         for (const h of haloConfigs) {
             const halo = new THREE.Mesh(new THREE.TorusGeometry(h.r, h.tube, 14, 72), h.mat);
             halo.name = h.name;
-            halo.rotation.x = h.tiltX;
-            halo.rotation.z = h.tiltZ;
-            halo.position.y = h.y;
+            halo.rotation.x = h.tiltX; halo.rotation.z = h.tiltZ; halo.position.y = h.y;
             g.add(halo);
         }
+        // halo gems (KEEP NAMES EXACTLY -- 'halo-gem-0' through 'halo-gem-7')
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            const gem = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), gemMat);
-            gem.position.set(Math.cos(angle) * 5.5, 7.2, Math.sin(angle) * 5.5);
-            gem.name = `halo-gem-${i}`;
-            g.add(gem);
+            const gem = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), gemMat);
+            gem.position.set(Math.cos(angle) * 5.5, 7.5, Math.sin(angle) * 5.5);
+            gem.name = `halo-gem-${i}`; g.add(gem);
         }
 
-        // DIVINE CROWN (base + 5 spires + gems)
-        const crownBase = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.0, 0.55, 14), goldDimMat);
+        // DIVINE CROWN
+        const crownBase = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.35, 0.62, 16), goldDimMat);
         crownBase.name = 'crown-base';
-        crownBase.position.y = 5.9;
-        g.add(crownBase);
-        const spireHeights = [1.5, 1.0, 1.0, 1.0, 1.0];
+        crownBase.position.y = 6.3; g.add(crownBase);
+        const spireHeights = [1.85, 1.2, 1.2, 1.2, 1.2];
         for (let i = 0; i < 5; i++) {
             const angle = (i / 5) * Math.PI * 2;
-            const r = i === 0 ? 0 : 1.65;
-            const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.26, spireHeights[i], 8), goldMat);
-            spire.position.set(Math.cos(angle) * r, 6.18 + spireHeights[i] / 2, Math.sin(angle) * r);
-            spire.name = `crown-spire-${i}`;
-            g.add(spire);
-            const spGem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), gemMat);
-            spGem.position.set(Math.cos(angle) * r, 6.18 + spireHeights[i] + 0.07, Math.sin(angle) * r);
-            spGem.name = `crown-gem-${i}`;
-            g.add(spGem);
+            const r = i === 0 ? 0 : 1.95;
+            const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.3, spireHeights[i], 8), goldMat);
+            spire.position.set(Math.cos(angle) * r, 6.62 + spireHeights[i] / 2, Math.sin(angle) * r);
+            spire.name = `crown-spire-${i}`; g.add(spire);
+            const spGem = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), gemMat);
+            spGem.position.set(Math.cos(angle) * r, 6.62 + spireHeights[i] + 0.08, Math.sin(angle) * r);
+            spGem.name = `crown-gem-${i}`; g.add(spGem);
         }
 
         // WINGS
@@ -290,71 +296,64 @@ export class CatGodNPC {
         // ARMS
         this.buildArms(g, skinMat, goldMat, whiteMat);
 
-        // TAIL -- TubeGeometry with CatmullRomCurve3, so much better than cone segments
-        // 5 cone segments before = looked like a caterpillar. fixed. this is divine.
+        // TAIL: TubeGeometry divine serpentine tail
         const divineTailCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, -0.4, -2.6),
-            new THREE.Vector3(-0.5, -0.2, -3.5),
-            new THREE.Vector3(-1.2, 0.4, -3.9),
-            new THREE.Vector3(-1.9, 1.1, -3.6),
-            new THREE.Vector3(-1.8, 2.0, -2.85),
+            new THREE.Vector3(0, -0.5, -2.85),
+            new THREE.Vector3(-0.6, -0.2, -3.85),
+            new THREE.Vector3(-1.4, 0.5, -4.35),
+            new THREE.Vector3(-2.2, 1.3, -4.0),
+            new THREE.Vector3(-2.1, 2.4, -3.2),
+            new THREE.Vector3(-1.5, 3.1, -2.4),
         ]);
-        const divineTail = new THREE.Mesh(new THREE.TubeGeometry(divineTailCurve, 16, 0.28, 10, false), tailMat);
-        divineTail.name = 'tail-tube';
-        g.add(divineTail);
-        const tipPuff = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 10), goldMat);
+        const divineTail = new THREE.Mesh(new THREE.TubeGeometry(divineTailCurve, 18, 0.32, 10, false), tailMat);
+        divineTail.name = 'tail-tube'; g.add(divineTail);
+        const tipPuff = new THREE.Mesh(new THREE.SphereGeometry(0.62, 10, 10), goldMat);
         tipPuff.name = 'tail-tip';
-        tipPuff.position.set(-1.8, 2.1, -2.75);
-        g.add(tipPuff);
+        tipPuff.position.set(-1.5, 3.15, -2.35); g.add(tipPuff);
 
         // DIVINE STAFF
         this.buildStaff(g, staffMat, goldMat, gemMat);
 
-        // DIVINE LIGHTS
-        const mainLight = new THREE.PointLight(0xffcc44, 3.5, 30);
+        // DIVINE LIGHTS -- KEEP NAMES EXACTLY
+        const mainLight = new THREE.PointLight(0xffcc44, 4.0, 35);
         mainLight.name = 'god-light-main';
-        mainLight.position.y = 4;
-        g.add(mainLight);
-        const eyeLight = new THREE.PointLight(0x00ffaa, 1.2, 14);
+        mainLight.position.y = 4; g.add(mainLight);
+        const eyeLight = new THREE.PointLight(0x00ffaa, 1.4, 16);
         eyeLight.name = 'god-light-eye';
-        eyeLight.position.set(0, 4.5, 2);
-        g.add(eyeLight);
-        const haloLight = new THREE.PointLight(0xffffaa, 1.8, 18);
+        eyeLight.position.set(0, 4.8, 2.2); g.add(eyeLight);
+        const haloLight = new THREE.PointLight(0xffffaa, 2.0, 22);
         haloLight.name = 'god-light-halo';
-        haloLight.position.y = 7.5;
-        g.add(haloLight);
+        haloLight.position.y = 8.0; g.add(haloLight);
 
-        // DIVINE PARTICLE FIELD (outer ring + inner ring)
-        const pCount = 120;
+        // DIVINE PARTICLE FIELD -- KEEP NAMES EXACTLY ('divine-particles', 'divine-particles-inner')
+        const pCount = 150;
         const pPos = new Float32Array(pCount * 3);
         for (let i = 0; i < pCount * 3; i += 3) {
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
-            const r = 7 + Math.random() * 5;
+            const r = 9 + Math.random() * 6;
             pPos[i]   = r * Math.sin(phi) * Math.cos(theta);
             pPos[i+1] = r * Math.sin(phi) * Math.sin(theta) + 2;
             pPos[i+2] = r * Math.cos(phi);
         }
         const pGeo = new THREE.BufferGeometry();
         pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.28, color: 0xffff88, transparent: true, opacity: 0.85 }));
-        particles.name = 'divine-particles';
-        g.add(particles);
+        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.32, color: 0xffff88, transparent: true, opacity: 0.85 }));
+        particles.name = 'divine-particles'; g.add(particles);
 
-        const p2Count = 40;
+        const p2Count = 55;
         const p2Pos = new Float32Array(p2Count * 3);
         for (let i = 0; i < p2Count * 3; i += 3) {
             const theta = Math.random() * Math.PI * 2;
-            const r = 3.5 + Math.random() * 1.5;
+            const r = 4.0 + Math.random() * 2.0;
             p2Pos[i]   = r * Math.cos(theta);
-            p2Pos[i+1] = 1 + Math.random() * 5;
+            p2Pos[i+1] = 1 + Math.random() * 6;
             p2Pos[i+2] = r * Math.sin(theta);
         }
         const p2Geo = new THREE.BufferGeometry();
         p2Geo.setAttribute('position', new THREE.BufferAttribute(p2Pos, 3));
-        const innerParticles = new THREE.Points(p2Geo, new THREE.PointsMaterial({ size: 0.18, color: 0xffffff, transparent: true, opacity: 0.7 }));
-        innerParticles.name = 'divine-particles-inner';
-        g.add(innerParticles);
+        const innerParticles = new THREE.Points(p2Geo, new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.72 }));
+        innerParticles.name = 'divine-particles-inner'; g.add(innerParticles);
 
         return g;
     }

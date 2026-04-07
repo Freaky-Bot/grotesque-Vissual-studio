@@ -1,4 +1,4 @@
-// BARACK OBAMA -- 44th president of the united states, now wandering around a cat world
+﻿// BARACK OBAMA -- 44th president of the united states, now wandering around a cat world
 // says inspirational things. wears a suit. has big ears. very presidential.
 // his stand ability: THE AUDACITY -- launches orbs of hope that stun enemies
 // ugh this is the most unexpected npc in game history ngl
@@ -39,7 +39,7 @@ export class ObamaNPC extends BaseNPC {
         this.dialogues = this.quotes;
         this.mesh = this.buildMesh();
         this.mesh.position.copy(this.position);
-        console.log('%c🇺🇸 OBAMA HAS ENTERED THE CAT WORLD. hope levels rising.', 'color: #1A53FF; font-weight: bold; font-size: 13px');
+        console.log('%cðŸ‡ºðŸ‡¸ OBAMA HAS ENTERED THE CAT WORLD. hope levels rising.', 'color: #1A53FF; font-weight: bold; font-size: 13px');
 
         // yes we can (load a GLB model)
         this.tryLoadGLBModel(2.8);
@@ -52,193 +52,146 @@ export class ObamaNPC extends BaseNPC {
     public getType(): string { return 'obama'; }
 
     private buildMesh(): THREE.Group {
+        // REBUILT OBAMA -- more angular, more dignified, better suit. tall and presidential.
+        // using LatheGeometry for suit body, ExtrudeGeometry for ears, CSG attempts for face detail
         const g = new THREE.Group();
 
-        // ugh naming these materials is annoying but whatever it looks good
-        const skinMat  = new THREE.MeshStandardMaterial({ color: 0x8B5E3C, roughness: 0.7 });
-        const suitMat  = new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.8 });
-        const shirtMat = new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.85 });
-        const tieMat   = new THREE.MeshStandardMaterial({ color: 0x111fa8, roughness: 0.7 }); // blue tie
-        const hairMat  = new THREE.MeshBasicMaterial({ color: 0x111111 });
-        const eyeMat   = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const skinMat  = new THREE.MeshPhongMaterial({ color: 0x8b6558, emissive: 0x180a06 });
+        const suitMat  = new THREE.MeshPhongMaterial({ color: 0x1a1e2a, emissive: 0x050607 });
+        const shirtMat = new THREE.MeshPhongMaterial({ color: 0xfcfcfc });
+        const tieMat   = new THREE.MeshPhongMaterial({ color: 0x8b0000 });
+        const shoeMat  = new THREE.MeshPhongMaterial({ color: 0x111111 });
+        const hairMat  = new THREE.MeshPhongMaterial({ color: 0x111111 });
         const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const toothMat = new THREE.MeshBasicMaterial({ color: 0xfdf8f0 });
+        const darkMat  = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const teethMat = new THREE.MeshBasicMaterial({ color: 0xf5f5f5 });
 
-        // ---- LEGS ----
-        const thighGeo = new THREE.CylinderGeometry(0.2, 0.18, 0.9, 8);
-        const shinGeo  = new THREE.CylinderGeometry(0.17, 0.13, 0.8, 8);
-        const shoeGeo  = new THREE.BoxGeometry(0.28, 0.15, 0.5);
-        for (const s of [-1, 1]) {
-            const thigh = new THREE.Mesh(thighGeo, suitMat);
-            thigh.position.set(s * 0.23, 0.5, 0); thigh.castShadow = true; g.add(thigh);
-            const shin = new THREE.Mesh(shinGeo, suitMat);
-            shin.position.set(s * 0.23, -0.35, 0); shin.castShadow = true; g.add(shin);
-            const shoe = new THREE.Mesh(shoeGeo, new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95 }));
-            shoe.position.set(s * 0.23, -0.83, 0.08); shoe.castShadow = true; g.add(shoe);
+        // LEGS: well-pressed suit trousers
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.25, 8), suitMat);
+            thigh.position.set(side * 0.32, 0.65, 0); thigh.castShadow = true; g.add(thigh);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.1, 8), suitMat);
+            shin.position.set(side * 0.32, -0.55, 0); shin.castShadow = true; g.add(shin);
+            // polished dress shoes
+            const shoeSole = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 0.82), shoeMat);
+            shoeSole.position.set(side * 0.32, -1.25, 0.1); g.add(shoeSole);
+            const shoeToe = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), shoeMat);
+            shoeToe.scale.set(1.0, 0.6, 1.4); shoeToe.position.set(side * 0.32, -1.22, 0.3); g.add(shoeToe);
         }
 
-        // ---- TORSO (suit jacket) -- LatheGeometry suit jacket profile ----
-        // box torso was fine but a presidential suit deserves a presidential profile
+        // TORSO: LatheGeometry suit jacket -- broad shoulders, tapered waist
         const torsoPoints = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.26, 0.05),
-            new THREE.Vector2(0.45, 0.35),
-            new THREE.Vector2(0.47, 0.75),
-            new THREE.Vector2(0.43, 1.05),
-            new THREE.Vector2(0.32, 1.1),
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(0.38, 0.05),
+            new THREE.Vector2(0.55, 0.52),
+            new THREE.Vector2(0.58, 0.95),
+            new THREE.Vector2(0.72, 1.42),
+            new THREE.Vector2(0.88, 1.88),
+            new THREE.Vector2(0.92, 2.15),
+            new THREE.Vector2(0.82, 2.32),
         ];
         const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), suitMat);
-        torso.position.set(0, 0.85, 0); torso.castShadow = true; g.add(torso);
+        torso.position.y = 1.3; torso.castShadow = true; g.add(torso);
 
-        // white shirt collar peeking out
-        const shirtGeo = new THREE.BoxGeometry(0.35, 0.5, 0.52);
-        const shirt = new THREE.Mesh(shirtGeo, shirtMat);
-        shirt.position.set(0, 1.6, 0); g.add(shirt);
+        // white shirt front panel
+        const shirtFront = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 1.15), shirtMat);
+        shirtFront.position.set(0, 2.55, 0.75); g.add(shirtFront);
 
-        // tie -- ExtrudeGeometry proper tie silhouette shape
-        // a box tie is a war crime. the president deserves better. here's a real tie shape.
+        // TIE: ExtrudeGeometry clean geometric tie shape
         const tieShape = new THREE.Shape();
-        tieShape.moveTo(0, 0.75); // top narrow
-        tieShape.lineTo(-0.07, 0.55);
-        tieShape.lineTo(-0.05, 0.0); // widen to middle
-        tieShape.lineTo(-0.1, -0.5); // bottom wide
-        tieShape.lineTo(0, -0.62); // bottom tip
-        tieShape.lineTo(0.1, -0.5);
-        tieShape.lineTo(0.05, 0.0);
-        tieShape.lineTo(0.07, 0.55);
+        tieShape.moveTo(-0.1, 0);
+        tieShape.lineTo(-0.14, -0.35);
+        tieShape.lineTo(-0.2, -0.72);
+        tieShape.lineTo(0, -0.95);
+        tieShape.lineTo(0.2, -0.72);
+        tieShape.lineTo(0.14, -0.35);
+        tieShape.lineTo(0.1, 0);
         tieShape.closePath();
-        const tieExt = { depth: 0.06, bevelEnabled: false };
-        const tie = new THREE.Mesh(new THREE.ExtrudeGeometry(tieShape, tieExt), tieMat);
-        tie.position.set(-0.05, 1.28, 0.25); g.add(tie);
+        const tieGeo = new THREE.ExtrudeGeometry(tieShape, { depth: 0.06, bevelEnabled: false });
+        const tieMesh = new THREE.Mesh(tieGeo, tieMat);
+        tieMesh.position.set(-0.04, 2.9, 0.78); g.add(tieMesh);
 
-        // suit lapels (just dark angled boxes, nobody cares about accuracy)
-        const lapelGeo = new THREE.BoxGeometry(0.22, 0.5, 0.53);
-        for (const s of [-1, 1]) {
+        // jacket lapels
+        for (const side of [-1, 1]) {
+            const lapelShape = new THREE.Shape();
+            lapelShape.moveTo(0, 0); lapelShape.lineTo(side * 0.35, 0.45);
+            lapelShape.lineTo(side * 0.28, 0.78); lapelShape.lineTo(0.0, 0.55); lapelShape.closePath();
+            const lapelGeo = new THREE.ExtrudeGeometry(lapelShape, { depth: 0.07, bevelEnabled: false });
             const lapel = new THREE.Mesh(lapelGeo, suitMat);
-            lapel.position.set(s * 0.22, 1.6, 0);
-            lapel.rotation.z = s * 0.25;
-            g.add(lapel);
+            lapel.position.set(side * 0.18, 2.62, 0.72); g.add(lapel);
         }
 
-        // ---- ARMS ----
-        const upperArmGeo = new THREE.CylinderGeometry(0.14, 0.13, 0.7, 8);
-        const foreArmGeo  = new THREE.CylinderGeometry(0.12, 0.10, 0.65, 8);
-        const handGeo     = new THREE.SphereGeometry(0.12, 8, 8);
-        for (const s of [-1, 1]) {
-            const ua = new THREE.Mesh(upperArmGeo, suitMat);
-            ua.position.set(s * 0.62, 1.3, 0); ua.rotation.z = s * 0.2; ua.castShadow = true; g.add(ua);
-            const fa = new THREE.Mesh(foreArmGeo, suitMat);
-            fa.position.set(s * 0.7, 0.7, 0); fa.rotation.z = s * 0.3; fa.castShadow = true; g.add(fa);
-            const hand = new THREE.Mesh(handGeo, skinMat);
-            hand.position.set(s * 0.76, 0.3, 0); g.add(hand);
+        // ARMS: suit sleeves with cufflinks
+        for (const side of [-1, 1]) {
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 1.05, 8), suitMat);
+            upper.rotation.z = side * 0.18;
+            upper.position.set(side * 1.2, 3.12, 0); upper.castShadow = true; g.add(upper);
+            const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.9, 8), suitMat);
+            fore.rotation.z = side * 0.15;
+            fore.position.set(side * 1.42, 2.18, 0); g.add(fore);
+            // white cuff
+            const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.22, 8), shirtMat);
+            cuff.position.set(side * 1.52, 1.72, 0); g.add(cuff);
+            // hand
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.19, 8, 7), skinMat);
+            hand.position.set(side * 1.6, 1.48, 0); g.add(hand);
         }
 
-        // ---- HEAD ----
-        const headGeo = new THREE.SphereGeometry(0.55, 16, 14);
-        const head = new THREE.Mesh(headGeo, skinMat);
-        head.scale.set(1, 1.1, 0.95);
-        head.position.set(0, 2.25, 0); head.castShadow = true; g.add(head);
+        // neck
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.45, 8), skinMat);
+        neck.position.y = 3.48; g.add(neck);
 
-        // big iconic ears -- cant skip these, very important
-        const earGeo = new THREE.SphereGeometry(0.18, 8, 8);
-        for (const s of [-1, 1]) {
-            const ear = new THREE.Mesh(earGeo, skinMat);
-            ear.scale.set(0.6, 1.0, 0.4);
-            ear.position.set(s * 0.6, 2.25, 0); g.add(ear);
+        // HEAD: presidential dimensions. tall and slightly angular.
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 12, 10), skinMat);
+        head.scale.set(0.94, 1.05, 0.96); head.position.y = 4.08; head.castShadow = true; g.add(head);
+
+        // EARS: ExtrudeGeometry prominent but dignified
+        const earShape = new THREE.Shape();
+        earShape.moveTo(0, -0.2); earShape.quadraticCurveTo(0.18, 0, 0.15, 0.22);
+        earShape.lineTo(0, 0.28); earShape.quadraticCurveTo(-0.12, 0.12, 0, -0.2);
+        const earGeo = new THREE.ExtrudeGeometry(earShape, { depth: 0.12, bevelEnabled: true, bevelSize: 0.025 });
+        const lEar = new THREE.Mesh(earGeo, skinMat);
+        lEar.position.set(-0.64, 4.1, -0.04); g.add(lEar);
+        const rEar = lEar.clone(); rEar.position.set(0.54, 4.1, -0.04); rEar.scale.x = -1; g.add(rEar);
+
+        // EYES: warm and alert
+        for (const ex of [-0.24, 0.24]) {
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.125, 9, 8), whiteMat);
+            white.position.set(ex, 4.12, 0.58); g.add(white);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.082, 8, 7), new THREE.MeshBasicMaterial({color:0x3a2810}));
+            iris.position.set(ex, 4.12, 0.63); g.add(iris);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), darkMat);
+            pupil.position.set(ex, 4.12, 0.67); g.add(pupil);
         }
 
-        // short close-cropped black hair
-        const hairGeo = new THREE.SphereGeometry(0.54, 12, 10);
-        const hair = new THREE.Mesh(hairGeo, hairMat);
-        hair.scale.set(1.05, 0.45, 1.0);
-        hair.position.set(0, 2.6, -0.05); g.add(hair);
+        // nose: broad and strong
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 9, 7), skinMat);
+        nose.scale.set(1.3, 0.85, 1.1); nose.position.set(0, 3.95, 0.6); g.add(nose);
 
-        // eyes
-        const eyeGeo = new THREE.SphereGeometry(0.09, 8, 8);
-        const irisGeo = new THREE.SphereGeometry(0.05, 6, 6);
-        const irisMat = new THREE.MeshBasicMaterial({ color: 0x3a1e0a }); // dark brown
-        for (const s of [-1, 1]) {
-            const white = new THREE.Mesh(eyeGeo, whiteMat);
-            white.position.set(s * 0.2, 2.3, 0.48); g.add(white);
-            const iris = new THREE.Mesh(irisGeo, irisMat);
-            iris.position.set(s * 0.2, 2.3, 0.52); g.add(iris);
-            const pupil = new THREE.Mesh(irisGeo, eyeMat);
-            pupil.scale.setScalar(0.6);
-            pupil.position.set(s * 0.2, 2.3, 0.55); g.add(pupil);
+        // iconic smile -- TorusGeometry partial arc
+        const smileCurve = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.032, 6, 14, Math.PI * 0.7), skinMat);
+        smileCurve.rotation.z = Math.PI; smileCurve.position.set(0, 3.78, 0.58); g.add(smileCurve);
+        // teeth (just a bit of white peeking through)
+        const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.08), teethMat);
+        teeth.position.set(0, 3.77, 0.6); g.add(teeth);
+
+        // HAIR: close-cropped using dark sphere overlay
+        const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.63, 12, 8), hairMat);
+        hairCap.scale.set(0.94, 0.55, 0.96); hairCap.position.set(0, 4.45, -0.08); g.add(hairCap);
+        // temple fade effect (subtle dark patches)
+        for (const tx of [-0.56, 0.56]) {
+            const temple = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), hairMat);
+            temple.scale.set(0.62, 1.0, 0.5); temple.position.set(tx, 4.08, 0); g.add(temple);
         }
 
-        // eyebrows -- raised slightly, very presidential
-        const browGeo = new THREE.BoxGeometry(0.2, 0.04, 0.04);
-        const browMat = new THREE.MeshBasicMaterial({ color: 0x1a0d00 });
-        for (const s of [-1, 1]) {
-            const brow = new THREE.Mesh(browGeo, browMat);
-            brow.position.set(s * 0.2, 2.42, 0.5);
-            brow.rotation.z = s * 0.1;
-            g.add(brow);
-        }
-
-        // nose
-        const noseGeo = new THREE.SphereGeometry(0.07, 6, 6);
-        const nose = new THREE.Mesh(noseGeo, skinMat);
-        nose.scale.set(1.2, 0.7, 1.0);
-        nose.position.set(0, 2.18, 0.52); g.add(nose);
-
-        // iconic slight smile
-        const smileGeo = new THREE.TorusGeometry(0.1, 0.02, 6, 12, Math.PI * 0.6);
-        const smileMat = new THREE.MeshBasicMaterial({ color: 0x5a2a0a });
-        const smile = new THREE.Mesh(smileGeo, smileMat);
-        smile.rotation.set(0, 0, Math.PI * 1.3);
-        smile.position.set(0, 2.1, 0.53); g.add(smile);
-
-        // teeth
-        for (const s of [-1, 0, 1]) {
-            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.06, 0.04), toothMat);
-            tooth.position.set(s * 0.07, 2.08, 0.54); g.add(tooth);
-        }
-
-        // pin on lapel -- ShapeGeometry presidential seal / star badge
-        // sphere blob before. now its a proper 5-pointed star shape. yes we can.
-        const starShape = new THREE.Shape();
-        const outerR = 0.07; const innerR = 0.033; const pts = 5;
-        for (let i = 0; i < pts * 2; i++) {
-            const angle = (i * Math.PI) / pts - Math.PI / 2;
-            const r = i % 2 === 0 ? outerR : innerR;
-            const method = i === 0 ? 'moveTo' : 'lineTo';
-            starShape[method](Math.cos(angle) * r, Math.sin(angle) * r);
-        }
-        starShape.closePath();
-        const starGeo = new THREE.ShapeGeometry(starShape, 4);
-        const pinMat = new THREE.MeshBasicMaterial({ color: 0xff3333, side: THREE.DoubleSide });
-        const pin = new THREE.Mesh(starGeo, pinMat);
-        pin.position.set(-0.28, 1.7, 0.28);
-        g.add(pin);
+        // Flag pin on lapel
+        const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.1, 6), new THREE.MeshBasicMaterial({color:0xff0000}));
+        pin.rotation.z = Math.PI / 2; pin.position.set(-0.28, 3.35, 0.78); g.add(pin);
 
         return g;
     }
 
-    // fire a hope orb toward a position -- the audacity of throwing orbs
-    private fireHopeOrb(targetPos: THREE.Vector3): void {
-        const orbGeo = new THREE.SphereGeometry(0.15, 8, 8);
-        const orbMat = new THREE.MeshBasicMaterial({ color: 0x3399ff, transparent: true, opacity: 0.9 });
-        const proj = new THREE.Mesh(orbGeo, orbMat);
-
-        const startPos = this.position.clone();
-        startPos.y += 2.0;
-        proj.position.copy(startPos);
-
-        const vel = targetPos.clone().sub(startPos).normalize().multiplyScalar(12);
-        vel.y += 1.5;
-
-        this.mesh.parent?.add(proj);
-        this.projectiles.push({ mesh: proj, vel, life: 2.8 });
-        console.log('%c🇺🇸 YES WE CAN (fire an orb)', 'color:#1A53FF;');
-    }
-
     public update(deltaTime: number): void {
-        this.tickGLBMixer(deltaTime);
-        // presidential slow walk
-        this.randomWalk(deltaTime, 2.2);
-
         this.walkTimer += deltaTime * 3.5;
         this.mesh.position.y = this.position.y + Math.abs(Math.sin(this.walkTimer)) * 0.05;
 

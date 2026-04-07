@@ -1,8 +1,8 @@
-// EMO NPC with a stand ability
+﻿// EMO NPC with a stand ability
 // "my chemical romance was right about everything"
 // stand name: THE VOID -- a shadowy wraith that manifests when player gets close
 // stand ability: shadow orbs that orbit aggressively, then YEET at nearest target
-// very depressed, very powerful, ゴゴゴゴゴゴ
+// very depressed, very powerful, ã‚´ã‚´ã‚´ã‚´ã‚´ã‚´
 
 import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
@@ -53,7 +53,7 @@ export class EmoNPC extends BaseNPC {
         // stand starts hidden
         this.stand.visible = false;
 
-        console.log('%c🖤 emo npc spawned... nobody cares... *sigh*', 'color: #9933cc; font-style: italic');
+        console.log('%cðŸ–¤ emo npc spawned... nobody cares... *sigh*', 'color: #9933cc; font-style: italic');
 
         // tryLoadGLBModel for emo. no GLB exists for emo yet. it wont find one. it will be alone.
         // just like the emo. fitting. whatever.
@@ -66,267 +66,156 @@ export class EmoNPC extends BaseNPC {
     }
 
     private buildMesh(): { group: THREE.Group; stand: THREE.Group } {
+        // REBUILT FROM SCRATCH -- the emo kid cometh again, darker and more angular
+        // more detail, better proportions, properly dramatic. still a JoJo reference (THE VOID)
         const g = new THREE.Group();
 
-        // -- MATERIALS --
-        const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
-        const skinMat = new THREE.MeshStandardMaterial({ color: 0xd4a99a, roughness: 0.7 });
-        const hairMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); // jet black hair
-        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const whiteMat = new THREE.MeshBasicMaterial({ color: 0xfff0f5 }); // pale skin tone
-        const redMat = new THREE.MeshStandardMaterial({ color: 0xaa0020, roughness: 0.6 }); // band tee accent
-        const denimMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.95 }); // dark skinny jeans
-        const bandageMat = new THREE.MeshBasicMaterial({ color: 0x333333 }); // wristbands
+        const skinMat    = new THREE.MeshPhongMaterial({ color: 0xd4b8a8, emissive: 0x180c06 });
+        const hairMat    = new THREE.MeshPhongMaterial({ color: 0x111118, emissive: 0x000005 });
+        const shirtMat   = new THREE.MeshPhongMaterial({ color: 0x111111, emissive: 0x080808 });
+        const pantsMat   = new THREE.MeshPhongMaterial({ color: 0x1a0822 });
+        const stripeMat  = new THREE.MeshBasicMaterial({ color: 0x662266 });
+        const eyeShadMat = new THREE.MeshBasicMaterial({ color: 0x330044 });
+        const eyeWhite   = new THREE.MeshPhongMaterial({ color: 0xf0eef8 });
+        const pupilMat   = new THREE.MeshBasicMaterial({ color: 0x08000a });
+        const lipMat     = new THREE.MeshPhongMaterial({ color: 0x882255 });
+        const studMat    = new THREE.MeshBasicMaterial({ color: 0x889988 });
 
-        // -- BODY (skinny, wearing black band tee) --
-        // LatheGeometry torso -- emo body profile, narrow shoulders / slim fit / sad
-        // way better than a box. the box was fine but this is WORSE. i mean better. whatever.
+        // LEGS: skinny jeans
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 1.15, 7), pantsMat);
+            thigh.position.set(side * 0.28, 0.58, 0); thigh.castShadow = true; g.add(thigh);
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.0, 7), pantsMat);
+            shin.position.set(side * 0.28, -0.5, 0.0); shin.castShadow = true; g.add(shin);
+            // chunky platform boots (gotta have the platform boots)
+            const bootTop = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.55, 8), new THREE.MeshPhongMaterial({color:0x110011}));
+            bootTop.position.set(side * 0.28, -1.1, 0.0); g.add(bootTop);
+            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.72), new THREE.MeshPhongMaterial({color:0x222222}));
+            sole.position.set(side * 0.28, -1.47, 0.08); g.add(sole);
+        }
+
+        // TORSO: LatheGeometry slim torso with a slight hunch implied by rotation later
         const torsoPoints = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.28, 0.05),
-            new THREE.Vector2(0.38, 0.3),
-            new THREE.Vector2(0.4, 0.65),
-            new THREE.Vector2(0.42, 1.0),
-            new THREE.Vector2(0.38, 1.1),
-            new THREE.Vector2(0.25, 1.1),
+            new THREE.Vector2(0,    0),
+            new THREE.Vector2(0.38, 0.05),
+            new THREE.Vector2(0.52, 0.45),  // waist
+            new THREE.Vector2(0.55, 0.85),
+            new THREE.Vector2(0.68, 1.25),  // chest
+            new THREE.Vector2(0.72, 1.55),
+            new THREE.Vector2(0.65, 1.75),
         ];
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 12), blackMat);
-        torso.position.set(0, 0.7, 0);
-        torso.castShadow = true;
-        g.add(torso);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoPoints, 10), shirtMat);
+        torso.position.y = 1.15; torso.castShadow = true; g.add(torso);
 
-        // MCR logo-ish red stripe on the band tee
-        const stripeGeo = new THREE.BoxGeometry(0.5, 0.06, 0.47);
-        const stripe = new THREE.Mesh(stripeGeo, redMat);
-        stripe.position.set(0, 1.35, 0);
-        g.add(stripe);
-
-        // -- HEAD --
-        const headGeo = new THREE.BoxGeometry(0.75, 0.8, 0.7);
-        const head = new THREE.Mesh(headGeo, skinMat);
-        head.position.set(0, 2.15, 0);
-        head.castShadow = true;
-        g.add(head);
-
-        // -- HAIR -- big emo side-swept covering one eye
-        // top of head
-        const topHairGeo = new THREE.BoxGeometry(0.82, 0.35, 0.78);
-        const topHair = new THREE.Mesh(topHairGeo, hairMat);
-        topHair.position.set(0, 2.63, 0.02);
-        g.add(topHair);
-
-        // the iconic side sweep covering left eye entirely
-        // ExtrudeGeometry -- actual swept hair silhouette shape
-        // boxes looked terrible. the emo deserved better. here it is.
-        const sweepShape = new THREE.Shape();
-        sweepShape.moveTo(0, 0);
-        sweepShape.quadraticCurveTo(-0.25, 0.1, -0.42, 0.4);
-        sweepShape.quadraticCurveTo(-0.48, 0.65, -0.32, 0.82);
-        sweepShape.quadraticCurveTo(-0.12, 0.9, 0.02, 0.72);
-        sweepShape.quadraticCurveTo(0.14, 0.55, 0.1, 0.25);
-        sweepShape.quadraticCurveTo(0.08, 0.08, 0, 0);
-        const sweepExtSettings = { depth: 0.34, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 2 };
-        const sweep = new THREE.Mesh(new THREE.ExtrudeGeometry(sweepShape, sweepExtSettings), hairMat);
-        sweep.position.set(-0.05, 2.1, 0.04);
-        sweep.rotation.z = -0.2;
-        g.add(sweep);
-
-        // back of hair, long and dramatic
-        const backHairGeo = new THREE.BoxGeometry(0.75, 0.6, 0.2);
-        const backHair = new THREE.Mesh(backHairGeo, hairMat);
-        backHair.position.set(0, 2.05, -0.42);
-        g.add(backHair);
-
-        // -- EYES -- one visible (sad), one covered by hair
-        const eyeGeo = new THREE.SphereGeometry(0.1, 8, 8);
-        const visibleEye = new THREE.Mesh(eyeGeo, whiteMat);
-        visibleEye.position.set(0.24, 2.22, 0.36);
-        g.add(visibleEye);
-        const pupilGeo = new THREE.SphereGeometry(0.07, 8, 8);
-        const pupil = new THREE.Mesh(pupilGeo, eyeMat);
-        pupil.position.set(0.24, 2.22, 0.43);
-        g.add(pupil);
-
-        // thick eyeliner under the visible eye
-        const linerGeo = new THREE.BoxGeometry(0.22, 0.04, 0.05);
-        const linerMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        const liner = new THREE.Mesh(linerGeo, linerMat);
-        liner.position.set(0.24, 2.14, 0.44);
-        g.add(liner);
-
-        // -- FROWN (perpetually sad) --
-        const frownGeo = new THREE.TorusGeometry(0.1, 0.025, 6, 12, Math.PI);
-        const frown = new THREE.Mesh(frownGeo, eyeMat);
-        frown.position.set(0, 1.88, 0.37);
-        frown.rotation.z = Math.PI; // flip to frown
-        g.add(frown);
-
-        // -- ARMS (skinny, black sleeves) --
-        const upperArmGeo = new THREE.CylinderGeometry(0.13, 0.12, 0.75, 8);
-        const foreArmGeo = new THREE.CylinderGeometry(0.11, 0.1, 0.65, 8);
-        const handGeo = new THREE.SphereGeometry(0.12, 8, 8);
-
-        for (const side of [-1, 1]) {
-            const ua = new THREE.Mesh(upperArmGeo, blackMat);
-            ua.position.set(side * 0.55, 1.2, 0);
-            ua.rotation.z = side * 0.18;
-            ua.castShadow = true;
-            g.add(ua);
-
-            const fa = new THREE.Mesh(foreArmGeo, blackMat);
-            fa.position.set(side * 0.65, 0.62, 0);
-            fa.rotation.z = side * 0.28;
-            fa.castShadow = true;
-            g.add(fa);
-
-            const hand = new THREE.Mesh(handGeo, skinMat);
-            hand.position.set(side * 0.73, 0.2, 0);
-            g.add(hand);
-
-            // wristbands -- emo essential
-            const wb = new THREE.CylinderGeometry(0.115, 0.115, 0.18, 8);
-            const wristband = new THREE.Mesh(wb, bandageMat);
-            wristband.position.set(side * 0.7, 0.35, 0);
-            wristband.rotation.z = side * 0.28;
-            g.add(wristband);
+        // band tee stripes across the chest
+        for (let i = 0; i < 4; i++) {
+            const stripe = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.065, 10, 1, true), stripeMat);
+            stripe.position.set(0, 2.38 + i * 0.145, 0); g.add(stripe);
         }
 
-        // -- LEGS (skinny jeans, dark) --
-        const thighGeo = new THREE.CylinderGeometry(0.19, 0.16, 0.85, 8);
-        const shinGeo = new THREE.CylinderGeometry(0.15, 0.1, 0.75, 8);
-        const shoeGeo = new THREE.BoxGeometry(0.28, 0.2, 0.55); // chunky emo shoes / vans
+        // ARMS: thin TubeGeometry arms, slightly angled down in that sulky posture
+        const makeArm = (side: number): THREE.Group => {
+            const ag = new THREE.Group();
+            const c = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(side * 0.12, -0.48, 0.05),
+                new THREE.Vector3(side * 0.2, -0.92, 0.02),
+                new THREE.Vector3(side * 0.08, -1.32, -0.04),
+            ]);
+            const arm = new THREE.Mesh(new THREE.TubeGeometry(c, 10, 0.14, 7), shirtMat);
+            ag.add(arm);
+            // hand
+            const hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), skinMat);
+            hand.position.set(side * 0.08, -1.36, -0.04); ag.add(hand);
+            // stud bracelets
+            for (let j = 0; j < 5; j++) {
+                const stud = new THREE.Mesh(new THREE.SphereGeometry(0.04, 5, 4), studMat);
+                const angle = (j / 5) * Math.PI * 2;
+                stud.position.set(Math.cos(angle) * 0.15, -1.08, Math.sin(angle) * 0.15 - 0.04);
+                ag.add(stud);
+            }
+            return ag;
+        };
+        const lArm = makeArm(-1); lArm.position.set(-0.7, 2.88, 0); g.add(lArm);
+        const rArm = makeArm(1);  rArm.position.set( 0.7, 2.88, 0); g.add(rArm);
 
-        for (const side of [-1, 1]) {
-            const thigh = new THREE.Mesh(thighGeo, denimMat);
-            thigh.position.set(side * 0.22, 0.5, 0);
-            thigh.castShadow = true;
-            g.add(thigh);
+        // HEAD
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.58, 12, 10), skinMat);
+        head.position.y = 3.62; head.castShadow = true; g.add(head);
 
-            const shin = new THREE.Mesh(shinGeo, denimMat);
-            shin.position.set(side * 0.22, -0.28, 0);
-            shin.castShadow = true;
-            g.add(shin);
-
-            const shoe = new THREE.Mesh(shoeGeo, blackMat);
-            shoe.position.set(side * 0.22, -0.75, 0.08);
-            shoe.castShadow = true;
-            g.add(shoe);
+        // eye shadow / liner effect
+        for (const ex of [-0.22, 0.22]) {
+            const shadow = new THREE.Mesh(new THREE.EllipseCurve ? new THREE.SphereGeometry(0.155, 8, 4) : new THREE.SphereGeometry(0.155, 8, 4), eyeShadMat);
+            shadow.scale.set(1.2, 0.7, 0.6); shadow.position.set(ex, 3.65, 0.56); g.add(shadow);
+            const white = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 7), eyeWhite);
+            white.position.set(ex, 3.66, 0.56); g.add(white);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 6), pupilMat);
+            pupil.position.set(ex, 3.66, 0.63); g.add(pupil);
         }
 
-        // ============================================
-        // THE VOID -- emo's stand, a ghostly shadow wraith
-        // floats behind and above the emo, humanoid silhouette
-        // ============================================
+        // nose: small
+        const nose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), lipMat);
+        nose.position.set(0, 3.55, 0.58); g.add(nose);
+
+        // lips: slight frown obviously
+        const lowerLip = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.025, 6, 12, Math.PI), lipMat);
+        lowerLip.position.set(0, 3.43, 0.57); lowerLip.rotation.x = 0.4; g.add(lowerLip);
+
+        // HAIR: ExtrudeGeometry massive side sweep -- one big dramatic swoop to the left
+        const hairShape = new THREE.Shape();
+        hairShape.moveTo(-0.62, -0.05);
+        hairShape.quadraticCurveTo(-1.15, 0.55, -1.55, 1.12);
+        hairShape.quadraticCurveTo(-1.68, 1.52, -1.38, 1.82);
+        hairShape.quadraticCurveTo(-0.88, 2.12, -0.32, 1.65);
+        hairShape.lineTo(0.12, 1.22);
+        hairShape.lineTo(0.55, 0.68);
+        hairShape.lineTo(0.62, -0.05);
+        hairShape.closePath();
+        const hairGeo = new THREE.ExtrudeGeometry(hairShape, { depth: 0.55, bevelEnabled: true, bevelSize: 0.06, bevelSegments: 3 });
+        const hairMesh = new THREE.Mesh(hairGeo, hairMat);
+        hairMesh.position.set(-0.05, 3.5, -0.18); g.add(hairMesh);
+
+        // back of head hair coverage
+        const hairBack = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 8), hairMat);
+        hairBack.scale.set(1.1, 0.9, 0.9); hairBack.position.set(-0.08, 3.7, -0.25); g.add(hairBack);
+
+        // neck
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.38, 7), skinMat);
+        neck.position.y = 3.22; g.add(neck);
+
+        // THE VOID STAND: spooky crystalline entity
         const standGroup = new THREE.Group();
-        standGroup.position.set(0, 0.5, -0.8); // hover just behind emo
+        standGroup.position.set(0, 3.1, 0);
 
-        const voidMat = new THREE.MeshBasicMaterial({
-            color: 0x440066,
-            transparent: true,
-            opacity: 0.72,
-            wireframe: false,
+        const voidMat = new THREE.MeshPhongMaterial({
+            color: 0x330033, emissive: 0x440044, emissiveIntensity: 0.8,
+            transparent: true, opacity: 0.88,
         });
-        const voidGlowMat = new THREE.MeshBasicMaterial({
-            color: 0x8800ff,
-            transparent: true,
-            opacity: 0.45,
-        });
+        const voidGlowMat = new THREE.MeshBasicMaterial({ color: 0xcc00ff, transparent: true, opacity: 0.45 });
 
-        // stand body -- custom BufferGeometry amorphous shadow wraith
-        // sphere was too clean. THE VOID should be WRONG. broken. uneven.
-        // just building a distorted pyramid-ish mess with manual vertices
-        const verts = new Float32Array([
-            // front face -- twisted triangle
-             0.0,  1.8,  0.58,   -0.62,  0.3,  0.3,   0.62,  0.3,  0.3,
-            // back face -- offset for spooky twist
-             0.1,  1.9, -0.5,    -0.55,  0.25, -0.35,  0.55,  0.25, -0.35,
-            // side faces to connect em
-            -0.62,  0.3,  0.3,   -0.55,  0.25, -0.35,   0.0,  1.9,  0.0,
-             0.62,  0.3,  0.3,    0.55,  0.25, -0.35,   0.0,  1.9,  0.0,
-            // bottom -- jagged opening
-            -0.62,  0.3,  0.3,    0.62,  0.3,  0.3,   -0.55,  0.25, -0.35,
-             0.62,  0.3,  0.3,    0.55,  0.25, -0.35,  -0.55,  0.25, -0.35,
-        ]);
-        const sBodyBufGeo = new THREE.BufferGeometry();
-        sBodyBufGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
-        sBodyBufGeo.computeVertexNormals(); // compute so it lights right-ish
-        const sBody = new THREE.Mesh(sBodyBufGeo, voidMat);
-        sBody.scale.set(0.9, 1.5, 0.7);
-        sBody.position.set(0, 0.1, 0); // sit at base of stand group
-        standGroup.add(sBody);
+        // Stand body: OctahedronGeometry hovering torso
+        const standBody = new THREE.Mesh(new THREE.OctahedronGeometry(0.72, 1), voidMat);
+        standBody.position.set(1.8, 0, 0); standBody.scale.set(1, 1.4, 0.75); standGroup.add(standBody);
 
-        // also add a sphere base so it doesn't look completely broken lol
-        const sBodySphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), voidMat);
-        sBodySphere.scale.set(0.75, 1.4, 0.55);
-        sBodySphere.position.set(0, 1.2, 0);
-        standGroup.add(sBodySphere);
+        // stand head: IcosahedronGeometry cracked void sphere
+        const standHead = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), voidMat);
+        standHead.position.set(1.8, 1.25, 0); standGroup.add(standHead);
 
-        // stand head -- distorted, slightly tilted
-        const sHeadGeo = new THREE.SphereGeometry(0.42, 10, 10);
-        const sHead = new THREE.Mesh(sHeadGeo, voidMat);
-        sHead.scale.set(1, 1.1, 0.85);
-        sHead.position.set(0.12, 2.25, 0);
-        sHead.rotation.z = 0.25; // unsettling tilt
-        standGroup.add(sHead);
+        // void chaos knot -- kept exactly. dont touch it. its sacred.
+        const knotMat = new THREE.MeshBasicMaterial({ color: 0xbb00ff, wireframe: true });
+        const knotGeo = new THREE.TorusKnotGeometry(0.38, 0.08, 64, 8, 2, 3);
+        const voidKnot = new THREE.Mesh(knotGeo, knotMat);
+        voidKnot.name = 'void-chaos-knot';
+        voidKnot.position.set(1.8, 0, 0); standGroup.add(voidKnot);
 
-        // stand eyes -- glowing purple slits
-        const sEyeGeo = new THREE.SphereGeometry(0.1, 6, 6);
-        const sEyeMat = new THREE.MeshBasicMaterial({ color: 0xee00ff });
-        for (const x of [-0.16, 0.16]) {
-            const se = new THREE.Mesh(sEyeGeo, sEyeMat);
-            se.scale.set(0.5, 1.4, 1); // tall slit pupils
-            se.position.set(x + 0.12, 2.32, 0.35);
-            standGroup.add(se);
+        // crystalline spikes from stand
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.62, 4), voidGlowMat);
+            spike.position.set(1.8 + Math.cos(angle) * 0.72, Math.sin(angle) * 0.72, 0);
+            spike.lookAt(spike.position.clone().add(new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0)));
+            standGroup.add(spike);
         }
-
-        // stand arms -- long ghostly tendrils
-        const sArmGeo = new THREE.CylinderGeometry(0.1, 0.04, 1.4, 6);
-        for (const side of [-1, 1]) {
-            const sArm = new THREE.Mesh(sArmGeo, voidMat);
-            sArm.position.set(side * 0.7, 1.0, 0);
-            sArm.rotation.z = side * (Math.PI / 4);
-            standGroup.add(sArm);
-        }
-
-        // shadow orbs that orbit the stand (used for attacks)
-        const orbGeo = new THREE.SphereGeometry(0.14, 8, 8);
-        const orbMat = new THREE.MeshBasicMaterial({ color: 0xcc00ff, transparent: true, opacity: 0.85 });
-        const numOrbs = 4;
-        for (let i = 0; i < numOrbs; i++) {
-            const orb = new THREE.Mesh(orbGeo, orbMat.clone());
-            standGroup.add(orb);
-            this.shadowOrbs.push(orb);
-            this.orbAngles.push((i / numOrbs) * Math.PI * 2);
-        }
-
-        // aura glow around stand
-        const auraGeo = new THREE.SphereGeometry(1.1, 12, 12);
-        const auraMat = new THREE.MeshBasicMaterial({
-            color: 0x330044,
-            transparent: true,
-            opacity: 0.18,
-            side: THREE.BackSide,
-        });
-        const aura = new THREE.Mesh(auraGeo, auraMat);
-        aura.position.set(0, 1.3, 0);
-        aura.scale.set(1, 1.8, 1);
-        standGroup.add(aura);
-
-        // outer glow ring
-        const ringGeo = new THREE.TorusGeometry(1.0, 0.08, 8, 32);
-        const ring = new THREE.Mesh(ringGeo, voidGlowMat);
-        ring.position.set(0, 0.3, 0);
-        ring.rotation.x = Math.PI / 2;
-        standGroup.add(ring);
-
-        // TorusKnot chaos spiral above THE VOID's head -- required. the void demands it.
-        // nobody asked. we delivered. this is emo culture.
-        const knotGeo = new THREE.TorusKnotGeometry(0.35, 0.07, 64, 8, 2, 3);
-        const knotMat = new THREE.MeshBasicMaterial({ color: 0x8800ff, transparent: true, opacity: 0.7 });
-        const chaosKnot = new THREE.Mesh(knotGeo, knotMat);
-        chaosKnot.position.set(0, 3.1, 0);
-        chaosKnot.name = 'void-chaos-knot';
-        standGroup.add(chaosKnot);
 
         g.add(standGroup);
         return { group: g, stand: standGroup };
@@ -337,7 +226,7 @@ export class EmoNPC extends BaseNPC {
         this.standTimer = 0;
         this.stand.visible = true;
         this.speak(); // yells about the void lol
-        console.log('%cゴゴゴゴゴ THE VOID EMERGES ゴゴゴゴゴ', 'color: #9900ff; font-weight: bold; font-size: 14px');
+        console.log('%cã‚´ã‚´ã‚´ã‚´ã‚´ THE VOID EMERGES ã‚´ã‚´ã‚´ã‚´ã‚´', 'color: #9900ff; font-weight: bold; font-size: 14px');
     }
 
     private deactivateStand(): void {

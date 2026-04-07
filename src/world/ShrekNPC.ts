@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
@@ -41,134 +41,181 @@ export class ShrekNPC extends BaseNPC {
     }
 
     private buildShrek(): THREE.Group {
+        // REBUILT FROM SCRATCH. real ogre proportions. proper bulk. incredible.
+        // massive pear-shaped body, thick tree-trunk legs, proper ogre ears, onion stack
+        // shrek deserved better. now he has it. this is his swamp.
         const g = new THREE.Group();
 
-        const greenMat = new THREE.MeshPhongMaterial({ color: 0x5a8a40 });
-        const brownMat = new THREE.MeshPhongMaterial({ color: 0x7a5230 });
-        const skinMat = new THREE.MeshPhongMaterial({ color: 0x6da84e }); // slightly lighter for face
+        const swampMat = new THREE.MeshPhongMaterial({ color: 0x4a7835, emissive: 0x0a1505, emissiveIntensity: 0.2 });
+        const skinMat  = new THREE.MeshPhongMaterial({ color: 0x5c9443, emissive: 0x0c1a06, emissiveIntensity: 0.15 });
+        const tunicMat = new THREE.MeshPhongMaterial({ color: 0x7a5c2a, emissive: 0x1a1005, emissiveIntensity: 0.1 });
+        const beltMat  = new THREE.MeshPhongMaterial({ color: 0x3a2010 });
+        const eyeMat   = new THREE.MeshBasicMaterial({ color: 0x2a1800 });
+        const whiteMat = new THREE.MeshBasicMaterial({ color: 0xded8c8 });
+        const toothMat = new THREE.MeshBasicMaterial({ color: 0xddd0b0 });
 
-        // big chunky tunic body
-        const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.5, 1.5), brownMat);
-        body.position.y = 2.5;
-        g.add(body);
+        // LEGS: thick ogre trunk-legs, feet with stubby toes
+        for (const side of [-1, 1]) {
+            const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.5, 1.65, 10), swampMat);
+            thigh.position.set(side * 0.72, 0.82, 0.05);
+            thigh.castShadow = true; g.add(thigh);
 
-        // TubeGeometry arms -- CatmullRomCurve3 makes them look like actual arms not boxes
-        // boxes were an embarrassment tbh. whatever. fixed now.
+            const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.38, 1.35, 10), swampMat);
+            shin.position.set(side * 0.7, -0.72, 0.05);
+            shin.castShadow = true; g.add(shin);
+
+            const foot = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.44, 1.08), swampMat);
+            foot.position.set(side * 0.7, -1.58, 0.24);
+            foot.castShadow = true; g.add(foot);
+
+            for (let t = -1; t <= 1; t++) {
+                const toe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), swampMat);
+                toe.position.set(side * 0.7 + t * 0.22, -1.72, 0.68);
+                g.add(toe);
+            }
+        }
+
+        // BODY: LatheGeometry Shrek pear silhouette -- wide hips, massive gut, narrower at shoulders
+        const bodyPoints = [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(0.92, 0.1),
+            new THREE.Vector2(1.38, 0.58),
+            new THREE.Vector2(1.48, 1.12),
+            new THREE.Vector2(1.38, 1.72),
+            new THREE.Vector2(1.18, 2.35),
+            new THREE.Vector2(0.98, 2.78),
+            new THREE.Vector2(0.78, 2.82),
+        ];
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 14), tunicMat);
+        body.position.y = 1.56;
+        body.castShadow = true; g.add(body);
+
+        // gut hemisphere for extra belly prominence
+        const gut = new THREE.Mesh(new THREE.SphereGeometry(1.22, 12, 10), tunicMat);
+        gut.scale.set(1.12, 0.88, 0.82);
+        gut.position.set(0, 2.78, 0.58); g.add(gut);
+
+        // belt at waist
+        const beltRing = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.18, 8, 24), beltMat);
+        beltRing.rotation.x = Math.PI / 2; beltRing.position.y = 2.22; g.add(beltRing);
+
+        // ARMS: TubeGeometry thick green arms drooping from shoulders
         const lArmCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-1.2, 3.5, 0),
-            new THREE.Vector3(-1.7, 2.8, 0.2),
-            new THREE.Vector3(-1.9, 1.8, 0.4),
-            new THREE.Vector3(-1.75, 1.0, 0.3),
+            new THREE.Vector3(-1.15, 4.88, 0),
+            new THREE.Vector3(-1.68, 3.9, 0.38),
+            new THREE.Vector3(-2.05, 2.82, 0.58),
+            new THREE.Vector3(-1.9, 1.82, 0.42),
         ]);
         const rArmCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(1.2, 3.5, 0),
-            new THREE.Vector3(1.7, 2.8, 0.2),
-            new THREE.Vector3(1.9, 1.8, 0.4),
-            new THREE.Vector3(1.75, 1.0, 0.3),
+            new THREE.Vector3(1.15, 4.88, 0),
+            new THREE.Vector3(1.68, 3.9, 0.38),
+            new THREE.Vector3(2.05, 2.82, 0.58),
+            new THREE.Vector3(1.9, 1.82, 0.42),
         ]);
-        g.add(new THREE.Mesh(new THREE.TubeGeometry(lArmCurve, 10, 0.38, 8, false), greenMat));
-        g.add(new THREE.Mesh(new THREE.TubeGeometry(rArmCurve, 10, 0.38, 8, false), greenMat));
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(lArmCurve, 12, 0.44, 9), swampMat));
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(rArmCurve, 12, 0.44, 9), swampMat));
+        for (const [x, y, z] of [[-1.9, 1.58, 0.38], [1.9, 1.58, 0.38]] as [number,number,number][]) {
+            const fist = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), swampMat);
+            fist.scale.set(1.12, 0.88, 1.0); fist.position.set(x, y, z); g.add(fist);
+        }
 
-        // stubby little legs
-        const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.85), brownMat);
-        lLeg.position.set(-0.6, 0.8, 0);
-        g.add(lLeg);
-        const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.85), brownMat);
-        rLeg.position.set(0.6, 0.8, 0);
-        g.add(rLeg);
-
-        // big round head -- ogre sized
-        // CSG: subtract eye socket holes from the head for that real carved look
-        const headGeo = new THREE.SphereGeometry(1.1, 16, 12);
-        const headMesh = new THREE.Mesh(headGeo, skinMat);
-        headMesh.position.y = 5.0;
+        // HEAD: CSG carved sphere with eye socket depressions
+        const headMesh = new THREE.Mesh(new THREE.SphereGeometry(1.28, 18, 14), skinMat);
+        headMesh.position.set(0, 6.12, 0);
+        headMesh.scale.set(1.06, 0.97, 1.0);
         headMesh.updateMatrix();
-        const lSocketMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), skinMat);
-        lSocketMesh.position.set(-0.38, 5.05, 0.88);
-        lSocketMesh.updateMatrix();
-        const rSocketMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), skinMat);
-        rSocketMesh.position.set(0.38, 5.05, 0.88);
-        rSocketMesh.updateMatrix();
-        // do the CSG subtract -- head with carved eye socket depressions. FANCY.
         let headResult: THREE.Mesh;
         try {
-            const csgHead = CSG.fromMesh(headMesh);
-            const csgL = CSG.fromMesh(lSocketMesh);
-            const csgR = CSG.fromMesh(rSocketMesh);
-            headResult = CSG.toMesh(csgHead.subtract(csgL).subtract(csgR), headMesh.matrix, skinMat);
+            const lSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), skinMat);
+            lSock.position.set(-0.44, 6.2, 1.04); lSock.updateMatrix();
+            const rSock = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), skinMat);
+            rSock.position.set(0.44, 6.2, 1.04); rSock.updateMatrix();
+            headResult = CSG.toMesh(
+                CSG.fromMesh(headMesh).subtract(CSG.fromMesh(lSock)).subtract(CSG.fromMesh(rSock)),
+                headMesh.matrix, skinMat
+            );
             headResult.castShadow = true;
-        } catch(e) {
-            // CSG sometimes throws if geometry is bad, just fall back lol
-            headResult = headMesh;
-        }
+        } catch (_e) { headResult = headMesh; }
         g.add(headResult);
 
-        // ExtrudeGeometry ogre ears -- that classic teardrop ear flap shape
-        // sphere blobs before. looked dumb. this is better. maybe.
+        // Forehead wrinkles
+        const crease = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.062, 6, 18, Math.PI * 0.7), new THREE.MeshPhongMaterial({ color: 0x3d6428 }));
+        crease.position.set(0, 6.78, 0.74); crease.rotation.x = Math.PI / 2.5; g.add(crease);
+
+        // Eyebrows -- very angry V shape
+        for (const [sx, rz] of [[-0.44, 0.48], [0.44, -0.48]] as [number, number][]) {
+            const brow = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.15, 0.26), beltMat);
+            brow.position.set(sx, 6.5, 1.07); brow.rotation.z = rz; g.add(brow);
+        }
+
+        // Eyes -- beady
+        for (const [ex, ez] of [[-0.44, 1.07], [0.44, 1.07]] as [number,number][]) {
+            const w = new THREE.Mesh(new THREE.SphereGeometry(0.19, 8, 8), whiteMat);
+            w.position.set(ex, 6.22, ez); g.add(w);
+            const iris = new THREE.Mesh(new THREE.SphereGeometry(0.13, 7, 7), eyeMat);
+            iris.position.set(ex, 6.22, ez + 0.08); g.add(iris);
+        }
+
+        // NOSE: massive bulbous ogre nose with nostril holes
+        const noseBulb = new THREE.Mesh(new THREE.SphereGeometry(0.54, 12, 10), skinMat);
+        noseBulb.scale.set(1, 0.78, 0.92); noseBulb.position.set(0, 5.9, 1.2); g.add(noseBulb);
+        for (const nx of [-0.24, 0.24]) {
+            const nostril = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0x2a1a02 }));
+            nostril.position.set(nx, 5.77, 1.4); nostril.rotation.x = Math.PI / 2; g.add(nostril);
+        }
+
+        // MOUTH: wide smirk with teeth
+        const smirk = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.07, 6, 16, Math.PI * 0.8), beltMat);
+        smirk.position.set(-0.06, 5.46, 1.1); smirk.rotation.x = Math.PI / 1.8; g.add(smirk);
+        for (const [tx] of [[-0.24], [0.0], [0.24]] as [number[]][]) {
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.12), toothMat);
+            tooth.position.set(tx, 5.35, 1.16); g.add(tooth);
+        }
+
+        // EARS: ExtrudeGeometry ogre ear flaps
         const earShape = new THREE.Shape();
         earShape.moveTo(0, 0);
-        earShape.quadraticCurveTo(-0.5, 0.2, -0.45, 0.6);
-        earShape.quadraticCurveTo(-0.3, 1.0, 0, 0.85);
-        earShape.quadraticCurveTo(0.3, 1.0, 0.45, 0.6);
-        earShape.quadraticCurveTo(0.5, 0.2, 0, 0);
-        const earExtrudeSettings = { depth: 0.22, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.05, bevelSegments: 3 };
-        const earGeo = new THREE.ExtrudeGeometry(earShape, earExtrudeSettings);
+        earShape.quadraticCurveTo(-0.3, 0.12, -0.48, 0.5);
+        earShape.quadraticCurveTo(-0.44, 0.98, -0.22, 1.15);
+        earShape.quadraticCurveTo(0, 1.24, 0.22, 1.15);
+        earShape.quadraticCurveTo(0.44, 0.98, 0.48, 0.5);
+        earShape.quadraticCurveTo(0.3, 0.12, 0, 0);
+        const earGeo = new THREE.ExtrudeGeometry(earShape, { depth: 0.3, bevelEnabled: true, bevelSize: 0.06, bevelSegments: 3 });
         const lEar = new THREE.Mesh(earGeo, skinMat);
-        lEar.position.set(-1.45, 4.6, -0.1);
-        lEar.rotation.z = -0.3;
-        g.add(lEar);
+        lEar.position.set(-1.6, 5.72, -0.16); lEar.rotation.set(0.1, 0.1, -0.22); g.add(lEar);
         const rEar = new THREE.Mesh(earGeo, skinMat);
-        rEar.position.set(0.9, 4.6, -0.1);
-        rEar.rotation.z = 0.3;
-        g.add(rEar);
+        rEar.position.set(1.02, 5.72, -0.16); rEar.rotation.set(0.1, -0.1, 0.22); g.add(rEar);
 
-        // eyebrows -- he always looks angry idk
-        const browMat = new THREE.MeshPhongMaterial({ color: 0x3a2a00 });
-        const lBrow = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.2), browMat);
-        lBrow.position.set(-0.37, 5.3, 0.9);
-        lBrow.rotation.z = 0.3;
-        g.add(lBrow);
-        const rBrow = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.2), browMat);
-        rBrow.position.set(0.37, 5.3, 0.9);
-        rBrow.rotation.z = -0.3;
-        g.add(rBrow);
-
-        // beady eyes
-        const eyeGeo = new THREE.SphereGeometry(0.16, 6, 4);
-        const lEye = new THREE.Mesh(eyeGeo, browMat);
-        lEye.position.set(-0.38, 5.05, 0.92);
-        g.add(lEye);
-        const rEye = new THREE.Mesh(eyeGeo, browMat);
-        rEye.position.set(0.38, 5.05, 0.92);
-        g.add(rEye);
-
-        // ONION STACK on top of head -- LatheGeometry makes them actually look like onions!!
-        // spheres before = looked like balls on his head. embarrassing. fixed.
-        const whiteMat = new THREE.MeshPhongMaterial({ color: 0xeeeecc });
-        const onionPoints1 = [
-            new THREE.Vector2(0, 0), new THREE.Vector2(0.25, 0.05),
-            new THREE.Vector2(0.48, 0.25), new THREE.Vector2(0.5, 0.5),
-            new THREE.Vector2(0.38, 0.88), new THREE.Vector2(0.15, 1.0), new THREE.Vector2(0, 1.05),
-        ];
-        const onionPoints2 = [
-            new THREE.Vector2(0, 0), new THREE.Vector2(0.18, 0.04),
-            new THREE.Vector2(0.34, 0.18), new THREE.Vector2(0.36, 0.4),
-            new THREE.Vector2(0.26, 0.65), new THREE.Vector2(0.1, 0.75), new THREE.Vector2(0, 0.77),
-        ];
-        const onionPoints3 = [
-            new THREE.Vector2(0, 0), new THREE.Vector2(0.1, 0.03),
-            new THREE.Vector2(0.2, 0.12), new THREE.Vector2(0.2, 0.28),
-            new THREE.Vector2(0.14, 0.44), new THREE.Vector2(0.05, 0.5), new THREE.Vector2(0, 0.52),
-        ];
-        const onion1 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints1, 12), whiteMat);
-        onion1.position.set(0, 5.7, 0);
-        g.add(onion1);
-        const onion2 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints2, 10), whiteMat);
-        onion2.position.set(0, 6.62, 0);
-        g.add(onion2);
-        const onion3 = new THREE.Mesh(new THREE.LatheGeometry(onionPoints3, 8), whiteMat);
-        onion3.position.set(0, 7.3, 0);
-        g.add(onion3);
+        // ONIONS: LatheGeometry proper onion profiles stacked on top of head
+        // spheres look like balls. lathe gives them the proper onion bulge profile.
+        const onionMat = new THREE.MeshPhongMaterial({ color: 0xe8ddb2, emissive: 0x221600, emissiveIntensity: 0.1 });
+        const onionSkinMat = new THREE.MeshPhongMaterial({ color: 0xc8b888, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+        const makeOnion = (rMax: number, h: number): THREE.LatheGeometry => {
+            return new THREE.LatheGeometry([
+                new THREE.Vector2(0, 0),          new THREE.Vector2(rMax * 0.3, h * 0.08),
+                new THREE.Vector2(rMax * 0.72, h * 0.22), new THREE.Vector2(rMax, h * 0.48),
+                new THREE.Vector2(rMax * 0.88, h * 0.72), new THREE.Vector2(rMax * 0.55, h * 0.92),
+                new THREE.Vector2(rMax * 0.25, h * 0.98), new THREE.Vector2(0, h),
+            ], 10);
+        };
+        const o1 = new THREE.Mesh(makeOnion(0.6, 1.18), onionMat);
+        o1.position.set(0, 7.18, 0); g.add(o1);
+        const o1skin = new THREE.Mesh(makeOnion(0.64, 1.22), onionSkinMat);
+        o1skin.position.set(0, 7.15, 0); g.add(o1skin);
+        const o2 = new THREE.Mesh(makeOnion(0.44, 0.9), onionMat);
+        o2.position.set(0, 8.22, 0); g.add(o2);
+        const o3 = new THREE.Mesh(makeOnion(0.28, 0.62), onionMat);
+        o3.position.set(0, 8.98, 0); g.add(o3);
+        // root stubs
+        for (const oy of [7.15, 8.2, 8.96]) {
+            for (let r = 0; r < 4; r++) {
+                const ang = (r / 4) * Math.PI * 2;
+                const root = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.008, 0.2, 4), beltMat);
+                root.position.set(Math.cos(ang) * 0.1, oy, Math.sin(ang) * 0.1);
+                root.rotation.set(Math.sin(ang) * 0.8, 0, Math.cos(ang) * 0.8);
+                g.add(root);
+            }
+        }
 
         return g;
     }
@@ -219,7 +266,7 @@ export class ShrekNPC extends BaseNPC {
             if (this.playerRef && proj.pos.distanceTo(this.playerRef) < 2.8) {
                 this.onMudHit?.(4); // 4 second slow :(
                 proj.life = -1;
-                console.log('%c💩 SHREK MUD SPLAT!! get out of his swamp!!', 'color: olive; font-weight: bold');
+                console.log('%cðŸ’© SHREK MUD SPLAT!! get out of his swamp!!', 'color: olive; font-weight: bold');
             }
         }
 
@@ -254,7 +301,7 @@ export class ShrekNPC extends BaseNPC {
         });
 
         this.mesh.parent?.add(mud);
-        console.log('%c💩 SHREK YEETS MUD!! GETOUUUUT', 'color: olive');
+        console.log('%cðŸ’© SHREK YEETS MUD!! GETOUUUUT', 'color: olive');
     }
 
     public die(): void {

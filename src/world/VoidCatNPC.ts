@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { CSG } from 'three-csg-ts';
 import { BaseNPC } from './BaseNPC';
 
@@ -41,112 +41,170 @@ export class VoidCatNPC extends BaseNPC {
     }
 
     private buildVoidCat(): THREE.Group {
+        // REBUILT FROM SCRATCH -- phantom void kitten, dissolving into darkness
+        // new: LatheGeometry body, TorusGeometry ring eyes, TubeGeometry tendril legs, CSG void head
+        // the void demanded a redesign. the void always wins. meow.
         const g = new THREE.Group();
 
-        const voidMat = new THREE.MeshPhongMaterial({ color: 0x050508 });
-        const glowMat = new THREE.MeshPhongMaterial({
-            color: 0x220033,
-            emissive: 0x110022,
-            emissiveIntensity: 0.7,
-            transparent: true,
-            opacity: 0.18,
-        });
-        const eyeMat = new THREE.MeshPhongMaterial({
-            color: 0x9900ff,
-            emissive: 0x550088,
-            emissiveIntensity: 1.5,
-        });
+        const voidMat = new THREE.MeshPhongMaterial({ color: 0x020206, emissive: 0x040010, emissiveIntensity: 0.5 });
+        const voidGlowMat = new THREE.MeshPhongMaterial({ color: 0x180030, emissive: 0x220044, emissiveIntensity: 1.2, transparent: true, opacity: 0.8 });
+        const eyeRingMat = new THREE.MeshBasicMaterial({ color: 0x7700cc });
+        const eyeDiscMat = new THREE.MeshBasicMaterial({ color: 0xaa00ff });
+        const tailTipMat = new THREE.MeshBasicMaterial({ color: 0x8800ff });
 
-        // body -- LatheGeometry gives dat void cat silhouette, nice and organic
-        // revolve a profile around Y axis -- way better than sphere lol
+        // BODY: LatheGeometry phantom cat silhouette -- slim waist, hunched chest
+        // not a sphere. not a box. a VOID-SHAPED VOID.
         const bodyPoints = [
             new THREE.Vector2(0, 0),
-            new THREE.Vector2(0.55, 0.2),
-            new THREE.Vector2(1.0, 0.7),
-            new THREE.Vector2(1.1, 1.2),
-            new THREE.Vector2(1.05, 1.8),
-            new THREE.Vector2(0.85, 2.3),
-            new THREE.Vector2(0.55, 2.6),
-            new THREE.Vector2(0.2, 2.75),
+            new THREE.Vector2(0.42, 0.1),
+            new THREE.Vector2(0.78, 0.5),
+            new THREE.Vector2(0.88, 1.05),
+            new THREE.Vector2(0.82, 1.65),
+            new THREE.Vector2(0.62, 2.15),
+            new THREE.Vector2(0.38, 2.5),
+            new THREE.Vector2(0.08, 2.6),
         ];
-        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 14), voidMat);
-        body.position.y = 1.2;
+        const body = new THREE.Mesh(new THREE.LatheGeometry(bodyPoints, 12), voidMat);
+        body.position.y = 0.85;
         body.castShadow = true;
         g.add(body);
 
-        // 4 standard void legs -- lil stubby cylinders, fine
-        const legPositions: [number, number, number][] = [
-            [-0.55, 1.0, 0.45],
-            [0.55, 1.0, 0.45],
-            [-0.55, 1.0, -0.45],
-            [0.55, 1.0, -0.45],
-        ];
-        for (const lp of legPositions) {
-            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.13, 0.9, 6), voidMat);
-            leg.position.set(...lp);
-            g.add(leg);
-        }
+        // inner void core: BackSide sphere creating that "hollow inside" look
+        const innerCore = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5, 8, 8),
+            new THREE.MeshPhongMaterial({ color: 0x440066, emissive: 0x330055, emissiveIntensity: 2.0, transparent: true, opacity: 0.45, side: THREE.BackSide })
+        );
+        innerCore.position.y = 1.8;
+        g.add(innerCore);
 
-        // head
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.76, 10, 8), voidMat);
-        head.position.y = 3.5;
+        // NECK: short connector keeping head attached to body
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.35, 7), voidMat);
+        neck.position.y = 3.22;
+        g.add(neck);
+
+        // HEAD: CSG sphere with void-hole eye sockets carved in
+        // sphere eyes are TOO ALIVE. void eyes should be EMPTY RINGS. fix this.
+        const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.64, 14, 12), voidMat);
+        headMesh.position.set(0, 3.72, 0);
+        headMesh.scale.set(1.04, 0.96, 1.06);
+        headMesh.updateMatrix();
+        let head: THREE.Mesh;
+        try {
+            const lHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), voidMat);
+            lHole.position.set(-0.24, 3.78, 0.58);
+            lHole.updateMatrix();
+            const rHole = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), voidMat);
+            rHole.position.set(0.24, 3.78, 0.58);
+            rHole.updateMatrix();
+            const csgHead = CSG.fromMesh(headMesh);
+            head = CSG.toMesh(
+                csgHead.subtract(CSG.fromMesh(lHole)).subtract(CSG.fromMesh(rHole)),
+                headMesh.matrix, voidMat
+            );
+            head.castShadow = true;
+        } catch (_e) { head = headMesh; }
         g.add(head);
 
-        // ExtrudeGeometry ears -- sharp void triangles, way better than cone
+        // EYES: TorusGeometry rings -- hollow void circles
+        // rings feel more void-like than filled spheres. this is correct lore.
+        for (const [ex, ey, ez] of [[-0.24, 3.8, 0.58], [0.24, 3.8, 0.58]] as [number,number,number][]) {
+            const eyeRing = new THREE.Mesh(new THREE.TorusGeometry(0.088, 0.026, 6, 16), eyeRingMat);
+            eyeRing.position.set(ex, ey, ez);
+            eyeRing.rotation.x = 0.2;
+            g.add(eyeRing);
+            const eyeDisc = new THREE.Mesh(new THREE.CircleGeometry(0.064, 10), eyeDiscMat);
+            eyeDisc.position.set(ex, ey, ez + 0.01);
+            eyeDisc.rotation.x = 0.2;
+            g.add(eyeDisc);
+        }
+
+        // MUZZLE: small forward protrusion
+        const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), voidMat);
+        muzzle.scale.set(1, 0.65, 0.72);
+        muzzle.position.set(0, 3.6, 0.55);
+        g.add(muzzle);
+
+        // EARS: ExtrudeGeometry jagged angular void-shard shapes
         const earShape = new THREE.Shape();
-        earShape.moveTo(0, 0);
-        earShape.lineTo(-0.26, 0);
-        earShape.lineTo(-0.08, 0.58);
-        earShape.lineTo(0.08, 0.58);
-        earShape.lineTo(0.26, 0);
+        earShape.moveTo(-0.18, 0);
+        earShape.lineTo(-0.26, 0.1);
+        earShape.lineTo(-0.05, 0.72);
+        earShape.lineTo(0.06, 0.74);
+        earShape.lineTo(0.28, 0.1);
+        earShape.lineTo(0.18, 0);
         earShape.closePath();
-        const earExtrude = { depth: 0.12, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 };
-        const earGeo = new THREE.ExtrudeGeometry(earShape, earExtrude);
+        const earGeo = new THREE.ExtrudeGeometry(earShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.02, bevelSegments: 1 });
         const lEar = new THREE.Mesh(earGeo, voidMat);
-        lEar.position.set(-0.55, 3.85, -0.06);
-        lEar.rotation.z = -0.15;
+        lEar.position.set(-0.58, 4.06, -0.04);
+        lEar.rotation.z = 0.14;
         g.add(lEar);
         const rEar = new THREE.Mesh(earGeo, voidMat);
-        rEar.position.set(0.29, 3.85, -0.06);
-        rEar.rotation.z = 0.15;
+        rEar.position.set(0.22, 4.06, -0.04);
+        rEar.rotation.z = -0.14;
         g.add(rEar);
 
-        // GLOWING purple void eyes -- the best feature honestly
-        const eyeGeo = new THREE.SphereGeometry(0.19, 8, 6);
-        const lEye = new THREE.Mesh(eyeGeo, eyeMat);
-        lEye.position.set(-0.28, 3.56, 0.67);
-        g.add(lEye);
-        const rEye = new THREE.Mesh(eyeGeo, eyeMat);
-        rEye.position.set(0.28, 3.56, 0.67);
-        g.add(rEye);
+        // inner ear glow -- sinister purple highlights
+        for (const [x, y] of [[-0.42, 4.3], [0.42, 4.3]] as [number, number][]) {
+            const ie = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.28, 4), new THREE.MeshBasicMaterial({ color: 0x550088 }));
+            ie.position.set(x, y, 0.03);
+            g.add(ie);
+        }
 
-        // TubeGeometry tail -- S-curve tail with CatmullRomCurve3, looks so much better
-        // just a straight cylinder before. embarrassing. fixed it. whatever.
+        // TENDRIL LIMBS: TubeGeometry CatmullRomCurve3 -- shadow tendrils replace cylinder legs
+        // no boring cylinder legs. void cats dont have normal legs. they dissolve into shadow.
+        const tendrilMat = new THREE.MeshPhongMaterial({ color: 0x030308, emissive: 0x060612, emissiveIntensity: 0.4 });
+        const tendrilData: THREE.Vector3[][] = [
+            [new THREE.Vector3(-0.42, 0.82, 0.52), new THREE.Vector3(-0.55, 0.45, 0.72), new THREE.Vector3(-0.48, 0.1, 0.62)],
+            [new THREE.Vector3(0.42, 0.82, 0.52), new THREE.Vector3(0.55, 0.45, 0.72), new THREE.Vector3(0.48, 0.1, 0.62)],
+            [new THREE.Vector3(-0.4, 0.88, -0.42), new THREE.Vector3(-0.52, 0.52, -0.65), new THREE.Vector3(-0.36, 0.08, -0.78)],
+            [new THREE.Vector3(0.4, 0.88, -0.42), new THREE.Vector3(0.52, 0.52, -0.65), new THREE.Vector3(0.36, 0.08, -0.78)],
+        ];
+        for (const pts of tendrilData) {
+            const curve = new THREE.CatmullRomCurve3(pts);
+            g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 7, 0.08, 5, false), tendrilMat));
+        }
+
+        // TAIL: long S-curve TubeGeometry dissolving upward
         const tailCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, 2.2, -0.8),
-            new THREE.Vector3(-0.4, 2.5, -1.3),
-            new THREE.Vector3(-0.8, 2.9, -1.1),
-            new THREE.Vector3(-1.0, 3.3, -0.7),
-            new THREE.Vector3(-0.65, 3.6, -0.4),
+            new THREE.Vector3(0.05, 1.55, -0.85),
+            new THREE.Vector3(-0.25, 1.8, -1.32),
+            new THREE.Vector3(-0.68, 2.22, -1.5),
+            new THREE.Vector3(-1.08, 2.65, -1.18),
+            new THREE.Vector3(-1.22, 3.1, -0.62),
+            new THREE.Vector3(-0.92, 3.52, -0.2),
         ]);
-        const tailGeo = new THREE.TubeGeometry(tailCurve, 12, 0.08, 6, false);
-        const tail = new THREE.Mesh(tailGeo, voidMat);
-        g.add(tail);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 16, 0.072, 6, false), voidMat));
+        // glowing tail tip
+        const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), tailTipMat);
+        tailTip.position.set(-0.92, 3.52, -0.2);
+        g.add(tailTip);
 
-        // TorusKnotGeometry void emblem floating above head -- pure chaos energy
-        // just because we can. the void demands it. ngl looks sick.
-        const voidEmblem = new THREE.Mesh(
-            new THREE.TorusKnotGeometry(0.28, 0.06, 48, 6, 2, 3),
-            new THREE.MeshPhongMaterial({ color: 0x6600aa, emissive: 0x220044, emissiveIntensity: 1.2 })
+        // AURA: pulsing outer shell (this.auraMesh referenced in update loop for opacity pulse)
+        this.auraMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(2.0, 10, 8),
+            new THREE.MeshPhongMaterial({ color: 0x1a0033, emissive: 0x110022, emissiveIntensity: 0.7, transparent: true, opacity: 0.13 })
         );
-        voidEmblem.position.set(0, 4.8, 0);
+        this.auraMesh.position.y = 2.0;
+        g.add(this.auraMesh);
+
+        // orbital shadow rings -- tilted TorusGeometry rings of darkness
+        for (const [r, tiltX, tiltZ] of [[1.62, Math.PI/2.8, 0.3], [2.08, Math.PI/3.5, -0.5]] as [number,number,number][]) {
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(r, 0.022, 6, 36),
+                new THREE.MeshBasicMaterial({ color: 0x110022, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+            );
+            ring.rotation.x = tiltX; ring.rotation.z = tiltZ; ring.position.y = 2.0;
+            g.add(ring);
+        }
+
+        // VOID EMBLEM: TorusKnotGeometry orbiting above -- keep named 'void-emblem' for update spin
+        const voidEmblem = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.3, 0.07, 56, 7, 2, 3),
+            new THREE.MeshPhongMaterial({ color: 0x6600bb, emissive: 0x330055, emissiveIntensity: 1.8 })
+        );
+        voidEmblem.position.set(0, 5.15, 0);
         voidEmblem.name = 'void-emblem';
         g.add(voidEmblem);
-
-        // big faint void aura -- makes it look spooky from a distance
-        this.auraMesh = new THREE.Mesh(new THREE.SphereGeometry(1.9, 8, 6), glowMat);
-        this.auraMesh.position.y = 2.5;
-        g.add(this.auraMesh);
 
         return g;
     }
