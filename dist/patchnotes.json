@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.3.2 fix: ugandan knuckles now forces its GLB to load even tho GLB_ENABLED=false. da wey cannot be denied. added loadModelForced + tryLoadGLBModelForced. whatever. mrrrow.",
+    "date": "2026-04-06",
+    "hash": "c317b9d"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "b561d4a"
+  },
+  {
     "msg": "v3.3.1 chore: replaced ugandan-knuckles.glb with new model from user. bigger file, same wey. meow.",
     "date": "2026-04-06",
     "hash": "22b200b"
