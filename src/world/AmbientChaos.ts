@@ -105,6 +105,18 @@ export class AmbientChaos {
     private phantomFistMesh: THREE.Group | null = null;
     private phantomFistData: { pos: THREE.Vector3; dir: THREE.Vector3; phase: 'punch' | 'withdraw'; timer: number } | null = null;
 
+    // speed demon -- every 90-120s, one random NPC becomes a red blur for 20s.
+    private speedDemonTimer: number = 90 + Math.random() * 60;
+    private speedDemonNPC: BaseNPC | null = null;
+    private speedDemonDuration: number = 0;
+    private speedDemonTrail: THREE.Mesh[] = [];
+
+    // random weather bomb -- every 3-4 min, force a dramatic weather change via weather callback.
+    private weatherBombTimer: number = 180 + Math.random() * 60;
+
+    // callbacks from main.ts
+    public onForceWeather: ((type: string) => void) | null = null;
+
     constructor(scene: THREE.Scene) {
         this.scene = scene;
         this._buildStalker();
@@ -910,6 +922,137 @@ export class AmbientChaos {
             this.onChat?.('⚔️ civil war ends. no side won. everyone is tired. the world goes back to normal. whatever that means.');
         }
     }
+
+    // ---- NPC EMPOWERMENT ----
+    private _updateNPCEmpowerment(dt: number): void {
+        this.empowerTimer -= dt;
+        if (this.empowerTimer > 0) return;
+        this.empowerTimer = 120 + Math.random() * 60;
+
+        const npcs = this.getNPCs?.() ?? [];
+        const alive = npcs.filter(n => n.isAlive());
+        if (alive.length === 0) return;
+
+        // pick 3 lucky NPCs
+        const shuffled = [...alive].sort(() => Math.random() - 0.5);
+        const chosen = shuffled.slice(0, Math.min(3, shuffled.length));
+
+        for (const npc of chosen) {
+            const mesh = npc.getMesh() as THREE.Object3D;
+            // scale up 1.5x (cumulative if they keep getting chosen... oh well)
+            const curr = mesh.scale.x;
+            if (curr < 4) mesh.scale.setScalar(curr * 1.5); // cap at 4x so the world doesnt explode
+
+            // purple emissive glow -- u are chosen
+            mesh.traverse(child => {
+                const m = child as THREE.Mesh;
+                if (m.material && (m.material as THREE.MeshPhongMaterial)?.emissive) {
+                    (m.material as THREE.MeshPhongMaterial).emissive.setHex(0x550088);
+                }
+            });
+        }
+
+        this.onChat?.(`✨ ${chosen.length} NPCs have EVOLVED!! they grew 1.5x!! they glow purple!! they are becoming something. something different.`);
+    }
+
+    // ---- PHANTOM FIST ----
+    private _updatePhantomFist(dt: number): void {
+        this.phantomFistTimer -= dt;
+
+        if (this.phantomFistTimer <= 0 && !this.phantomFistData) {
+            this.phantomFistTimer = 60 + Math.random() * 50;
+            this._triggerPhantomFist();
+        }
+
+        if (!this.phantomFistData || !this.phantomFistMesh) return;
+        const fist = this.phantomFistData;
+        fist.timer -= dt;
+
+        if (fist.phase === 'punch') {
+            // fist lunges in its direction at high speed
+            this.phantomFistMesh.position.addScaledVector(fist.dir, 28 * dt);
+
+            // rotate dramatically
+            this.phantomFistMesh.rotation.z += 3 * dt;
+
+            // deal damage to any NPC in its path
+            const npcs = this.getNPCs?.() ?? [];
+            for (const npc of npcs) {
+                if (!npc.isAlive()) continue;
+                if (npc.getPosition().distanceTo(this.phantomFistMesh.position) < 3.5) {
+                    npc.takeDamage(45);
+                    // knock them back
+                    const knockDir = npc.getPosition().sub(this.phantomFistMesh.position).normalize();
+                    const knockPos = npc.getPosition().add(knockDir.multiplyScalar(8));
+                    npc.setPosition(new THREE.Vector3(knockPos.x, 0, knockPos.z));
+                }
+            }
+
+            if (fist.timer <= 0) {
+                fist.phase = 'withdraw';
+                fist.timer = 1.2;
+                fist.dir.negate(); // reverse direction
+            }
+        } else {
+            // withdraw
+            this.phantomFistMesh.position.addScaledVector(fist.dir, 35 * dt);
+
+            if (fist.timer <= 0) {
+                this.scene.remove(this.phantomFistMesh);
+                this.phantomFistMesh!.children.forEach(c => {
+                    (c as THREE.Mesh).geometry?.dispose();
+                    ((c as THREE.Mesh).material as THREE.Material)?.dispose();
+                });
+                this.phantomFistMesh = null;
+                this.phantomFistData = null;
+            }
+        }
+    }
+
+    private _triggerPhantomFist(): void {
+        const pp = this.getPlayerPos?.() ?? new THREE.Vector3();
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 50;
+        const startPos = new THREE.Vector3(pp.x + Math.cos(angle) * dist, 2.5, pp.z + Math.sin(angle) * dist);
+        const dir = new THREE.Vector3(-Math.cos(angle), 0, -Math.sin(angle)).normalize(); // punches toward center
+
+        // build a giant translucent fist mesh (simplified as knuckle bumps + palm)
+        const g = new THREE.Group();
+        const ghostMat = new THREE.MeshBasicMaterial({ color: 0xffddaa, transparent: true, opacity: 0.35 });
+
+        // palm
+        const palmGeo = new THREE.BoxGeometry(3, 2.5, 2);
+        const palm = new THREE.Mesh(palmGeo, ghostMat);
+        g.add(palm);
+
+        // 4 knuckles
+        for (let i = 0; i < 4; i++) {
+            const kGeo = new THREE.SphereGeometry(0.55, 8, 8);
+            const knuckle = new THREE.Mesh(kGeo, ghostMat);
+            knuckle.position.set(-1.3 + i * 0.88, 1.4, 0.3);
+            g.add(knuckle);
+        }
+
+        // thumb
+        const thumbGeo = new THREE.SphereGeometry(0.52, 8, 8);
+        const thumb = new THREE.Mesh(thumbGeo, ghostMat);
+        thumb.position.set(1.8, 0.3, 0.6);
+        g.add(thumb);
+
+        // glow
+        const fistLight = new THREE.PointLight(0xffcc88, 4, 12);
+        g.add(fistLight);
+
+        g.position.copy(startPos);
+        g.lookAt(pp.x, 2.5, pp.z); // points toward player
+        this.scene.add(g);
+        this.phantomFistMesh = g;
+        this.phantomFistData = { pos: startPos.clone(), dir, phase: 'punch', timer: 1.8 };
+
+        this.onChat?.('👊 A PHANTOM FIST appeared from the void!! it is punching!! nobody knows whose fist it is!! stay out of its way!! meow!!');
+    }
+
+    // 
 
     // cleanup everything -- call on game shutdown if ever needed
     public dispose(): void {

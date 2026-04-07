@@ -99,6 +99,10 @@ export class WildCards {
     // rapid time -- 9 key. day/night cycle goes x20 for 20 seconds. the sky blurs.
     private rapidTimeTimer: number = 0;
 
+    // earthquake chain -- 8 key. 5 earthquakes in rapid succession. each bigger than the last.
+    private earthquakeChainQueue: number[] = [];
+    private earthquakeChainTimer: number = 0;
+
     // callbacks wired from main.ts -- keep it loosely coupled bc we're civilized
     public onChat: ((msg: string) => void) | null = null;
     public onShake: ((heavy: boolean) => void) | null = null;
@@ -1330,7 +1334,8 @@ export class WildCards {
 
         this.onChat?.('💚 MATRIX RAIN!! the numbers are FALLING!! green!! katakana!! u are in the MATRIX!! for 8 seconds!! nyaa~!!');
     }
-    // ============================================================
+
+    //     // ============================================================
     // RAPID TIME -- 9 KEY
     // the day/night cycle goes x20 speed for 20 seconds.
     // the sky flickers between day and night rapidly. ominous.

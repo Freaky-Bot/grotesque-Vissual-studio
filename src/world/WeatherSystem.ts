@@ -116,6 +116,24 @@ export class WeatherSystem {
         }
     }
 
+    // force a specific weather externally -- chaos systems use this to make dramatic moments
+    public forceWeather(type: WeatherType): void {
+        this.clearWeather();
+        this.weatherTimer = 0;
+        this.weatherDuration = 30 + Math.random() * 20; // holds for 30-50s before next natural change
+        this.currentWeather = type;
+        switch (type) {
+            case WeatherType.RAIN: this.startRain(); break;
+            case WeatherType.FOG: this.startFog(); break;
+            case WeatherType.METEOR_SHOWER: this.startMeteors(); break;
+            case WeatherType.BLOOD_MOON: this.startBloodMoon(); break;
+            case WeatherType.BLIZZARD: this.startBlizzard(); break;
+            case WeatherType.VOID_STORM: this.startVoidStorm(); break;
+            default: break; // CLEAR -- already cleared above
+        }
+        this.onWeatherChange?.(type);
+    }
+
     private changeWeather(): void {
         this.clearWeather();
 
