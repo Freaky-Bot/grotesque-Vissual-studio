@@ -17,36 +17,8 @@ export class NPCManager {
     private npcs: BaseNPC[] = [];
     private scene: THREE.Scene;
     private spawnTimer: number = 0;
-    private spawnInterval: number = 5; // Spawn new NPCs every 5 seconds (or whenever they feel like it lol)
-    private bubbleCb: ((pos: THREE.Vector3, text: string, headOffset: number) => void) | null = null;
-    private playerPos: THREE.Vector3 | null = null; // updated each frame for stand targeting
-    private onMudHit: ((slowDuration: number) => void) | null = null; // set from main for shrek mud
-    private worldGenerator: { damageBuildingNear: (pos: THREE.Vector3, r: number) => void } | null = null;
-
-    // combat callbacks -- main.ts wires these upp
-    public onPlayerHit: ((dmg: number) => void) | null = null;
-    public onNpcKilled: ((npcType: string, pos: THREE.Vector3) => void) | null = null;
-    // called when a mob equips a looted item -- main.ts can show a chat msg
-    public onNpcEquipItem: ((npcType: string, itemName: string) => void) | null = null;
-    // called when a domain opens and npc gets its special ability -- so main.ts can scream about it
-    public onDomainBuff: ((npcType: string, buffDesc: string) => void) | null = null;
-    // DIO stops time -- main.ts handles the actual freeze effect
-    public onDioZaWarudo: (() => void) | null = null;
-
-    // npc-vs-npc combat timer -- they fight each other every few seconds
-    private npcFightTimer: number = 0;
-    private readonly NPC_FIGHT_INTERVAL: number = 1.2; // seconds between inter-npc attacks
-    private readonly NPC_FIGHT_RANGE: number = 5.0;
-    private readonly NPC_FIGHT_DMG: number = 8;
-
-    // domain expansion -- the show accurate jjk system. whoever wired this: ur insane (me. i did this.)
-    private domainSystem: DomainExpansionSystem | null = null;
-    public onDomainActivated: ((name: string, flavor: string) => void) | null = null;
-
-    // day intensity (0=night, 1=noon) -- passed in from main.ts each frame via dayNight.getDayIntensity()
-    // elmo gets stronger in the day, like a small furry red solar panel of rage
-    private dayIntensity: number = 0;
-    public setDayIntensity(v: number): void { this.dayIntensity = v; }
+    private spawnInterval: number = 5; // Spawn new NPCs every 5 seconds -- FASTER NOW~ fill da world nyaa~ UwU
+    private MAX_NPCS: number = 80;  // INCREASED from 30 to 80 -- MOREEE CATSSSS~ 💕💕💕
 
     // what each npc type gets when its domain opens -- shown in the chat so the player knows what hit them
     private static readonly DOMAIN_BUFF_DESCS: Record<string, string> = {
@@ -217,8 +189,8 @@ export class NPCManager {
         for (const npc of this.npcs) npc.setSpeakCallback(fn);
     }
 
-    // how many chaos entities before we start saying no -- performance guard
-    private readonly MAX_NPCS = 35;
+    // how many chaos entities before we start saying no -- performance guard (NOW DOUBLED~ UwU~ 💕)
+    private readonly MAX_NPCS = 80;
 
     public addNPC(npc: BaseNPC): void {
         if (this.npcs.length >= this.MAX_NPCS) return; // cap it. the void is already full.
@@ -581,9 +553,9 @@ export class NPCManager {
 
         const randomType = catTypes[Math.floor(Math.random() * catTypes.length)];
         
-        // Random spawn position - SCATTERED ACROSS THE JOJO UNIVERSE
+        // Random spawn position - spread across da whole world nyow~ fill evewywhere UwU~ 💕
         const angle = Math.random() * Math.PI * 2;
-        const distance = 50 + Math.random() * 100;
+        const distance = 50 + Math.random() * 350;  // EXPANDED from 50-150 to 50-400 -- SPREAD THOSE CATS
         const x = Math.cos(angle) * distance;
         const z = Math.sin(angle) * distance;
 
@@ -597,7 +569,7 @@ export class NPCManager {
 
     private spawnEmo(): void {
         const angle = Math.random() * Math.PI * 2;
-        const dist = 25 + Math.random() * 70;
+        const dist = 25 + Math.random() * 350;  // EXPANDED -- emo cats also deserve to explore~ meow~
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2, Math.sin(angle) * dist);
         const emo = new EmoNPC(pos);
         emo.setMaxHp(75); // edgy boi isnt THAT tanky

@@ -82,9 +82,9 @@ export class PlayerCharacter {
         // Apply movement
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
 
-        // Keep in bounds
-        this.position.x = Math.max(-200, Math.min(200, this.position.x));
-        this.position.z = Math.max(-200, Math.min(200, this.position.z));
+        // Keep in bounds -- now we explore da whole world yaaaas~ UwU
+        this.position.x = Math.max(-800, Math.min(800, this.position.x));
+        this.position.z = Math.max(-800, Math.min(800, this.position.z));
 
         // Update mesh
         this.mesh.position.copy(this.position);

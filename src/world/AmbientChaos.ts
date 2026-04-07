@@ -240,6 +240,8 @@ export class AmbientChaos {
     // ============================================================
 
     public update(dt: number): void {
+        this._updateSpeedDemon(dt);
+        this._updateWeatherBomb(dt);
         this._updateUFO(dt);
         this._updatePortals(dt);
         this._updateRainTimer(dt);

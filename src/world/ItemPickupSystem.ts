@@ -19,9 +19,9 @@ interface PickupItem {
 export class ItemPickupSystem {
     private scene: THREE.Scene;
     private items: PickupItem[] = [];
-    private readonly MAX_ITEMS = 10;
+    private readonly MAX_ITEMS = 25;  // INCREASED from 10 to 25 -- MORE LOOT EVERYWHERE~ UwU~ 💕
     private spawnTimer: number = 0;
-    private spawnInterval: number = 7;
+    private spawnInterval: number = 4;  // faster spawn -- every 4 seconds instead of 7
 
     // active buffs -- check these from main.ts
     public speedMultiplier: number = 1;
@@ -124,7 +124,7 @@ export class ItemPickupSystem {
     private spawnItem(): void {
         const type = Math.random() < 0.62 ? ItemType.FISH : ItemType.CATNIP;
         const angle = Math.random() * Math.PI * 2;
-        const dist = 15 + Math.random() * 120;
+        const dist = 15 + Math.random() * 400;  // EXPANDED from 15-135 to 15-415 -- SPREAD LOOT ACROSS WORLD~ meow~
         const pos = new THREE.Vector3(Math.cos(angle) * dist, 2.5, Math.sin(angle) * dist);
 
         const mesh = type === ItemType.FISH ? this.makeFish() : this.makeCatnip();
