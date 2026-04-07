@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v2.7.2 refactor: birds moved into mobs/ folder. they have their own manager now. their own cap. their own LIFE. not like anyone will even notice. whatever. meow.",
+    "date": "2026-04-06",
+    "hash": "32a3656"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-06",
+    "hash": "28a7846"
+  },
+  {
     "msg": "chore: sync HUD to v2.7.1 bc i put a version prefix on an instructions commit like an idiot...mrrrow. it doesnt even matter. the void is ashamed. so am i.",
     "date": "2026-04-05",
     "hash": "09b9ef7"

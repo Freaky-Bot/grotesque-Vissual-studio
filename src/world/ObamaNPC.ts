@@ -39,6 +39,9 @@ export class ObamaNPC extends BaseNPC {
         this.mesh = this.buildMesh();
         this.mesh.position.copy(this.position);
         console.log('%c🇺🇸 OBAMA HAS ENTERED THE CAT WORLD. hope levels rising.', 'color: #1A53FF; font-weight: bold; font-size: 13px');
+
+        // yes we can (load a GLB model)
+        this.tryLoadGLBModel(2.8);
     }
 
     public setPlayerRef(pos: THREE.Vector3): void {
@@ -201,6 +204,7 @@ export class ObamaNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         // presidential slow walk
         this.randomWalk(deltaTime, 2.2);
 

@@ -34,6 +34,9 @@ export class VoidCatNPC extends BaseNPC {
         ];
         this.bubbleHeadOffset = 4;
         this.dialogueTimer = Math.random() * 8;
+
+        // the void model. dark. fitting. nobody asked but here it is.
+        this.tryLoadGLBModel(4.5);
     }
 
     private buildVoidCat(): THREE.Group {
@@ -110,6 +113,7 @@ export class VoidCatNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         this.randomWalk(deltaTime, 1.8);
 
         this.dialogueTimer -= deltaTime;

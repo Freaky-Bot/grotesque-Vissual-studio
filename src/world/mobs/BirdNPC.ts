@@ -84,6 +84,9 @@ export class BirdNPC extends BaseNPC {
         this.flyDirX /= len;
         this.flyDirZ /= len;
 
+        // load bird GLB -- if it exists, replaces the procedural mesh. if not, stays boxy bird.
+        this.tryLoadGLBModel(1.4);
+
         console.log(`%c🐦 a bird arrived. altitude: ${this.flyHeight.toFixed(1)}. minding its business.`, 'color: #8B6914; font-style: italic');
     }
 
@@ -163,11 +166,14 @@ export class BirdNPC extends BaseNPC {
         this.wingFlapTimer += deltaTime;
         this.chirpTimer += deltaTime;
 
-        // WING FLAP ANIMATION -- sinusoidal rotation on Z axis from the pivot point
-        // goes up and down. birds do this. its the whole thing.
-        const flapAngle = Math.sin(this.wingFlapTimer * this.wingFlapSpeed) * 0.7;
-        this.wingPivotLeft.rotation.z = flapAngle;
-        this.wingPivotRight.rotation.z = -flapAngle; // mirror
+        this.tickGLBMixer(deltaTime);
+
+        // WING FLAP ANIMATION -- skip if GLB took over (those pivots are orphaned now anyway)
+        if (!this.glbLoaded) {
+            const flapAngle = Math.sin(this.wingFlapTimer * this.wingFlapSpeed) * 0.7;
+            this.wingPivotLeft.rotation.z = flapAngle;
+            this.wingPivotRight.rotation.z = -flapAngle; // mirror
+        }
 
         // SCARED TIMER countdown
         if (this.scaredTimer > 0) this.scaredTimer -= deltaTime;

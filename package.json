@@ -10,11 +10,14 @@
     "build-only": "vite build",
     "preview": "vite preview",
     "server": "node server.js",
-    "ship": "node scripts/ship.mjs"
+    "ship": "node scripts/ship.mjs",
+    "gen-models": "node scripts/gen-models.mjs"
   },
   "dependencies": {
-    "three": "latest",
+    "@gltf-transform/core": "^4.3.0",
+    "@gltf-transform/extensions": "^4.3.0",
     "cannon-es": "^0.20.0",
+    "three": "latest",
     "ws": "^8.18.0"
   },
   "devDependencies": {

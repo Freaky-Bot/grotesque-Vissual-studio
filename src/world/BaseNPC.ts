@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ItemType, InventorySystem, ITEM_INFO } from './InventorySystem';
+import { loadModel, applyModel, playAnimation, MODEL_NAMES } from './ModelLoader';
 
 export abstract class BaseNPC {
     protected position: THREE.Vector3;
@@ -147,6 +148,10 @@ export abstract class BaseNPC {
     // without this they just wander randomly and never actually fight back. pathetic.
     public chaseTarget: THREE.Vector3 | null = null;
 
+    // GLB model animation mixer -- null means using procedural mesh (no animations)
+    protected glbMixer: THREE.AnimationMixer | null = null;
+    protected glbLoaded: boolean = false; // true once GLB replaces the procedural mesh
+
     constructor(position: THREE.Vector3) {
         this.position = position.clone();
         this.velocity = new THREE.Vector3(0, 0, 0);
@@ -253,6 +258,35 @@ export abstract class BaseNPC {
 
     public getMesh(): THREE.Group | THREE.Mesh {
         return this.mesh;
+    }
+
+    // tryLoadGLBModel -- async, loads the GLB for this NPC type and swaps the mesh.
+    // falls back gracefully to procedural if file doesn't exist. no crash, no drama.
+    protected async tryLoadGLBModel(targetScale: number = 2.2): Promise<void> {
+        const type = this.getType();
+        const glbName = MODEL_NAMES[type];
+        if (!glbName) return;
+
+        const loaded = await loadModel(glbName);
+        if (!loaded) return;
+
+        if (this.mesh instanceof THREE.Group) {
+            while (this.mesh.children.length > 0) {
+                this.mesh.remove(this.mesh.children[0]);
+            }
+            const mixer = applyModel(this.mesh as THREE.Group, loaded, targetScale);
+            if (mixer) {
+                this.glbMixer = mixer;
+                playAnimation(mixer, loaded.animations, 'idle', false)
+                    ?? playAnimation(mixer, loaded.animations, 'Idle', false);
+            }
+            this.glbLoaded = true;
+        }
+    }
+
+    // tick the animation mixer in the update loop when using GLB models
+    protected tickGLBMixer(deltaTime: number): void {
+        if (this.glbMixer) this.glbMixer.update(deltaTime);
     }
 
     public getPosition(): THREE.Vector3 {

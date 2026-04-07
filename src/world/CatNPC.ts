@@ -78,6 +78,9 @@ export class CatNPC extends BaseNPC {
 
         // Set dialogues based on cat type
         this.setDialogues();
+
+        // load GLB model if one exists for this cat type -- procedural mesh stays as fallback
+        this.tryLoadGLBModel(2.2);
     }
 
     private createCatMesh(): THREE.Group {
@@ -2220,6 +2223,7 @@ export class CatNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime); // tick GLB animations if loaded
         this.randomWalk(deltaTime, this.speed);
 
         // Occasionally speak

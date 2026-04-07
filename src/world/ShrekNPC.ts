@@ -34,6 +34,9 @@ export class ShrekNPC extends BaseNPC {
         ];
         this.bubbleHeadOffset = 5.5;
         this.dialogueTimer = Math.random() * 6;
+
+        // get out of my swamp...and into this GLB model. whatever.
+        this.tryLoadGLBModel(7.5);
     }
 
     private buildShrek(): THREE.Group {
@@ -123,6 +126,7 @@ export class ShrekNPC extends BaseNPC {
     }
 
     public update(deltaTime: number): void {
+        this.tickGLBMixer(deltaTime);
         // slow walk. he's big. he's got layers
         this.randomWalk(deltaTime, 1.4);
 
