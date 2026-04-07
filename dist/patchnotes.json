@@ -1,5 +1,15 @@
 [
   {
+    "msg": "v3.4.0 feat: added da wildcard chaos engine nyaa~~ T=meteors B=blackhole K=nuke Q=purge V=gravity X=sizes L=lightning U=giant mode + random earthquakes. absolutely unhinged. nobody asked. we delivered anyway. 💕☄️🕳️💣",
+    "date": "2026-04-06",
+    "hash": "37f97ff"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-07",
+    "hash": "aabb408"
+  },
+  {
     "msg": "v3.3.2 fix: ugandan knuckles now forces its GLB to load even tho GLB_ENABLED=false. da wey cannot be denied. added loadModelForced + tryLoadGLBModelForced. whatever. mrrrow.",
     "date": "2026-04-06",
     "hash": "c317b9d"
