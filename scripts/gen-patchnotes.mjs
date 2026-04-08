@@ -18,12 +18,20 @@ const pendingMsg = pendingIdx !== -1 ? process.argv[pendingIdx + 1] : null;
 
 // HEAR YE: only commits from the v1.0.0 rebuild onward shall appear in patchnotes.
 // the old cat god era is gone. archived. forgotten. as it should be. mrrrow.
-const HISTORY_START = '2026-04-08';
+// tag v1.0.0 marks the boundary. everything before it is ancient history.
+
+// figure out da log range -- use tag if it exists, otherwise fall back
+let logRange = '-200';
+try {
+    execSync('git rev-parse v1.0.0', { cwd: process.cwd(), stdio: 'pipe' });
+    logRange = 'v1.0.0~1..HEAD'; // includes v1.0.0 itself + everything after nyaa~
+} catch {
+    // no v1.0.0 tag found, log last 200 commits as fallback
+}
 
 let raw = '';
 try {
-    // get: subject, date, abbreviated hash -- all we need nyaa~
-    raw = execSync(`git log --pretty=format:"%s|||%ad|||%h" --date=short --since="${HISTORY_START}" -200`, {
+    raw = execSync(`git log --pretty=format:"%s|||%ad|||%h" --date=short ${logRange}`, {
         cwd: process.cwd(),
         encoding: 'utf8',
     });
