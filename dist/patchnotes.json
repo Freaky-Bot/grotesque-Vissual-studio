@@ -1,5 +1,10 @@
 [
   {
+    "msg": "fix: added visible placeholder UI and bg color so da void is cute not scary! now u see a message, not just black~ UwU",
+    "date": "2026-04-08",
+    "hash": "7f3f8cf"
+  },
+  {
     "msg": "fix: minimal src/ and index.html added so da void loads! site no longer 404s, just empty and ready for new life~ UwU",
     "date": "2026-04-08",
     "hash": "83a7db5"
