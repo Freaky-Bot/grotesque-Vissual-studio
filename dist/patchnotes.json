@@ -1,5 +1,15 @@
 [
   {
+    "msg": "fix: menu is now single, centered, and patch notes scroll! no more double titles or weird stacking, just pure uwu vibes~",
+    "date": "2026-04-08",
+    "hash": "fa3de80"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-08",
+    "hash": "96dc4e9"
+  },
+  {
     "msg": "feat: added da cutest starting menu ever!! big title, start button, patch notes, and uwu vibes~ press START to enter da void!",
     "date": "2026-04-08",
     "hash": "45206de"
