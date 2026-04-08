@@ -1,7 +1,37 @@
 [
   {
+    "msg": "fix: patchnotes in dist/ finally match public/ meow~ no more ghost entries haunting da build!! UwU 🐾✨",
+    "date": "2026-04-08",
+    "hash": "cfc4cc3"
+  },
+  {
+    "msg": "fix: patchnotes now only show da final nuke. all history erased. meow.",
+    "date": "2026-04-08",
+    "hash": "03dc50e"
+  },
+  {
     "msg": "chore: deleted da whole game. blank as my soul. nothing left but dreams and package.json. meow.",
     "date": "2026-04-08",
     "hash": "9cb6dfa"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-08",
+    "hash": "05bf181"
+  },
+  {
+    "msg": "chore: fix patchnotes script to use v1.0.0 tag boundary. da old entries r gone now. clean slate enforced. mrrrow.",
+    "date": "2026-04-08",
+    "hash": "af47159"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-08",
+    "hash": "b651533"
+  },
+  {
+    "msg": "v1.0.0 feat: new game, who dis. scraped everything. npcs gone. mobs gone. cat god gone. rebuilt as The Incremental Game. clean world. clean slate. this is fine. mrrrow.",
+    "date": "2026-04-08",
+    "hash": "18ea940"
   }
 ]
