@@ -1,5 +1,15 @@
 [
   {
+    "msg": "feat: added da cutest starting menu ever!! big title, start button, patch notes, and uwu vibes~ press START to enter da void!",
+    "date": "2026-04-08",
+    "hash": "45206de"
+  },
+  {
+    "msg": "chore: rebuild dist/ [skip ci]",
+    "date": "2026-04-08",
+    "hash": "5b69c2c"
+  },
+  {
     "msg": "fix: added visible placeholder UI and bg color so da void is cute not scary! now u see a message, not just black~ UwU",
     "date": "2026-04-08",
     "hash": "7f3f8cf"
