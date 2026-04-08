@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cat God NPC World</title>
+    <title>The Incremental Game</title>
     <style>
         body {
             margin: 0;
@@ -960,18 +960,18 @@
             font-size: 14px !important;
         }
     </style>
-  <script src="./assets/index-BR3BvcmG.js"></script>
+  <script src="./assets/index-AHW0_c6n.js"></script>
 </head>
 <body>
 
     <!-- PRE-GAME MENU -- just a big start button nyaa~ covers everything until u click -->
     <div id="pregame-menu">
         <div id="pregame-inner">
-            <div id="pregame-title">🐱 CAT GOD WORLD</div>
-            <div id="pregame-subtitle">a slightly unhinged 3D realm uwu</div>
+            <div id="pregame-title">✨ THE INCREMENTAL GAME</div>
+            <div id="pregame-subtitle">an open world incremental adventure</div>
             <button id="pregame-start">▶ START</button>
-            <div id="pregame-hint">click to claim ur divine destiny meow~</div>
-            <div id="pregame-version">v2.4.0</div>
+            <div id="pregame-hint">explore the world. gather resources. grow stronger. meow~</div>
+            <div id="pregame-version">v1.0.0</div>
         </div>
         <!-- patch notes: inline scrollable list at the bottom of the menu nyaa~ -->
         <div id="patchnotes-wrap">
@@ -989,8 +989,8 @@
             setTimeout(function() {
                 menu.style.display = 'none';
                 // call the game init -- set by main.ts when it loads
-                if (typeof window.__catGodInit === 'function') {
-                    window.__catGodInit();
+                if (typeof window.__gameInit === 'function') {
+                    window.__gameInit();
                 }
             }, 620);
         });
@@ -1033,45 +1033,8 @@
     </script>
 
     <div id="ui">
-        <div>Cat God World - WASD move · SPACE jump · LClick attack · E use item · 1-6 slots · P procreate · F faction · Drag cam · Scroll zoom · Click lock · M mute</div>
-        <div id="playerKills">Player Kills: 0</div>
-        <div id="npcStats">NPCs: 0 | Buildings: 0 | Offspring: 0</div>
-        <div id="procreation">💔 Get closer to Cat God</div>
-        <div id="mp-status" style="margin-top:4px;color:#00ccff;font-size:10px;">Multiplayer: offline (no server)</div>
-        <div id="mp-players" style="color:#00eeff;font-size:10px;">Online: 1</div>
-        <div id="weather-hud" style="margin-top:3px;color:#87ceeb;font-size:10px;">Weather: clear</div>
-        <div id="time-hud" style="color:#ffdd88;font-size:10px;">12:00 PM</div>
-        <div id="domain-hud" style="margin-top:2px;color:#8844ff;font-size:10px;font-weight:bold;">⚡ Domain (Z)</div>
-        <div id="faction-hud" style="margin-top:3px;color:#888;font-size:10px;cursor:pointer;" title="Click or press F to cycle faction">Faction: NEUTRAL (click to change)</div>
-        <div style="margin-top:6px;border-top:1px solid #333;padding-top:4px;color:#ff6644;font-size:9px;line-height:1.6;font-weight:bold;">
-            🌋 WILDCARDS<br>
-            <span style="color:#ff8844;">T</span>=Meteors &nbsp;
-            <span style="color:#8800ff;">B</span>=Black Hole<br>
-            <span style="color:#ff2222;">K</span>=Nuke &nbsp;&nbsp;
-            <span style="color:#ff0000;">Q</span>=Purge<br>
-            <span style="color:#44aaff;">V</span>=Gravity &nbsp;
-            <span style="color:#ff44ff;">X</span>=Sizes<br>
-            <span style="color:#aaddff;">L</span>=Lightning &nbsp;
-            <span style="color:#44ff88;">U</span>=Giant<br>
-            <span style="color:#88ccff;">C</span>=Freeze &nbsp;
-            <span style="color:#aaffaa;">J</span>=Tornado<br>
-            <span style="color:#ffaaff;">I</span>=Clones &nbsp;
-            <span style="color:#ffcc00;">O</span>=Disco<br>
-            <span style="color:#ff4444;">Y</span>=Bomb &nbsp;&nbsp;
-            <span style="color:#88ff88;">D</span>=Shrink<br>
-            <span style="color:#cc44ff;">M</span>=MindCtrl &nbsp;
-            <span style="color:#ff2200;">[</span>=Boss<br>
-            <span style="color:#00ddff;">]</span>=Wormhole &nbsp;
-            <span style="color:#ff4400;">;</span>=CivilWar<br>
-            <span style="color:#aaaaff;">&#39;</span>=Ghosts &nbsp;
-            <span style="color:#ff0033;">`</span>=BloodMoon<br>
-            <span style="color:#aaccff;">-</span>=Fog &nbsp;&nbsp;&nbsp;
-            <span style="color:#ffdd44;">=</span>=InvertCtrl<br>
-            <span style="color:#ff88aa;">\</span>=ScreenFlip &nbsp;
-            <span style="color:#00ff66;">0</span>=MatrixRain<br>
-            <span style="color:#ffdd44;">9</span>=RapidTime &nbsp;
-            <span style="color:#ff6600;">8</span>=EarthquakeChain
-        </div>
+        <div>The Incremental Game — WASD to move · Drag to rotate cam · Scroll to zoom</div>
+        <div id="player-coords" style="margin-top:4px;color:#aaddff;">X: 0  Z: 0</div>
     </div>
 
     <!-- chat system, press enter to open -->
@@ -1225,13 +1188,7 @@
             }
 
             // NPC dots -- colored by type
-            const typeColors = {
-                normal: '#ff8844', jesus: '#ffffaa', robot: '#44ffff', orb: '#ff44ff',
-                angel: '#ffffff', pirate: '#8866ff', wizard: '#aa44ff', vampire: '#ff2244',
-                disco: '#ff88ff', shadow: '#444466', barney: '#cc44cc', emo: '#334433',
-                shrek: '#44aa33', buffcat: '#ff6633', voidcat: '#222244', hybrid: '#ff8800',
-                obama: '#3366ff', trump: '#ff6633'
-            };
+            const typeColors: Record<string,string> = {};
             if (npcs && npcs.length) {
                 for (const npc of npcs) {
                     if (!npc.alive) continue;
@@ -1317,19 +1274,8 @@
 
     <!-- version hud -- bottom right corner, always visible, single source of truth for current version -->
     <!-- HEAR YE: this displayeth the noble version of the realm. update it with every commit. by my honor. -->
-    <div id="version-hud">v3.15.2</div>
+    <div id="version-hud">v1.0.0</div>
 
-    <!-- chaos meter -- rises with events, decays slowly. ARE U READY FOR MAXIMUM CHAOS?? -->
-    <div id="chaos-hud" style="
-        position: fixed; bottom: 60px; right: 10px;
-        width: 110px; font-family: Arial, sans-serif; font-size: 10px;
-        color: rgba(255,200,0,0.9); pointer-events: none; z-index: 105; user-select: none;
-    ">
-        <div style="margin-bottom: 2px;">☄️ CHAOS</div>
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,150,0,0.5); height: 6px; border-radius: 3px; overflow: hidden;">
-            <div id="chaos-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ff6600, #ff0000); transition: width 0.3s;"></div>
-        </div>
-    </div>
 
     <!-- level + xp hud -- top right, tracks your ascent to godhood -->
     <div id="level-hud" style="
