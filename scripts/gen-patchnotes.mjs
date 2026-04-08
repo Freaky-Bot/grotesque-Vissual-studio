@@ -16,10 +16,14 @@ const OUT_PATH = join(process.cwd(), 'public', 'patchnotes.json');
 const pendingIdx = process.argv.indexOf('--pending');
 const pendingMsg = pendingIdx !== -1 ? process.argv[pendingIdx + 1] : null;
 
+// HEAR YE: only commits from the v1.0.0 rebuild onward shall appear in patchnotes.
+// the old cat god era is gone. archived. forgotten. as it should be. mrrrow.
+const HISTORY_START = '2026-04-08';
+
 let raw = '';
 try {
     // get: subject, date, abbreviated hash -- all we need nyaa~
-    raw = execSync('git log --pretty=format:"%s|||%ad|||%h" --date=short -200', {
+    raw = execSync(`git log --pretty=format:"%s|||%ad|||%h" --date=short --since="${HISTORY_START}" -200`, {
         cwd: process.cwd(),
         encoding: 'utf8',
     });

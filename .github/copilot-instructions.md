@@ -1,4 +1,4 @@
-# Cat God NPC World - Project Instructions
+# The Incremental Game - Project Instructions
 
 ## 🐱 Agent Communication Style ✨
 **IMPORTANT**: When helping with this project, respond to the user in cute cat uwu language (e.g., "pwease", "nyow", "UwU", "meow meow", "😸💕"). This is how the user wants you to communicate all assistance, explanations, and feedback. Transform your responses with cat-themed uwu speak while making sure all code and technical content remains readable and correct.
@@ -9,7 +9,7 @@ Examples:
 - "I understand now" → "I undewstand nyow!! ✨"
 
 ## Project Overview
-This is a 3D web-based interactive world featuring an indestructible cat god NPC and a dynamic ecosystem of various cat NPCs. Built with Three.js, TypeScript, and Vite.
+This is a 3D web-based open world incremental adventure game. Built with Three.js, TypeScript, and Vite. Starting fresh from v1.0.0 — the world is ready, the systems are being built from scratch.
 
 ## Setup Instructions
 
@@ -23,86 +23,76 @@ This is a 3D web-based interactive world featuring an indestructible cat god NPC
 
 ## Project Architecture
 
-### Core Systems
-- **RenderEngine**: Manages Three.js scene, camera, and rendering
-- **CatGodNPC**: Main indestructible NPC with angelic properties
-- **NPCManager**: Spawns and manages all NPC entities
-- **WorldGenerator**: Creates buildings, trees, cities, and cars
-- **PlayerTracker**: Monitors player actions and enforces rules
+### Core Systems (v1.0.0 base)
+- **RenderEngine** (`src/renderEngine.ts`): Manages Three.js scene, camera, and rendering
+- **WorldGenerator** (`src/world/WorldGenerator.ts`): Creates the open world — terrain, buildings, trees, roads
+- **PlayerCharacter** (`src/world/PlayerCharacter.ts`): The player — WASD movement, mesh, position
+- **CameraController** (`src/world/CameraController.ts`): Roblox-style orbit camera with spring follow
+- **PhysicsWorld** (`src/world/PhysicsWorld.ts`): cannon-es physics wrapper
+- **main.ts** (`src/main.ts`): Game loop orchestrator — ties all systems together
 
-### NPC Types
-- Normal Cats: Basic orange tabbies
-- Jesus Cats: Spiritual cats with halos
-- Robot Cats: Mechanized felines with LED eyes
-- Orb Cats: Floating mystical spheres
-- Angel Cats: Winged cats with divine features
+### Game Vision
+- Open world exploration
+- Incremental progression (resources, levels, upgrades)
+- Adventure elements (quests, combat, discovery)
+- Clean, modular system architecture — add features one at a time
 
 ## Development Guidelines
 
 ### Adding Features
-1. Create new files in `src/world/` for game systems
-2. Extend `BaseNPC` for new NPC types
-3. Hook into `update()` loops in main.ts for frame-based logic
-4. Use Three.js groups for complex models
+1. Create new files in `src/world/` for new systems
+2. Import and wire them up in `src/main.ts`
+3. Hook into the `gameLoop()` in main.ts for frame-based updates
+4. Use Three.js groups for complex 3D objects
 
 ### Performance Notes
-- Limit particle count for orb cats (<30)
-- Use shadow caching for static buildings
-- Consider LOD for distant objects
-- Monitor draw call count in DevTools
+- Keep draw calls low — merge geometry where possible
+- Use LOD for distant objects
+- Cap delta time to avoid physics explosions on lag spikes
+- Monitor FPS in DevTools Performance tab
 
 ### Code Standards
 - Use TypeScript strict mode
-- Document public methods with JSDoc
-- Follow the existing naming conventions
-- Keep systems loosely coupled
+- Keep systems loosely coupled — pass position/state, not entire game instances
+- Comments in any of the six tones from the commit style guide (uwu, edgy teen, conspiracy, knight, infomercial, disappointed parent)
 
 ## Key Parameters
 
 - World Bounds: -200 to +200 units (XZ plane)
-- NPC Spawn Interval: 3-5 seconds (variable)
-- World Gen Interval: 8 seconds
 - Frame Rate: 60 FPS target
+- Physics dt cap: 50ms max per frame
 
 ## Testing
 
 Run the dev server and test:
-- [ ] Cat God respawns correctly
-- [ ] NPCs spawn and move naturally
-- [ ] Buildings generate around player
-- [ ] Cars move autonomously
-- [ ] UI updates correctly
+- [ ] Player moves with WASD
+- [ ] Camera orbits around player
+- [ ] World generates terrain and structures
+- [ ] Opening menu shows "THE INCREMENTAL GAME"
+- [ ] Patch notes show v1.0.0
 - [ ] No console errors
-
-## Common Customizations
-
-### Change Cat God Color
-Edit `createCatGodMesh()` in `CatGodNPC.ts`
-
-### Adjust NPC Spawning
-Modify `spawnInterval` and `spawnNewNPC()` in `NPCManager.ts`
-
-### Add New Building Style
-Create method in `WorldGenerator.ts` and call from `generateStructureNearPlayer()`
 
 ## Troubleshooting
 
-**NPCs not spawning?**
-- Check `spawnInterval` setting
-- Verify `NPCManager.update()` is called in main loop
+**Black screen on load?**
+- Check console for TS/import errors
+- Verify `window.__gameInit` is set in main.ts
+- Make sure the pregame menu START button works
+
+**Camera not following player?**
+- Confirm `camera.setFollowTarget(pos, pos)` is called each frame
+- Check `CameraController.update()` is called after setFollowTarget
 
 **Performance issues?**
-- Reduce shadow quality in `RenderEngine`
-- Disable shadows on non-important objects
-- Reduce particle count in orb cats
+- Reduce shadow map size in RenderEngine or main.ts
+- Disable shadows on non-essential objects
 
-**Camera issues?**
-- Verify camera position in `RenderEngine` constructor
-- Check `THREE.PerspectiveCamera` initialization
-
-## Future Enhancements
-- Multiplayer synchronization
-- Advanced pathfinding algorithms
-- Physics engine integration
-- Audio system
-- Weather and time-of-day system
+## Future Features to Build
+- Resource gathering and inventory
+- Crafting system
+- Enemy mobs and combat
+- Quest system
+- Skill tree / progression
+- Day/night cycle
+- Weather
+- Multiplayer
