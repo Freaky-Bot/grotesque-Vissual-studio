@@ -1,5 +1,10 @@
 [
   {
+    "msg": "fix: minimal src/ and index.html added so da void loads! site no longer 404s, just empty and ready for new life~ UwU",
+    "date": "2026-04-08",
+    "hash": "83a7db5"
+  },
+  {
     "msg": "fix: patchnotes in dist/ finally match public/ meow~ no more ghost entries haunting da build!! UwU 🐾✨",
     "date": "2026-04-08",
     "hash": "cfc4cc3"
